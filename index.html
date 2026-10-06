@@ -1,0 +1,707 @@
+<title>Typo Cao</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
+<style>
+/* Layout : application plein écran sans défilement — scène centrale claire (écrin), collections à gauche, matières à droite, lightbox + formulaire de demande */
+:root{
+  --bg:#ece5d8;
+  --surface:#f7f3eb;
+  --surface-2:#efe8db;
+  --fg:#2b2218;
+  --muted:#8d7d67;
+  --gold:#a87c3f;
+  --gold-deep:#8a6330;
+  --line:#d9cdb8;
+  --shadow:rgba(70,48,22,.28);
+  --display:"Fraunces",Georgia,serif;
+  --body:"Outfit",system-ui,sans-serif;
+}
+html,body{height:100%}
+img{-webkit-user-drag:none;user-select:none}
+.word,.mats,.coll,.lightbox,.stage{user-select:none}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(1200px 600px at 50% -200px,#f6f0e4 0%,var(--bg) 70%);
+  color:var(--fg);
+  font-family:var(--body);
+  font-weight:300;
+  margin:0;
+  overflow:hidden;
+}
+.app{
+  height:100%;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  box-sizing:border-box;
+  max-width:1280px;
+  margin:0 auto;
+}
+
+/* ---- header ---- */
+header{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:300;font-size:clamp(1.3rem,3vw,1.9rem);letter-spacing:.14em;margin:0;white-space:nowrap}
+.brand b{color:var(--gold-deep);font-weight:600}
+header input{
+  flex:1;min-width:150px;max-width:340px;background:var(--surface);border:1px solid var(--line);
+  color:var(--fg);font-family:var(--body);font-weight:500;font-size:1rem;
+  letter-spacing:.18em;text-transform:uppercase;padding:9px 14px;border-radius:4px;outline:none;
+}
+header input:focus{border-color:var(--gold)}
+.chosen{margin-left:auto;color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+.chosen b{color:var(--gold-deep);font-weight:500}
+
+/* ---- corps 3 colonnes ---- */
+.main{display:grid;grid-template-columns:150px 1fr 170px;gap:12px;min-height:0}
+.rail{display:flex;flex-direction:column;gap:10px;min-height:0}
+.rail-title{font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold-deep);font-weight:500;flex:none}
+
+/* collections (gauche) */
+.coll{
+  flex:none;border:1px solid var(--line);border-radius:6px;background:var(--surface);
+  padding:10px;cursor:pointer;text-align:center;transition:border-color .2s,box-shadow .2s;
+}
+.coll.selected{border-color:var(--gold);box-shadow:0 4px 14px var(--shadow)}
+.coll img{height:64px;width:auto;max-width:100%;filter:drop-shadow(0 6px 10px var(--shadow))}
+.coll .nm{font-size:.68rem;letter-spacing:.08em;color:var(--muted);margin-top:6px}
+.coll.selected .nm{color:var(--gold-deep);font-weight:500}
+
+/* matières (droite) */
+.mats{
+  flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;
+  scrollbar-width:thin;scrollbar-color:var(--gold) transparent;padding-right:2px;
+}
+.thumb{
+  margin:0;background:var(--surface);border:1px solid var(--line);border-radius:6px;
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;padding:7px;cursor:zoom-in;
+  transition:border-color .2s;
+}
+.thumb:hover{border-color:var(--gold)}
+.thumb img{max-height:100%;max-width:100%;object-fit:contain}
+
+/* scène centrale : écrin clair */
+.stage{
+  position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);
+  background-image:radial-gradient(640px 320px at 50% 110%,#e3d8c4 0%,transparent 72%);
+  min-height:0;display:flex;align-items:center;justify-content:center;overflow:hidden;
+  box-shadow:inset 0 1px 0 #fffdf8;
+}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage video[hidden]{display:none}
+.scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,14,8,.5));opacity:0;transition:opacity .3s;pointer-events:none}
+.stage.has-video .scrim{opacity:1}
+.word{
+  position:relative;display:flex;align-items:flex-end;justify-content:center;gap:.3em;flex-wrap:wrap;
+  padding:16px 4%;max-width:100%;box-sizing:border-box;
+}
+.stage.has-video .word{position:absolute;inset:auto 0 6%}
+.word img{height:var(--lh,96px);width:auto;max-width:100%;cursor:zoom-in;filter:drop-shadow(0 14px 22px var(--shadow))}
+.word .sp{width:1.1em}
+.word .empty{font-family:var(--display);color:var(--gold);font-size:2rem;letter-spacing:.3em}
+@media (prefers-reduced-motion:no-preference){
+  .word.play[data-anim="pop"] img{animation:pop .55s cubic-bezier(.2,.9,.3,1.4) both;animation-delay:calc(var(--i)*90ms)}
+  .word.play[data-anim="chute"] img{animation:chute .6s cubic-bezier(.3,1.6,.4,1) both;animation-delay:calc(var(--i)*110ms)}
+  .word.play[data-anim="fondu"] img{animation:fondu .9s ease-out both;animation-delay:calc(var(--i)*140ms)}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.85)}to{opacity:1;transform:none}}
+  @keyframes chute{from{opacity:0;transform:translateY(-140%)}60%{opacity:1}to{opacity:1;transform:none}}
+  @keyframes fondu{from{opacity:0;transform:scale(1.18)}to{opacity:1;transform:none}}
+}
+
+/* ---- choix d'animation ---- */
+.anim-seg{display:flex;align-items:center;gap:6px}
+.anim-seg .lbl{font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.anim-seg button{padding:8px 12px;font-size:.72rem;border:1px solid var(--line);background:var(--surface);color:var(--muted)}
+.anim-seg button.on{border-color:var(--gold);color:var(--gold-deep);font-weight:600}
+
+/* ---- barre d'actions ---- */
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+button{
+  font-family:var(--body);font-weight:500;font-size:.78rem;letter-spacing:.1em;
+  border-radius:4px;padding:10px 18px;cursor:pointer;border:1px solid var(--gold-deep);
+  background:var(--gold-deep);color:#fdf9f1;white-space:nowrap;
+}
+button.ghost{background:transparent;color:var(--gold-deep)}
+.done{color:var(--muted);font-size:.75rem}
+
+/* ---- lightbox ---- */
+.lightbox{
+  position:fixed;inset:0;background:rgba(246,241,232,.94);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;z-index:50;cursor:zoom-out;padding:4vh 4vw;box-sizing:border-box;
+}
+.lightbox img{max-width:min(92vw,720px);max-height:76vh;object-fit:contain;filter:drop-shadow(0 28px 48px var(--shadow))}
+.lightbox .cap{color:var(--fg);letter-spacing:.2em;text-transform:uppercase;font-size:.72rem;text-align:center}
+.lightbox .close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:18px;background:transparent;border:1px solid var(--line);color:var(--fg);border-radius:999px;width:38px;height:38px;padding:0;font-size:1rem}
+
+/* ---- formulaire de demande ---- */
+.modal{
+  position:fixed;inset:0;background:rgba(43,34,24,.45);display:flex;align-items:center;justify-content:center;
+  z-index:60;padding:16px;box-sizing:border-box;
+}
+.panel{
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;max-width:460px;width:100%;
+  max-height:92vh;overflow-y:auto;padding:26px;box-sizing:border-box;box-shadow:0 30px 60px var(--shadow);
+}
+.panel h2{font-family:var(--display);font-weight:500;font-size:1.3rem;margin:0 0 4px}
+.panel .sum{color:var(--muted);font-size:.82rem;margin:0 0 18px}
+.panel .sum b{color:var(--gold-deep);font-weight:500}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.field input,.field textarea{
+  background:#fffdf8;border:1px solid var(--line);border-radius:4px;color:var(--fg);
+  font-family:var(--body);font-size:.92rem;padding:10px 12px;outline:none;resize:vertical;
+}
+.field input:focus,.field textarea:focus{border-color:var(--gold)}
+.panel .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.panel .close-row{display:flex;justify-content:flex-end}
+.panel .x{background:transparent;border:none;color:var(--muted);font-size:1.1rem;padding:4px 8px}
+a.wa{
+  display:inline-block;text-decoration:none;font-weight:500;font-size:.78rem;letter-spacing:.1em;
+  border-radius:4px;padding:10px 18px;border:1px solid #1fa855;background:#1fa855;color:#fff;white-space:nowrap;
+}
+
+/* ---- moteur de rendu ---- */
+.render-box{display:flex;flex-direction:column;gap:14px;align-items:center}
+.render-box canvas{max-width:100%;max-height:52vh;border-radius:8px;background:#000}
+.render-box video{max-width:100%;max-height:52vh;border-radius:8px;background:#000}
+.progress{width:100%;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.progress i{display:block;height:100%;width:0%;background:var(--gold);transition:width .3s linear}
+.render-note{font-size:.78rem;color:var(--muted);text-align:center;max-width:46ch}
+
+/* ---- mobile ---- */
+@media (max-width:760px){
+  .app{padding-inline:12px;gap:8px;grid-template-rows:auto auto 1fr auto auto}
+  .main{display:contents}
+  .stage{order:2}
+  .rail-left{order:3;flex-direction:row;align-items:center;gap:8px}
+  .rail-left .rail-title{writing-mode:vertical-rl;transform:rotate(180deg);font-size:.56rem}
+  .coll{display:flex;align-items:center;gap:10px;padding:8px 10px;flex:1}
+  .coll img{height:40px}
+  .coll .nm{margin-top:0}
+  .rail-right{order:4}
+  .rail-right .rail-title{display:none}
+  .mats{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:64px;overflow-x:auto;overflow-y:hidden;height:72px}
+  .thumb{padding:5px}
+  .bar{order:5}
+  .word img{--lh:clamp(40px,13vw,70px)}
+  .chosen{display:none}
+}
+</style>
+
+<div class="app">
+  <header>
+    <h1 class="brand">TYPO <b>CAO</b></h1>
+    <input id="nameInput" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="VOTRE PRÉNOM OU MESSAGE" aria-label="Prénom ou message à composer">
+    <div class="chosen">Collection <b id="chosenLabel">Perles &amp; Or</b></div>
+  </header>
+
+  <div class="main">
+    <div class="rail rail-left">
+      <div class="rail-title">Collections</div>
+      <div class="coll selected" data-style="perles" role="button" tabindex="0" aria-pressed="true">
+        <img src="assets/perles_A.webp" alt="Collection Perles et Or">
+        <div class="nm">Perles &amp; Or</div>
+      </div>
+      <div class="coll" data-style="football" role="button" tabindex="0" aria-pressed="false">
+        <img src="assets/football_A.webp" alt="Collection Football">
+        <div class="nm">Football</div>
+      </div>
+    </div>
+
+    <div class="stage" id="stage">
+      <video id="video" muted loop playsinline hidden></video>
+      <div class="scrim"></div>
+      <div class="word" id="word"></div>
+    </div>
+
+    <div class="rail rail-right">
+      <div class="rail-title">Matières à la demande</div>
+      <div class="mats" id="mats"></div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="ghost" id="importBtn" type="button">Importer ma vidéo</button>
+    <div class="anim-seg" role="group" aria-label="Animation des lettres">
+      <span class="lbl">Animation</span>
+      <button type="button" data-anim="pop" class="on">Pop</button>
+      <button type="button" data-anim="chute">Chute</button>
+      <button type="button" data-anim="fondu">Fondu</button>
+    </div>
+    <button class="ghost" id="replayBtn" type="button">Rejouer</button>
+    <button id="renderBtn" type="button" hidden>Générer ma vidéo</button>
+    <button id="orderBtn" type="button">Envoyer ma demande</button>
+    <span class="done">© Yuan Cao — Typo Cao · modèles déposés, aperçus filigranés</span>
+    <input id="videoInput" type="file" accept="video/*" hidden>
+  </div>
+</div>
+
+<!-- moteur de rendu -->
+<div class="modal" id="renderModal" hidden>
+  <div class="panel render-box" id="renderPanel">
+    <h2 id="renderTitle">Fabrication de votre vidéo…</h2>
+    <canvas id="renderCanvas" hidden></canvas>
+    <video id="resultVideo" controls playsinline hidden></video>
+    <div class="progress" id="renderProgress"><i></i></div>
+    <p class="render-note" id="renderNote">Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.</p>
+    <div class="actions">
+      <button id="saveVideoBtn" type="button" hidden>Télécharger ma vidéo</button>
+      <button class="ghost" id="renderCancelBtn" type="button">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- formulaire de demande -->
+<div class="modal" id="orderModal" hidden>
+  <form class="panel" id="orderForm">
+    <div class="close-row"><button type="button" class="x" id="orderClose" aria-label="Fermer">✕</button></div>
+    <h2>Votre demande</h2>
+    <p class="sum">Prénom <b id="sumName">—</b> · Collection <b id="sumStyle">—</b> · Vidéo <b id="sumVideo">à envoyer avec votre message</b></p>
+    <div class="field">
+      <label for="cliName">Votre nom</label>
+      <input id="cliName" type="text" autocomplete="name" required>
+    </div>
+    <div class="field">
+      <label for="cliContact">Votre WhatsApp ou Instagram</label>
+      <input id="cliContact" type="text" placeholder="06 12 34 56 78 ou @pseudo" required>
+    </div>
+    <div class="field">
+      <label for="cliNotes">Précisions (matières souhaitées, occasion, couleurs…)</label>
+      <textarea id="cliNotes" rows="3" placeholder="Ex. : le S en cuir chocolat, c'est pour un anniversaire…"></textarea>
+    </div>
+    <div class="actions">
+      <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
+      <button type="button" id="copyBtn">Copier le message</button>
+      <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
+    </div>
+  </form>
+</div>
+
+<script>
+/* Numéro WhatsApp de l'atelier au format international sans +, ex. "33612345678". Vide = bouton WhatsApp masqué. */
+const CONFIG = { whatsapp: "33665433314" };
+
+const STYLES = { perles:"Perles & Or", football:"Football" };
+const MIX = ["A","B","B2","C","C2","C3","D","E","E2","F","G","H","I","J","K","L","L2","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+const MIX_LABELS = {
+  A:"Noir matelassé", B:"Ballon doré", B2:"Ballon or nacré", C:"Cuivre écailles", C2:"Cookie doré", C3:"Orange nacré",
+  D:"Grenat pailleté", E:"Noir gonflé", E2:"Orange brioché", F:"Velours noir boutons or", G:"Chocolat feuille d'or",
+  H:"Marbre noir veiné or", I:"Verre de miel", J:"Velours émeraude", K:"Orange brioché", L:"Paillettes cacao", L2:"Paillettes or",
+  M:"Or matelassé", N:"Cookie chocolat", O:"Noir bulles d'or", P:"Noir laqué", Q:"Noir pois d'or", R:"Or écailles",
+  S:"Cuir chocolat", T:"Or satiné", U:"Rouge & or", V:"Cuivre pailleté", W:"Mousse végétale", X:"Noir gonflé",
+  Y:"Fourrure tigrée", Z:"Rouge baroque"
+};
+
+let currentStyle = "perles";
+let currentName  = "SARA";
+let currentAnim  = "pop";
+const ANIMS = { pop:"Pop", chute:"Chute", fondu:"Fondu" };
+let videoFileName = null;
+
+const word  = document.getElementById("word");
+const stage = document.getElementById("stage");
+const video = document.getElementById("video");
+
+function normalize(raw){
+  return raw.normalize("NFD").replace(/[̀-ͯ]/g,"")
+            .toUpperCase().replace(/[^A-Z ]/g,"").replace(/\s+/g," ");
+}
+
+function sizeLetters(){
+  const n = Math.max(1, currentName.replace(/ /g,"").length);
+  const w = stage.clientWidth * 0.86;
+  const h = stage.clientHeight * (stage.classList.contains("has-video") ? 0.3 : 0.5);
+  const size = Math.max(36, Math.min(h, (w / n) * 1.15, 180));
+  word.style.setProperty("--lh", size + "px");
+}
+
+function renderWord(replay){
+  word.classList.remove("play");
+  word.dataset.anim = currentAnim;
+  word.innerHTML = "";
+  let i = 0;
+  for (const ch of currentName){
+    if (ch === " "){
+      const sp = document.createElement("span"); sp.className = "sp"; word.appendChild(sp); continue;
+    }
+    const img = document.createElement("img");
+    img.src = `assets/${currentStyle}_${ch}.webp`;
+    img.alt = "Lettre " + ch;
+    img.style.setProperty("--i", i++);
+    img.addEventListener("click", () => openLightbox(img.src, "Lettre " + ch + " — " + STYLES[currentStyle]));
+    word.appendChild(img);
+  }
+  if (!currentName.trim()){
+    const e = document.createElement("span"); e.className = "empty"; e.textContent = "· · ·"; word.appendChild(e);
+  }
+  sizeLetters();
+  if (replay){ void word.offsetWidth; word.classList.add("play"); }
+}
+
+/* saisie */
+const nameInput = document.getElementById("nameInput");
+nameInput.addEventListener("input", () => {
+  const clean = normalize(nameInput.value);
+  if (clean !== nameInput.value) nameInput.value = clean;
+  currentName = clean || "SARA";
+  renderWord(true);
+});
+
+/* choix d'animation */
+for (const b of document.querySelectorAll(".anim-seg button")){
+  b.addEventListener("click", () => {
+    currentAnim = b.dataset.anim;
+    for (const o of document.querySelectorAll(".anim-seg button")) o.classList.toggle("on", o === b);
+    renderWord(true);
+  });
+}
+
+/* collections */
+for (const c of document.querySelectorAll(".coll")){
+  const select = () => {
+    currentStyle = c.dataset.style;
+    for (const o of document.querySelectorAll(".coll")){
+      const on = o === c;
+      o.classList.toggle("selected", on);
+      o.setAttribute("aria-pressed", on);
+    }
+    document.getElementById("chosenLabel").textContent = STYLES[currentStyle];
+    renderWord(true);
+  };
+  c.addEventListener("click", select);
+  c.addEventListener("keydown", e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); select(); } });
+}
+
+/* matières */
+const mats = document.getElementById("mats");
+for (const key of MIX){
+  const fig = document.createElement("figure");
+  fig.className = "thumb";
+  const img = document.createElement("img");
+  img.src = `assets/mix_${key}.webp`;
+  img.alt = (MIX_LABELS[key] || "Matière") + " — lettre " + key[0];
+  img.loading = "lazy";
+  fig.appendChild(img);
+  fig.addEventListener("click", () => openLightbox(img.src, (MIX_LABELS[key]||"Matière") + " — réalisable pour toutes les lettres"));
+  mats.appendChild(fig);
+}
+
+/* lightbox */
+function openLightbox(src, caption){
+  const lb = document.createElement("div");
+  lb.className = "lightbox";
+  lb.innerHTML = `<button class="close" aria-label="Fermer">✕</button><img src="${src}" alt=""><div class="cap"></div>`;
+  lb.querySelector(".cap").textContent = caption;
+  const close = () => lb.remove();
+  lb.addEventListener("click", close);
+  document.addEventListener("keydown", function esc(e){ if(e.key==="Escape"){ close(); document.removeEventListener("keydown", esc);} });
+  document.body.appendChild(lb);
+}
+
+/* vidéo */
+const videoInput = document.getElementById("videoInput");
+document.getElementById("importBtn").addEventListener("click", () => videoInput.click());
+videoInput.addEventListener("change", () => {
+  const f = videoInput.files[0];
+  if (!f || !f.type.startsWith("video/")) return;
+  videoFileName = f.name;
+  video.src = URL.createObjectURL(f);
+  video.hidden = false;
+  stage.classList.add("has-video");
+  video.play().catch(()=>{});
+  renderWord(true);
+  updateRenderBtn();
+});
+document.getElementById("replayBtn").addEventListener("click", () => {
+  if (!video.hidden){ video.currentTime = 0; video.play().catch(()=>{}); }
+  renderWord(true);
+});
+
+/* ---- moteur de demande ---- */
+const orderModal = document.getElementById("orderModal");
+
+function buildMessage(){
+  const cliName = document.getElementById("cliName").value.trim();
+  const cliContact = document.getElementById("cliContact").value.trim();
+  const cliNotes = document.getElementById("cliNotes").value.trim();
+  const lines = [
+    "✨ Demande Typo Cao — pour Yuan Cao",
+    "Prénom à composer : " + (currentName.trim() || "—"),
+    "Collection : " + STYLES[currentStyle],
+    "Animation : " + ANIMS[currentAnim],
+    "Vidéo : " + (videoFileName ? videoFileName + " (envoyée avec ce message)" : "envoyée avec ce message"),
+    "Aperçu généré sur le site : " + (renderedOnce ? "oui" : "non")
+  ];
+  if (cliName)    lines.push("Nom : " + cliName);
+  if (cliContact) lines.push("Contact : " + cliContact);
+  if (cliNotes)   lines.push("Précisions : " + cliNotes);
+  return lines.join("\n");
+}
+
+function refreshWa(){
+  const wa = document.getElementById("waLink");
+  if (!CONFIG.whatsapp){ wa.hidden = true; return; }
+  wa.hidden = false;
+  wa.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(buildMessage());
+}
+
+document.getElementById("orderBtn").addEventListener("click", () => {
+  document.getElementById("sumName").textContent  = currentName.trim() || "—";
+  document.getElementById("sumStyle").textContent = STYLES[currentStyle];
+  document.getElementById("sumVideo").textContent = videoFileName || "à envoyer avec votre message";
+  refreshWa();
+  orderModal.hidden = false;
+  document.getElementById("cliName").focus();
+});
+document.getElementById("orderClose").addEventListener("click", () => { orderModal.hidden = true; });
+orderModal.addEventListener("click", e => { if (e.target === orderModal) orderModal.hidden = true; });
+document.getElementById("orderForm").addEventListener("submit", e => e.preventDefault());
+for (const id of ["cliName","cliContact","cliNotes"]){
+  document.getElementById(id).addEventListener("input", refreshWa);
+}
+
+document.getElementById("copyBtn").addEventListener("click", async () => {
+  const txt = buildMessage();
+  const done = document.getElementById("copyDone");
+  const ok = () => { done.hidden = false; setTimeout(()=>{ done.hidden = true; }, 3500); };
+  try { await navigator.clipboard.writeText(txt); ok(); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); ok(); } catch {}
+    ta.remove();
+  }
+});
+
+/* ---- moteur de rendu : incruste les lettres sur la vidéo et livre le fichier ---- */
+const renderBtn = document.getElementById("renderBtn");
+const renderModal = document.getElementById("renderModal");
+const renderCanvas = document.getElementById("renderCanvas");
+const resultVideo = document.getElementById("resultVideo");
+const renderBar = document.querySelector("#renderProgress i");
+const MAX_RENDER_S = 60;
+let renderAbort = null;
+let lastRenderBlob = null, lastRenderExt = "webm";
+let renderedOnce = false;
+
+const canRender = !!(HTMLCanvasElement.prototype.captureStream && window.MediaRecorder);
+
+function updateRenderBtn(){
+  renderBtn.hidden = !(canRender && videoFileName);
+}
+
+function pickMime(){
+  const opts = [["video/mp4;codecs=avc1", "mp4"], ["video/webm;codecs=vp9,opus", "webm"], ["video/webm", "webm"]];
+  for (const [m, ext] of opts){
+    try { if (MediaRecorder.isTypeSupported(m)) return [m, ext]; } catch {}
+  }
+  return [undefined, "webm"];
+}
+
+async function loadLetterImages(){
+  const jobs = [];
+  for (const ch of currentName){
+    if (ch === " "){ jobs.push(Promise.resolve(null)); continue; }
+    jobs.push(new Promise(res => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = () => res(null);
+      im.src = `assets/${currentStyle}_${ch}.webp`;
+    }));
+  }
+  return Promise.all(jobs);
+}
+
+function layoutLetters(imgs, W, H){
+  // mots -> lignes, hauteur de lettre adaptée pour tenir en largeur (3 lignes max)
+  const words = [];
+  let cur = [];
+  for (const im of imgs){
+    if (im === null){ if (cur.length) words.push(cur); cur = []; }
+    else cur.push(im);
+  }
+  if (cur.length) words.push(cur);
+  if (!words.length) return null;
+
+  const maxW = W * 0.86;
+  const wordW = (w, LH) => w.reduce((s, im) => s + (im.width/im.height)*LH + LH*0.12, -LH*0.12);
+  let LH = H * 0.2;
+  const longest = Math.max(...words.map(w => wordW(w, 1)));
+  LH = Math.min(LH, maxW / longest);
+
+  function wrap(LH){
+    const lines = [[]];
+    for (const w of words){
+      const line = lines[lines.length-1];
+      const trial = [...line, w];
+      const tw = trial.reduce((s, wd) => s + wordW(wd, LH) + LH*0.5, -LH*0.5);
+      if (line.length && tw > maxW) lines.push([w]); else line.push(w);
+    }
+    return lines;
+  }
+  let lines = wrap(LH);
+  while (lines.length > 3 && LH > H*0.06){ LH *= 0.88; lines = wrap(LH); }
+  // aplatir en liste de lettres avec positions
+  const out = [];
+  const lineH = LH * 1.16;
+  const baseY = H * 0.92 - (lines.length - 1) * lineH;
+  let i = 0;
+  lines.forEach((line, li) => {
+    const lw = line.reduce((s, wd) => s + wordW(wd, LH) + LH*0.5, -LH*0.5);
+    let x = (W - lw) / 2;
+    for (const wd of line){
+      for (const im of wd){
+        const w = (im.width/im.height)*LH;
+        out.push({im, x, y: baseY + li*lineH, w, LH, i});
+        x += w + LH*0.12; i++;
+      }
+      x += LH*0.5 - LH*0.12;
+    }
+  });
+  return out;
+}
+
+function drawLetters(ctx, imgs, t, W, H){
+  const L = layoutLetters(imgs, W, H);
+  if (!L) return;
+  for (const {im, x, y, w, LH, i} of L){
+    const t0 = 0.35 + i * (currentAnim === "fondu" ? 0.14 : 0.12);
+    const d = currentAnim === "fondu" ? 0.9 : 0.55;
+    const p = Math.max(0, Math.min(1, (t - t0) / d));
+    if (p <= 0) continue;
+    const e = 1 - Math.pow(1 - p, 3);
+    let alpha = p, dy = 0, s = 1;
+    if (currentAnim === "pop"){
+      s = 0.8 + 0.2*e + 0.08*Math.sin(p*Math.PI);
+      dy = (1 - e) * LH * 0.5;
+    } else if (currentAnim === "chute"){
+      alpha = Math.min(1, p*4);
+      const bounce = p < 0.75 ? 1 - Math.pow(1 - p/0.75, 2) : 1 + Math.sin((p-0.75)/0.25*Math.PI) * 0.06 * (1-p);
+      dy = -(1 - bounce) * (y + LH);
+    } else { // fondu
+      s = 1.18 - 0.18*e;
+    }
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x + w/2, y - LH/2 + dy);
+    ctx.scale(s, s);
+    ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = LH*0.12; ctx.shadowOffsetY = LH*0.08;
+    ctx.drawImage(im, -w/2, -LH/2, w, LH);
+    ctx.restore();
+  }
+}
+
+async function startRender(){
+  const file = videoInput.files[0];
+  if (!file) return;
+  renderModal.hidden = false;
+  renderCanvas.hidden = false;
+  resultVideo.hidden = true;
+  document.getElementById("saveVideoBtn").hidden = true;
+  document.getElementById("renderTitle").textContent = "Fabrication de votre vidéo…";
+  document.getElementById("renderNote").textContent = "Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.";
+  renderBar.style.width = "0%";
+
+  const imgs = await loadLetterImages();
+  const v = document.createElement("video");
+  v.src = URL.createObjectURL(file);
+  v.playsInline = true; v.muted = false; v.volume = 1;
+  await new Promise(res => { v.onloadedmetadata = res; });
+  const dur = Math.min(v.duration || MAX_RENDER_S, MAX_RENDER_S);
+
+  const scale = Math.min(1, 1280 / v.videoWidth, 720 / v.videoHeight);
+  const W = Math.max(2, Math.round(v.videoWidth * scale / 2) * 2);
+  const H = Math.max(2, Math.round(v.videoHeight * scale / 2) * 2);
+  renderCanvas.width = W; renderCanvas.height = H;
+  const ctx = renderCanvas.getContext("2d");
+
+  // audio : capté via WebAudio sans sortie haut-parleurs
+  let audioTracks = [];
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ac.createMediaElementSource(v);
+    const dest = ac.createMediaStreamDestination();
+    src.connect(dest);
+    audioTracks = dest.stream.getAudioTracks();
+    if (ac.state === "suspended") await ac.resume();
+  } catch {}
+
+  const stream = renderCanvas.captureStream(30);
+  for (const tr of audioTracks) stream.addTrack(tr);
+  const [mime, ext] = pickMime();
+  lastRenderExt = ext;
+  const rec = new MediaRecorder(stream, mime ? {mimeType: mime, videoBitsPerSecond: 5_000_000} : undefined);
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  const done = new Promise(res => { rec.onstop = res; });
+
+  let stopped = false;
+  renderAbort = () => { stopped = true; try { rec.stop(); } catch {} v.pause(); };
+
+  rec.start(500);
+  await v.play();
+  await new Promise(res => {
+    function frame(){
+      if (stopped) return res();
+      ctx.drawImage(v, 0, 0, W, H);
+      drawLetters(ctx, imgs, v.currentTime, W, H);
+      renderBar.style.width = Math.min(100, v.currentTime / dur * 100) + "%";
+      if (v.ended || v.currentTime >= dur){ return res(); }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  });
+  v.pause();
+  if (!stopped) { try { rec.stop(); } catch {} }
+  await done;
+  renderAbort = null;
+  if (stopped){ renderModal.hidden = true; return; }
+
+  lastRenderBlob = new Blob(chunks, {type: mime || "video/webm"});
+  renderedOnce = true;
+  renderBar.style.width = "100%";
+  renderCanvas.hidden = true;
+  resultVideo.src = URL.createObjectURL(lastRenderBlob);
+  resultVideo.hidden = false;
+  document.getElementById("renderTitle").textContent = "Votre vidéo est prête ✨";
+  document.getElementById("renderNote").textContent = "Aperçu avec filigrane. La version finale en pleine qualité, sans filigrane, est réalisée et livrée par l'atelier après votre commande.";
+  document.getElementById("renderCancelBtn").textContent = "Fermer";
+  const saveBtn = document.getElementById("saveVideoBtn");
+  const fileName = `typo-cao-${(currentName.trim()||"apercu").toLowerCase().replace(/ /g,"-")}.${lastRenderExt}`;
+  const downloads = await (window.claude?.use ? claude.use("downloads") : null);
+  saveBtn.hidden = false;
+  saveBtn.onclick = async () => {
+    if (downloads){
+      try {
+        await downloads.save({filename: fileName, data: lastRenderBlob});
+        saveBtn.textContent = "Enregistré ✓";
+      } catch (err) {
+        if (err && err.code === "declined") return;
+        saveBtn.hidden = true;
+        document.getElementById("renderNote").textContent = "Téléchargement indisponible ici — envoyez votre demande, l'atelier vous livre la vidéo directement.";
+      }
+      return;
+    }
+    // site classique : téléchargement par lien standard
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(lastRenderBlob);
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    saveBtn.textContent = "Enregistré ✓";
+  };
+}
+
+renderBtn.addEventListener("click", startRender);
+document.getElementById("renderCancelBtn").addEventListener("click", () => {
+  if (renderAbort) renderAbort(); else renderModal.hidden = true;
+});
+
+/* dissuasion copie : pas de clic droit ni de glisser sur les visuels */
+document.addEventListener("contextmenu", e => { if (e.target.tagName === "IMG") e.preventDefault(); });
+document.addEventListener("dragstart",  e => { if (e.target.tagName === "IMG") e.preventDefault(); });
+
+window.addEventListener("resize", sizeLetters);
+renderWord(true);
+</script>
