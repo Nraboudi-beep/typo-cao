@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atelier Typo Cao</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
+<style>
+:root{
+  --bg:#ece5d8; --surface:#f7f3eb; --fg:#2b2218; --muted:#8d7d67;
+  --gold:#a87c3f; --gold-deep:#8a6330; --line:#d9cdb8; --ok:#3d7a46; --err:#a33b2e;
+  --display:"Fraunces",Georgia,serif; --body:"Outfit",system-ui,sans-serif;
+}
+body{margin:0;background:var(--bg);background-image:radial-gradient(1000px 500px at 50% -150px,#f6f0e4,var(--bg) 70%);color:var(--fg);font-family:var(--body);font-weight:300;line-height:1.6;padding-inline:16px}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 80px}
+h1{font-family:var(--display);font-weight:300;letter-spacing:.12em;font-size:2rem;margin:0}
+h1 b{color:var(--gold-deep);font-weight:600}
+h2{font-family:var(--display);font-weight:500;font-size:1.25rem;margin:0 0 4px}
+.sub{color:var(--muted);font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;margin-top:6px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;margin-top:22px}
+.hint{color:var(--muted);font-size:.82rem;margin:4px 0 14px}
+label.f{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
+input[type=text],input[type=password]{width:100%;box-sizing:border-box;background:#fffdf8;border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-family:var(--body);font-size:.95rem;color:var(--fg);outline:none}
+input:focus{border-color:var(--gold)}
+button{font-family:var(--body);font-weight:500;font-size:.8rem;letter-spacing:.08em;border-radius:4px;padding:10px 18px;cursor:pointer;border:1px solid var(--gold-deep);background:var(--gold-deep);color:#fdf9f1}
+button.ghost{background:transparent;color:var(--gold-deep)}
+button.small{padding:6px 10px;font-size:.72rem}
+button.danger{border-color:var(--err);color:var(--err);background:transparent}
+button:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tarif-row{display:grid;grid-template-columns:1fr 110px 1.4fr auto;gap:8px;margin-bottom:8px}
+@media (max-width:640px){.tarif-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
+.mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.mat{border:1px solid var(--line);border-radius:6px;padding:8px;background:#fffdf8;display:flex;flex-direction:column;gap:6px}
+.mat img{height:76px;object-fit:contain}
+.mat input{font-size:.78rem;padding:6px 8px}
+.coll-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;background:#fffdf8}
+.coll-row img{height:44px}
+.status{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--fg);color:#fdf9f1;border-radius:6px;padding:10px 20px;font-size:.85rem;max-width:90vw;z-index:9}
+.status.err{background:var(--err)}
+.status.ok{background:var(--ok)}
+.savebar{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 20px;margin-top:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.savebar .note{color:var(--muted);font-size:.78rem}
+.topbar{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.topbar .right{margin-left:auto}
+#loginView section{max-width:460px;margin:60px auto 0}
+.progress{font-size:.8rem;color:var(--gold-deep)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- connexion -->
+  <div id="loginView">
+    <div style="text-align:center;margin-top:30px">
+      <h1>TYPO <b>CAO</b></h1>
+      <div class="sub">Espace atelier</div>
+    </div>
+    <section>
+      <h2>Connexion</h2>
+      <p class="hint">Entre ta clé d'accès personnelle. Elle reste enregistrée sur cet appareil.</p>
+      <label class="f" for="tok">Clé d'accès</label>
+      <input type="password" id="tok" autocomplete="current-password" placeholder="github_pat_…">
+      <div class="row" style="margin-top:16px">
+        <button id="loginBtn">Se connecter</button>
+        <span class="progress" id="loginMsg"></span>
+      </div>
+    </section>
+  </div>
+
+  <!-- tableau de bord -->
+  <div id="dashView" hidden>
+    <div class="topbar">
+      <h1>TYPO <b>CAO</b></h1>
+      <div class="sub">Atelier de Yuan</div>
+      <div class="right row">
+        <a class="ghost" href="./" style="color:var(--gold-deep);font-size:.8rem">Voir le site →</a>
+        <button class="ghost small" id="logoutBtn">Se déconnecter</button>
+      </div>
+    </div>
+
+    <section>
+      <h2>Contacts</h2>
+      <label class="f">Numéro WhatsApp (commandes) — format international sans +</label>
+      <input type="text" id="fWhatsapp" placeholder="33612345678">
+      <label class="f">Pseudo Instagram (sans @, vide = pas de lien)</label>
+      <input type="text" id="fInstagram" placeholder="mon.pseudo">
+    </section>
+
+    <section>
+      <h2>Tarifs</h2>
+      <p class="hint">Tes formules apparaissent dans le formulaire de demande. Aucune formule = la section est masquée sur le site.</p>
+      <div id="tarifList"></div>
+      <button class="ghost small" id="addTarif">+ Ajouter une formule</button>
+    </section>
+
+    <section>
+      <h2>Collections de lettres</h2>
+      <p class="hint">Chaque collection est un alphabet complet. Les images sont automatiquement recadrées, réduites et <b>filigranées « TYPO CAO »</b> avant mise en ligne — tes originaux ne quittent jamais ton ordinateur en pleine qualité.</p>
+      <div id="collList"></div>
+      <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+        <b style="font-weight:500">Nouvelle collection</b>
+        <label class="f">Nom affiché (ex. Roses)</label>
+        <input type="text" id="newCollLabel" placeholder="Roses">
+        <label class="f">Les 26 images — chaque fichier doit commencer par sa lettre : A.png, B.png… (PNG/WebP fond transparent)</label>
+        <input type="file" id="newCollFiles" multiple accept="image/png,image/webp,image/jpeg">
+        <div class="row" style="margin-top:12px">
+          <button id="addCollBtn">Traiter et mettre en ligne</button>
+          <span class="progress" id="collMsg"></span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Matières (galerie)</h2>
+      <div class="mat-grid" id="matGrid"></div>
+      <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+        <b style="font-weight:500">Nouvelle matière</b>
+        <div class="row" style="margin-top:8px">
+          <input type="text" id="newMatNom" placeholder="Nom (ex. Velours bleu nuit)" style="flex:1;min-width:160px">
+          <input type="file" id="newMatFile" accept="image/png,image/webp,image/jpeg">
+          <button class="small" id="addMatBtn">Ajouter</button>
+        </div>
+        <span class="progress" id="matMsg"></span>
+      </div>
+    </section>
+
+    <div class="savebar">
+      <button id="saveBtn">Enregistrer les modifications</button>
+      <span class="note">Le site public se met à jour 1 à 2 minutes après l'enregistrement.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const REPO = "Nraboudi-beep/typo-cao";
+const BRANCHES = ["typo-cao", "main"];
+const API = "https://api.github.com";
+let TOKEN = null;
+let CFG = null;
+
+/* ---------- API GitHub ---------- */
+function hdr(){ return { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" }; }
+
+async function getFile(path, branch){
+  const r = await fetch(`${API}/repos/${REPO}/contents/${path}?ref=${branch}`, { headers: hdr() });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error("Lecture impossible (" + r.status + ")");
+  return r.json();
+}
+
+async function putFile(path, base64, message){
+  for (const branch of BRANCHES){
+    const existing = await getFile(path, branch);
+    const body = { message, content: base64, branch };
+    if (existing && existing.sha) body.sha = existing.sha;
+    const r = await fetch(`${API}/repos/${REPO}/contents/${path}`, {
+      method: "PUT", headers: { ...hdr(), "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok){
+      const e = await r.json().catch(() => ({}));
+      throw new Error("Enregistrement refusé (" + r.status + ") " + (e.message || ""));
+    }
+  }
+}
+
+function toB64(str){
+  return btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+}
+async function blobToB64(blob){
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  let s = "";
+  for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+/* ---------- traitement d'image : recadrage, 300px, filigrane ---------- */
+async function traiterImage(file, maxH = 300){
+  const bmp = await createImageBitmap(file);
+  let c = document.createElement("canvas");
+  c.width = bmp.width; c.height = bmp.height;
+  let ctx = c.getContext("2d");
+  ctx.drawImage(bmp, 0, 0);
+  // recadrage sur les pixels non transparents
+  const d = ctx.getImageData(0, 0, c.width, c.height).data;
+  let minX = c.width, minY = c.height, maxX = 0, maxY = 0;
+  for (let y = 0; y < c.height; y++)
+    for (let x = 0; x < c.width; x++)
+      if (d[(y * c.width + x) * 4 + 3] > 20){
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+  if (maxX <= minX){ minX = 0; minY = 0; maxX = c.width - 1; maxY = c.height - 1; }
+  const w = maxX - minX + 1, h = maxY - minY + 1;
+  const nh = Math.min(maxH, h), nw = Math.round(w * nh / h);
+  const out = document.createElement("canvas");
+  out.width = nw; out.height = nh;
+  const octx = out.getContext("2d");
+  octx.drawImage(c, minX, minY, w, h, 0, 0, nw, nh);
+  // filigrane uniquement sur la lettre (source-atop suit la forme)
+  octx.globalCompositeOperation = "source-atop";
+  octx.save();
+  octx.translate(nw / 2, nh / 2);
+  octx.rotate(-30 * Math.PI / 180);
+  octx.font = "bold 26px system-ui, sans-serif";
+  const stepX = 180, stepY = 86;
+  let row = 0;
+  for (let y = -nh; y < nh; y += stepY, row++){
+    const off = (row % 2) * (stepX / 2);
+    for (let x = -nw - stepX; x < nw + stepX; x += stepX){
+      octx.fillStyle = "rgba(0,0,0,0.42)";
+      octx.fillText("TYPO CAO", x + off + 2, y + 2);
+      octx.fillStyle = "rgba(255,255,255,0.5)";
+      octx.fillText("TYPO CAO", x + off, y);
+    }
+  }
+  octx.restore();
+  return new Promise(res => out.toBlob(res, "image/webp", 0.82));
+}
+
+/* ---------- interface ---------- */
+const $ = id => document.getElementById(id);
+function statusMsg(txt, cls = "ok"){
+  const s = document.createElement("div");
+  s.className = "status " + cls;
+  s.textContent = txt;
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 5000);
+}
+
+function tarifRow(t = {}){
+  const row = document.createElement("div");
+  row.className = "tarif-row";
+  row.innerHTML = `<input type="text" placeholder="Nom (ex. Prénom simple)" class="t-nom">
+    <input type="text" placeholder="Prix (ex. 15 €)" class="t-prix">
+    <input type="text" placeholder="Détail (ex. jusqu'à 8 lettres)" class="t-det">
+    <button class="danger small" type="button">✕</button>`;
+  row.querySelector(".t-nom").value = t.nom || "";
+  row.querySelector(".t-prix").value = t.prix || "";
+  row.querySelector(".t-det").value = t.detail || "";
+  row.querySelector("button").onclick = () => row.remove();
+  $("tarifList").appendChild(row);
+}
+
+function matCard(m){
+  const el = document.createElement("div");
+  el.className = "mat";
+  el.innerHTML = `<img alt=""><input type="text" class="m-nom"><button class="danger small" type="button">Retirer</button>`;
+  el.querySelector("img").src = "assets/" + m.fichier;
+  el.querySelector(".m-nom").value = m.nom || "";
+  el.dataset.fichier = m.fichier;
+  el.querySelector("button").onclick = () => el.remove();
+  $("matGrid").appendChild(el);
+}
+
+function collRow(c){
+  const el = document.createElement("div");
+  el.className = "coll-row";
+  el.innerHTML = `<img alt=""><b style="font-weight:500"></b><span style="color:var(--muted);font-size:.78rem"></span><button class="danger small" style="margin-left:auto" type="button">Retirer du site</button>`;
+  el.querySelector("img").src = `assets/${c.id}_A.webp`;
+  el.querySelector("b").textContent = c.label;
+  el.querySelector("span").textContent = "(" + c.id + ")";
+  el.dataset.id = c.id; el.dataset.label = c.label;
+  el.querySelector("button").onclick = () => {
+    if (document.querySelectorAll(".coll-row").length <= 1){ statusMsg("Il faut garder au moins une collection.", "err"); return; }
+    el.remove();
+  };
+  $("collList").appendChild(el);
+}
+
+function remplir(){
+  $("fWhatsapp").value = CFG.whatsapp || "";
+  $("fInstagram").value = CFG.instagram || "";
+  $("tarifList").innerHTML = ""; (CFG.tarifs || []).forEach(tarifRow);
+  $("matGrid").innerHTML = ""; (CFG.matieres || []).forEach(matCard);
+  $("collList").innerHTML = ""; (CFG.collections || []).forEach(collRow);
+}
+
+function lireFormulaire(){
+  return {
+    whatsapp: $("fWhatsapp").value.replace(/[^\d]/g, ""),
+    instagram: $("fInstagram").value.trim().replace(/^@/, ""),
+    tarifs: [...document.querySelectorAll(".tarif-row")].map(r => ({
+      nom: r.querySelector(".t-nom").value.trim(),
+      prix: r.querySelector(".t-prix").value.trim(),
+      detail: r.querySelector(".t-det").value.trim()
+    })).filter(t => t.nom),
+    collections: [...document.querySelectorAll(".coll-row")].map(r => ({ id: r.dataset.id, label: r.dataset.label })),
+    matieres: [...document.querySelectorAll(".mat")].map(m => ({ fichier: m.dataset.fichier, nom: m.querySelector(".m-nom").value.trim() }))
+  };
+}
+
+/* ---------- actions ---------- */
+$("loginBtn").onclick = async () => {
+  TOKEN = $("tok").value.trim();
+  $("loginMsg").textContent = "Vérification…";
+  try {
+    const f = await getFile("config.json", BRANCHES[0]);
+    if (!f) throw new Error("config.json introuvable");
+    CFG = JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
+    try { localStorage.setItem("tc_token", TOKEN); } catch {}
+    $("loginView").hidden = true; $("dashView").hidden = false;
+    remplir();
+  } catch (e) {
+    $("loginMsg").textContent = "";
+    statusMsg("Clé refusée ou accès impossible. Vérifie ta clé d'accès.", "err");
+  }
+};
+
+$("logoutBtn").onclick = () => {
+  try { localStorage.removeItem("tc_token"); } catch {}
+  location.reload();
+};
+
+$("addTarif").onclick = () => tarifRow();
+
+$("saveBtn").onclick = async () => {
+  $("saveBtn").disabled = true;
+  try {
+    CFG = Object.assign({}, CFG, lireFormulaire());
+    await putFile("config.json", toB64(JSON.stringify(CFG, null, 2)), "Mise à jour de la configuration (espace atelier)");
+    statusMsg("Enregistré ! Le site se met à jour dans 1 à 2 minutes.");
+  } catch (e) { statusMsg("Échec : " + e.message, "err"); }
+  $("saveBtn").disabled = false;
+};
+
+$("addMatBtn").onclick = async () => {
+  const file = $("newMatFile").files[0];
+  const nom = $("newMatNom").value.trim();
+  if (!file || !nom){ statusMsg("Choisis une image et donne-lui un nom.", "err"); return; }
+  $("addMatBtn").disabled = true; $("matMsg").textContent = "Traitement de l'image…";
+  try {
+    const blob = await traiterImage(file);
+    const fname = "matiere_" + nom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".webp";
+    $("matMsg").textContent = "Mise en ligne…";
+    await putFile("assets/" + fname, await blobToB64(blob), "Nouvelle matière : " + nom);
+    matCard({ fichier: fname, nom });
+    $("newMatNom").value = ""; $("newMatFile").value = "";
+    $("matMsg").textContent = "";
+    statusMsg("Matière ajoutée — pense à cliquer « Enregistrer les modifications ».");
+  } catch (e) { $("matMsg").textContent = ""; statusMsg("Échec : " + e.message, "err"); }
+  $("addMatBtn").disabled = false;
+};
+
+$("addCollBtn").onclick = async () => {
+  const label = $("newCollLabel").value.trim();
+  const files = [...$("newCollFiles").files];
+  if (!label || !files.length){ statusMsg("Donne un nom et choisis les images.", "err"); return; }
+  const id = label.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  if (!id){ statusMsg("Nom de collection invalide.", "err"); return; }
+  // associer chaque fichier à sa lettre (1re lettre du nom de fichier)
+  const parLettre = {};
+  for (const f of files){
+    const L = f.name[0].toUpperCase();
+    if (L >= "A" && L <= "Z" && !parLettre[L]) parLettre[L] = f;
+  }
+  const lettres = Object.keys(parLettre).sort();
+  if (!lettres.length){ statusMsg("Aucun fichier reconnu : chaque fichier doit commencer par sa lettre (A.png, B.png…).", "err"); return; }
+  const manquantes = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter(L => !parLettre[L]);
+  if (manquantes.length && !window.__collConfirm){
+    window.__collConfirm = true;
+    statusMsg("Lettres manquantes : " + manquantes.join(" ") + ". Clique à nouveau pour mettre en ligne quand même.", "err");
+    return;
+  }
+  window.__collConfirm = false;
+  $("addCollBtn").disabled = true;
+  try {
+    let n = 0;
+    for (const L of lettres){
+      $("collMsg").textContent = `Lettre ${L} — ${++n}/${lettres.length} (recadrage, filigrane, mise en ligne)…`;
+      const blob = await traiterImage(parLettre[L]);
+      await putFile(`assets/${id}_${L}.webp`, await blobToB64(blob), `Collection ${label} : lettre ${L}`);
+    }
+    collRow({ id, label });
+    $("newCollLabel").value = ""; $("newCollFiles").value = "";
+    $("collMsg").textContent = "";
+    statusMsg("Collection en ligne — pense à cliquer « Enregistrer les modifications » pour l'activer.");
+  } catch (e) { $("collMsg").textContent = ""; statusMsg("Échec : " + e.message, "err"); }
+  $("addCollBtn").disabled = false;
+};
+
+/* reconnexion automatique */
+(() => {
+  let saved = null;
+  try { saved = localStorage.getItem("tc_token"); } catch {}
+  if (saved){ $("tok").value = saved; $("loginBtn").click(); }
+})();
+</script>
+</body>
+</html>

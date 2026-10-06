@@ -1,6 +1,35 @@
 # Guide Typo Cao — gérer le site soi-même
 
-Ce guide explique comment ajouter **tes tarifs**, **tes nouvelles collections de typos** et **tes matières**, directement depuis le site GitHub, sans rien installer. Chaque modification met le site à jour automatiquement en 1 à 2 minutes.
+## ⭐ Le plus simple : ton espace atelier
+
+Ton site a une page d'administration rien que pour toi :
+
+**https://nraboudi-beep.github.io/typo-cao/admin.html**
+
+1. Ouvre cette adresse (mets-la en favori)
+2. Entre ta **clé d'accès** (fournie par Nizar) — elle reste enregistrée sur ton appareil
+3. Tu peux alors, visuellement, sans aucun code :
+   - ajouter / modifier / retirer **tes tarifs**
+   - changer ton **WhatsApp** et ton **Instagram**
+   - ajouter une **matière** à la galerie (l'image est automatiquement recadrée, réduite et filigranée)
+   - mettre en ligne une **nouvelle collection complète** : tu sélectionnes tes 26 images (nommées A.png, B.png, … Z.png), la page les recadre, les réduit, applique le filigrane « TYPO CAO » et les met en ligne une par une
+4. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
+
+⚠️ Ta clé d'accès est personnelle : ne la partage jamais, ne la publie nulle part. En cas de doute, demande à Nizar d'en générer une nouvelle (l'ancienne est alors désactivée).
+
+### Pour Nizar : créer la clé d'accès de Yuan
+
+GitHub → photo de profil → **Settings** → **Developer settings** → **Personal access tokens → Fine-grained tokens** → **Generate new token** :
+- Token name : `yuan-atelier` · Expiration : 1 an
+- Repository access : **Only select repositories** → `typo-cao`
+- Permissions → Repository permissions → **Contents : Read and write** (rien d'autre)
+- Generate, puis transmets la clé (`github_pat_…`) à Yuan par un canal privé. Pour révoquer : même menu → Delete.
+
+---
+
+## Méthode avancée (sans l'espace atelier)
+
+Tout ce que fait l'espace atelier peut aussi se faire à la main dans le fichier **`config.json`** du dépôt GitHub, comme décrit ci-dessous. Chaque modification met le site à jour automatiquement en 1 à 2 minutes.
 
 Tout se passe dans **un seul fichier : `config.json`**. Pour le modifier : ouvre le fichier sur GitHub → clique sur le crayon ✏️ (Edit) → fais ta modification → bouton vert **Commit changes**.
 
