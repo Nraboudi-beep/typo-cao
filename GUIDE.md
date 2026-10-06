@@ -7,7 +7,7 @@ Ton site a une page d'administration rien que pour toi :
 **https://nraboudi-beep.github.io/typo-cao/admin.html**
 
 1. Ouvre cette adresse (mets-la en favori)
-2. Entre ta **clé d'accès** (fournie par Nizar) — elle reste enregistrée sur ton appareil
+2. Entre ton **identifiant** et ton **mot de passe**, puis le **code à 6 chiffres reçu sur ton WhatsApp** — ta connexion reste ensuite mémorisée 24 h sur ton appareil
 3. Tu peux alors, visuellement, sans aucun code :
    - ajouter / modifier / retirer **tes tarifs**
    - changer ton **WhatsApp** et ton **Instagram**
@@ -15,15 +15,11 @@ Ton site a une page d'administration rien que pour toi :
    - mettre en ligne une **nouvelle collection complète** : tu sélectionnes tes 26 images (nommées A.png, B.png, … Z.png), la page les recadre, les réduit, applique le filigrane « TYPO CAO » et les met en ligne une par une
 4. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
 
-⚠️ Ta clé d'accès est personnelle : ne la partage jamais, ne la publie nulle part. En cas de doute, demande à Nizar d'en générer une nouvelle (l'ancienne est alors désactivée).
+⚠️ Ton mot de passe est personnel : ne le partage jamais. Si tu reçois un code WhatsApp sans avoir demandé de connexion, préviens Nizar.
 
-### Pour Nizar : créer la clé d'accès de Yuan
+### Pour Nizar : côté serveur
 
-GitHub → photo de profil → **Settings** → **Developer settings** → **Personal access tokens → Fine-grained tokens** → **Generate new token** :
-- Token name : `yuan-atelier` · Expiration : 1 an
-- Repository access : **Only select repositories** → `typo-cao`
-- Permissions → Repository permissions → **Contents : Read and write** (rien d'autre)
-- Generate, puis transmets la clé (`github_pat_…`) à Yuan par un canal privé. Pour révoquer : même menu → Delete.
+La connexion et les enregistrements passent par le module `typo-cao` du backend atelier-de-demain (branche `feat/typo-cao-atelier`) : identifiant/mot de passe + code WhatsApp (API Meta déjà en place), et le jeton GitHub reste dans les variables d'environnement du serveur. Détails d'installation dans la description de la pull request du dépôt atelier-de-demain. Tant que le serveur n'est pas configuré, la page bascule automatiquement sur l'ancienne connexion par clé GitHub.
 
 ---
 

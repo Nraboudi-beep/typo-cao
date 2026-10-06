@@ -59,9 +59,23 @@ button:disabled{opacity:.5;cursor:default}
     </div>
     <section>
       <h2>Connexion</h2>
-      <p class="hint">Entre ta clé d'accès personnelle. Elle reste enregistrée sur cet appareil.</p>
-      <label class="f" for="tok">Clé d'accès</label>
-      <input type="password" id="tok" autocomplete="current-password" placeholder="github_pat_…">
+      <div id="authFields" hidden>
+        <p class="hint">Entre ton identifiant et ton mot de passe, puis le code reçu sur ton WhatsApp.</p>
+        <label class="f" for="uid">Identifiant</label>
+        <input type="text" id="uid" autocomplete="username">
+        <label class="f" for="pwd">Mot de passe</label>
+        <input type="password" id="pwd" autocomplete="current-password">
+      </div>
+      <div id="codeFields" hidden>
+        <p class="hint">Un code à 6 chiffres vient d'être envoyé sur ton WhatsApp. Il est valable 5 minutes.</p>
+        <label class="f" for="otp">Code reçu sur WhatsApp</label>
+        <input type="text" id="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+      </div>
+      <div id="tokenFields" hidden>
+        <p class="hint">Entre ta clé d'accès personnelle. Elle reste enregistrée sur cet appareil.</p>
+        <label class="f" for="tok">Clé d'accès</label>
+        <input type="password" id="tok" autocomplete="current-password" placeholder="github_pat_…">
+      </div>
       <div class="row" style="margin-top:16px">
         <button id="loginBtn">Se connecter</button>
         <span class="progress" id="loginMsg"></span>
@@ -137,22 +151,59 @@ button:disabled{opacity:.5;cursor:default}
 const REPO = "Nraboudi-beep/typo-cao";
 const BRANCHES = ["typo-cao", "main"];
 const API = "https://api.github.com";
-let TOKEN = null;
+const ATELIER_API = "https://atelierdedemain.fr/api/typo-cao";
+let MODE = null;      // "serveur" (identifiant + code WhatsApp) ou "cle" (clé GitHub directe)
+let TOKEN = null;     // clé GitHub (mode "cle")
+let SESSION = null;   // jeton de session (mode "serveur")
 let CFG = null;
 
-/* ---------- API GitHub ---------- */
+/* ---------- API de l'atelier (le jeton GitHub reste sur le serveur) ---------- */
+async function apiAtelier(path, options = {}){
+  const r = await fetch(ATELIER_API + path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(SESSION ? { "Authorization": "Bearer " + SESSION } : {}),
+      ...(options.headers || {})
+    }
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok){
+    const err = new Error((data.error && data.error.message) || data.message || ("Erreur serveur (" + r.status + ")"));
+    err.code = (data.error && data.error.code) || data.code || "";
+    throw err;
+  }
+  return data;
+}
+
+/* ---------- API GitHub directe (mode clé, secours) ---------- */
 function hdr(){ return { "Authorization": "Bearer " + TOKEN, "Accept": "application/vnd.github+json" }; }
 
-async function getFile(path, branch){
+async function ghGetFile(path, branch){
   const r = await fetch(`${API}/repos/${REPO}/contents/${path}?ref=${branch}`, { headers: hdr() });
   if (r.status === 404) return null;
   if (!r.ok) throw new Error("Lecture impossible (" + r.status + ")");
   return r.json();
 }
 
+/* ---------- lecture / écriture, selon le mode ---------- */
+async function readConfig(){
+  if (MODE === "serveur"){
+    const f = await apiAtelier("/file?path=config.json");
+    return JSON.parse(decodeURIComponent(escape(atob(f.contentB64))));
+  }
+  const f = await ghGetFile("config.json", BRANCHES[0]);
+  if (!f) throw new Error("config.json introuvable");
+  return JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
+}
+
 async function putFile(path, base64, message){
+  if (MODE === "serveur"){
+    await apiAtelier("/file", { method: "PUT", body: JSON.stringify({ path, contentB64: base64, message }) });
+    return;
+  }
   for (const branch of BRANCHES){
-    const existing = await getFile(path, branch);
+    const existing = await ghGetFile(path, branch);
     const body = { message, content: base64, branch };
     if (existing && existing.sha) body.sha = existing.sha;
     const r = await fetch(`${API}/repos/${REPO}/contents/${path}`, {
@@ -293,24 +344,67 @@ function lireFormulaire(){
 }
 
 /* ---------- actions ---------- */
+async function ouvrirDash(){
+  CFG = await readConfig();
+  $("loginView").hidden = true; $("dashView").hidden = false;
+  remplir();
+}
+
+let etape = "identifiants"; // puis "code" (mode serveur)
+
 $("loginBtn").onclick = async () => {
-  TOKEN = $("tok").value.trim();
-  $("loginMsg").textContent = "Vérification…";
+  $("loginBtn").disabled = true;
   try {
-    const f = await getFile("config.json", BRANCHES[0]);
-    if (!f) throw new Error("config.json introuvable");
-    CFG = JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
-    try { localStorage.setItem("tc_token", TOKEN); } catch {}
-    $("loginView").hidden = true; $("dashView").hidden = false;
-    remplir();
+    if (MODE === "serveur"){
+      if (etape === "identifiants"){
+        $("loginMsg").textContent = "Vérification…";
+        await apiAtelier("/login", { method: "POST", body: JSON.stringify({
+          identifiant: $("uid").value, motDePasse: $("pwd").value
+        })});
+        etape = "code";
+        $("authFields").hidden = true; $("codeFields").hidden = false;
+        $("loginBtn").textContent = "Valider le code";
+        $("loginMsg").textContent = "";
+        $("otp").focus();
+      } else {
+        $("loginMsg").textContent = "Validation…";
+        const s = await apiAtelier("/verify", { method: "POST", body: JSON.stringify({
+          identifiant: $("uid").value, code: $("otp").value.trim()
+        })});
+        SESSION = s.jeton;
+        try {
+          localStorage.setItem("tc_session", s.jeton);
+          localStorage.setItem("tc_session_exp", s.expireLe);
+        } catch {}
+        $("loginMsg").textContent = "";
+        await ouvrirDash();
+      }
+    } else {
+      TOKEN = $("tok").value.trim();
+      $("loginMsg").textContent = "Vérification…";
+      await ouvrirDash();
+      try { localStorage.setItem("tc_token", TOKEN); } catch {}
+      $("loginMsg").textContent = "";
+    }
   } catch (e) {
     $("loginMsg").textContent = "";
-    statusMsg("Clé refusée ou accès impossible. Vérifie ta clé d'accès.", "err");
+    statusMsg(e.message || "Connexion impossible.", "err");
+    if (MODE === "serveur" && etape === "code" &&
+        (e.code === "TYPO_CAO_CODE_EXPIRED" || e.code === "TYPO_CAO_TOO_MANY_ATTEMPTS")){
+      etape = "identifiants";
+      $("codeFields").hidden = true; $("authFields").hidden = false;
+      $("loginBtn").textContent = "Se connecter";
+    }
   }
+  $("loginBtn").disabled = false;
 };
 
 $("logoutBtn").onclick = () => {
-  try { localStorage.removeItem("tc_token"); } catch {}
+  try {
+    localStorage.removeItem("tc_token");
+    localStorage.removeItem("tc_session");
+    localStorage.removeItem("tc_session_exp");
+  } catch {}
   location.reload();
 };
 
@@ -381,11 +475,34 @@ $("addCollBtn").onclick = async () => {
   $("addCollBtn").disabled = false;
 };
 
-/* reconnexion automatique */
-(() => {
-  let saved = null;
-  try { saved = localStorage.getItem("tc_token"); } catch {}
-  if (saved){ $("tok").value = saved; $("loginBtn").click(); }
+/* démarrage : détection du mode + reconnexion automatique */
+(async () => {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 4000);
+    const r = await fetch(ATELIER_API + "/status", { signal: ctrl.signal });
+    clearTimeout(t);
+    const s = await r.json();
+    MODE = (r.ok && s.configure) ? "serveur" : "cle";
+  } catch { MODE = "cle"; }
+
+  if (MODE === "serveur"){
+    $("authFields").hidden = false;
+    let jeton = null, exp = null;
+    try { jeton = localStorage.getItem("tc_session"); exp = localStorage.getItem("tc_session_exp"); } catch {}
+    if (jeton && exp && new Date(exp) > new Date()){
+      SESSION = jeton;
+      try { await ouvrirDash(); return; } catch { SESSION = null; }
+    }
+  } else {
+    $("tokenFields").hidden = false;
+    let saved = null;
+    try { saved = localStorage.getItem("tc_token"); } catch {}
+    if (saved){
+      TOKEN = saved;
+      try { await ouvrirDash(); return; } catch { TOKEN = null; }
+    }
+  }
 })();
 </script>
 </body>
