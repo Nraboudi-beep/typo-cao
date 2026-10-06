@@ -160,6 +160,19 @@ a.wa{
   border-radius:4px;padding:10px 18px;border:1px solid #1fa855;background:#1fa855;color:#fff;white-space:nowrap;
 }
 a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid var(--gold)}
+.avis-liste{display:flex;flex-direction:column;gap:12px;max-height:38vh;overflow-y:auto;overscroll-behavior:contain}
+.avis-item{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffdf8}
+.avis-item .tete{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.avis-item .nom{font-weight:500}
+.avis-item .note{color:var(--gold-deep);letter-spacing:2px}
+.avis-item .quand{margin-left:auto;color:var(--muted);font-size:.72rem}
+.avis-item .texte{margin:6px 0 0;font-size:.88rem;color:var(--fg)}
+.field textarea{background:#fffdf8;border:1px solid var(--line);border-radius:4px;color:var(--fg);font-family:var(--body);font-size:.92rem;padding:10px 12px;outline:none;resize:vertical}
+.field textarea:focus{border-color:var(--gold)}
+.etoiles{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:2px}
+.etoiles input{position:absolute;opacity:0;pointer-events:none}
+.etoiles label{font-size:1.6rem;color:var(--line);cursor:pointer;letter-spacing:0;text-transform:none;margin:0}
+.etoiles input:checked ~ label, .etoiles label:hover, .etoiles label:hover ~ label{color:var(--gold)}
 .tarifs{display:flex;flex-direction:column;gap:8px}
 .tarifs label{
   display:flex;align-items:baseline;gap:10px;border:1px solid var(--line);border-radius:4px;
@@ -232,9 +245,67 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <button class="ghost" id="replayBtn" type="button">Rejouer</button>
     <button id="renderBtn" type="button" hidden>Générer ma vidéo</button>
     <button id="orderBtn" type="button">Envoyer ma demande</button>
+    <button class="ghost" id="avisBtn" type="button">Avis ★</button>
     <a class="insta" id="instaLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
-    <span class="done">© Yuan Cao — Typo Cao · modèles déposés, aperçus filigranés · <a href="admin.html" style="color:inherit">atelier</a></span>
+    <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · Tous droits réservés · <a href="#" id="mentionsLink" style="color:inherit">mentions</a> · <a href="admin.html" style="color:inherit">atelier</a></span>
     <input id="videoInput" type="file" accept="video/*" hidden>
+  </div>
+</div>
+
+<!-- mentions légales -->
+<div class="modal" id="mentionsModal" hidden>
+  <div class="panel">
+    <div class="close-row"><button type="button" class="x" id="mentionsClose" aria-label="Fermer">✕</button></div>
+    <h2>Propriété intellectuelle</h2>
+    <p style="font-size:.88rem;line-height:1.7">
+      L'ensemble des créations présentées sur ce site — lettres, matières, compositions et montages
+      vidéo — sont des œuvres originales de <b>Yuan Cao</b>, protégées par le droit d'auteur
+      (articles L.111-1 et suivants du Code de la propriété intellectuelle). Toute reproduction,
+      extraction, adaptation ou utilisation commerciale, totale ou partielle, sans autorisation
+      écrite préalable est interdite (art. L.122-4 CPI) et constitue une contrefaçon (art. L.335-2 CPI).
+    </p>
+    <p style="font-size:.88rem;line-height:1.7;color:var(--muted)">
+      Les visuels affichés sur ce site sont des aperçus en basse définition, filigranés « TYPO CAO ».
+      Ils ne correspondent pas à la qualité des créations livrées et ne confèrent aucun droit
+      d'utilisation. Les vidéos d'aperçu générées sur ce site sont réservées à un usage de
+      prévisualisation personnelle.
+    </p>
+    <p style="font-size:.88rem;color:var(--muted)">Contact et demandes d'autorisation : via le bouton « Envoyer ma demande ».</p>
+  </div>
+</div>
+
+<!-- avis clients -->
+<div class="modal" id="avisModal" hidden>
+  <div class="panel">
+    <div class="close-row"><button type="button" class="x" id="avisClose" aria-label="Fermer">✕</button></div>
+    <h2>Avis des clients</h2>
+    <p class="sum" id="avisResume">Aucun avis publié pour l'instant — soyez le premier !</p>
+    <div id="avisListe" class="avis-liste"></div>
+    <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px">
+      <b style="font-weight:500">Laisser un avis</b>
+      <div class="field" style="margin-top:10px">
+        <label for="avisNom">Votre prénom</label>
+        <input id="avisNom" type="text" maxlength="40">
+      </div>
+      <div class="field">
+        <label>Votre note</label>
+        <div class="etoiles" id="avisEtoiles">
+          <input type="radio" name="note" id="n5" value="5"><label for="n5">★</label>
+          <input type="radio" name="note" id="n4" value="4"><label for="n4">★</label>
+          <input type="radio" name="note" id="n3" value="3"><label for="n3">★</label>
+          <input type="radio" name="note" id="n2" value="2"><label for="n2">★</label>
+          <input type="radio" name="note" id="n1" value="1"><label for="n1">★</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="avisMsg">Votre avis</label>
+        <textarea id="avisMsg" rows="3" maxlength="400" placeholder="Racontez votre expérience…"></textarea>
+      </div>
+      <div class="actions">
+        <button id="avisEnvoyer" type="button">Envoyer mon avis</button>
+        <span class="done" id="avisDone" hidden></span>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -755,6 +826,77 @@ async function startRender(){
 renderBtn.addEventListener("click", startRender);
 document.getElementById("renderCancelBtn").addEventListener("click", () => {
   if (renderAbort) renderAbort(); else renderModal.hidden = true;
+});
+
+/* ---- mentions légales ---- */
+document.getElementById("anneeCopy").textContent = new Date().getFullYear();
+const mentionsModal = document.getElementById("mentionsModal");
+document.getElementById("mentionsLink").addEventListener("click", e => { e.preventDefault(); mentionsModal.hidden = false; });
+document.getElementById("mentionsClose").addEventListener("click", () => { mentionsModal.hidden = true; });
+mentionsModal.addEventListener("click", e => { if (e.target === mentionsModal) mentionsModal.hidden = true; });
+
+/* ---- avis clients ---- */
+const ATELIER_API = "https://atelierdedemain.fr/api/typo-cao";
+const avisModal = document.getElementById("avisModal");
+
+async function chargerAvis(){
+  let avis = [];
+  try {
+    const r = await fetch("avis.json", {cache:"no-store"});
+    if (r.ok) avis = (await r.json()).filter(a => a && a.approuve);
+  } catch {}
+  const liste = document.getElementById("avisListe");
+  liste.innerHTML = "";
+  const resume = document.getElementById("avisResume");
+  if (!avis.length){
+    resume.textContent = "Aucun avis publié pour l'instant — soyez le premier !";
+    return;
+  }
+  const moyenne = avis.reduce((s,a) => s + (a.note||0), 0) / avis.length;
+  resume.innerHTML = `<b>${"★".repeat(Math.round(moyenne))}</b> ${moyenne.toFixed(1)} / 5 — ${avis.length} avis`;
+  for (const a of avis.slice().reverse()){
+    const el = document.createElement("div");
+    el.className = "avis-item";
+    el.innerHTML = `<div class="tete"><span class="nom"></span><span class="note"></span><span class="quand"></span></div><p class="texte"></p>`;
+    el.querySelector(".nom").textContent = a.nom || "Client";
+    el.querySelector(".note").textContent = "★".repeat(Math.max(1, Math.min(5, a.note||5)));
+    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleDateString("fr-FR") : "";
+    el.querySelector(".texte").textContent = a.message || "";
+    liste.appendChild(el);
+  }
+}
+
+document.getElementById("avisBtn").addEventListener("click", () => { avisModal.hidden = false; chargerAvis(); });
+document.getElementById("avisClose").addEventListener("click", () => { avisModal.hidden = true; });
+avisModal.addEventListener("click", e => { if (e.target === avisModal) avisModal.hidden = true; });
+
+document.getElementById("avisEnvoyer").addEventListener("click", async () => {
+  const nom = document.getElementById("avisNom").value.trim();
+  const noteInput = document.querySelector('#avisEtoiles input:checked');
+  const message = document.getElementById("avisMsg").value.trim();
+  const done = document.getElementById("avisDone");
+  const montrer = (txt) => { done.textContent = txt; done.hidden = false; setTimeout(() => { done.hidden = true; }, 6000); };
+  if (nom.length < 2 || !noteInput || message.length < 5){
+    montrer("Complète ton prénom, ta note et ton avis.");
+    return;
+  }
+  const btn = document.getElementById("avisEnvoyer");
+  btn.disabled = true;
+  try {
+    const r = await fetch(ATELIER_API + "/avis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nom, note: Number(noteInput.value), message })
+    });
+    if (!r.ok) throw new Error();
+    document.getElementById("avisNom").value = "";
+    document.getElementById("avisMsg").value = "";
+    noteInput.checked = false;
+    montrer("Merci ! Ton avis sera publié après validation par l'atelier.");
+  } catch {
+    montrer("Envoi impossible pour le moment — tu peux aussi donner ton avis par WhatsApp.");
+  }
+  btn.disabled = false;
 });
 
 /* dissuasion copie : pas de clic droit ni de glisser sur les visuels */

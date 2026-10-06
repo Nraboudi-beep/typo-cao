@@ -36,6 +36,16 @@ button:disabled{opacity:.5;cursor:default}
 .mat input{font-size:.78rem;padding:6px 8px}
 .coll-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;background:#fffdf8}
 .coll-row img{height:44px}
+.avis-admin{display:flex;flex-direction:column;gap:10px}
+.avis-card{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffdf8}
+.avis-card.publie{border-color:var(--ok)}
+.avis-card .tete{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.avis-card .nom{font-weight:500}
+.avis-card .note{color:var(--gold-deep);letter-spacing:2px}
+.avis-card .quand{color:var(--muted);font-size:.72rem}
+.avis-card .etat{margin-left:auto;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.avis-card.publie .etat{color:var(--ok)}
+.avis-card .texte{margin:6px 0 10px;font-size:.88rem}
 .status{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--fg);color:#fdf9f1;border-radius:6px;padding:10px 20px;font-size:.85rem;max-width:90vw;z-index:9}
 .status.err{background:var(--err)}
 .status.ok{background:var(--ok)}
@@ -137,6 +147,16 @@ button:disabled{opacity:.5;cursor:default}
           <button class="small" id="addMatBtn">Ajouter</button>
         </div>
         <span class="progress" id="matMsg"></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>Avis clients</h2>
+      <p class="hint">Les avis envoyés par tes clients arrivent ici. Publie ceux que tu veux afficher sur le site, supprime les autres. N'oublie pas d'enregistrer.</p>
+      <div id="avisAdminListe" class="avis-admin"></div>
+      <div class="row" style="margin-top:14px">
+        <button class="ghost small" id="avisSave">Enregistrer les avis</button>
+        <span class="progress" id="avisAdminMsg"></span>
       </div>
     </section>
 
@@ -344,10 +364,68 @@ function lireFormulaire(){
 }
 
 /* ---------- actions ---------- */
+async function readJsonFile(path){
+  try {
+    if (MODE === "serveur"){
+      const f = await apiAtelier("/file?path=" + encodeURIComponent(path));
+      return JSON.parse(decodeURIComponent(escape(atob(f.contentB64))));
+    }
+    const f = await ghGetFile(path, BRANCHES[0]);
+    if (!f) return null;
+    return JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
+  } catch { return null; }
+}
+
+/* ---- modération des avis ---- */
+let AVIS = [];
+
+function rendreAvisAdmin(){
+  const box = $("avisAdminListe");
+  box.innerHTML = "";
+  if (!AVIS.length){
+    box.innerHTML = '<p class="hint">Aucun avis reçu pour l\'instant.</p>';
+    return;
+  }
+  AVIS.slice().reverse().forEach(a => {
+    const el = document.createElement("div");
+    el.className = "avis-card" + (a.approuve ? " publie" : "");
+    el.innerHTML = `<div class="tete"><span class="nom"></span><span class="note"></span><span class="quand"></span><span class="etat"></span></div>
+      <p class="texte"></p>
+      <div class="row"><button class="small" type="button" data-act="toggle"></button>
+      <button class="danger small" type="button" data-act="suppr">Supprimer</button></div>`;
+    el.querySelector(".nom").textContent = a.nom || "Client";
+    el.querySelector(".note").textContent = "★".repeat(Math.max(1, Math.min(5, a.note || 5)));
+    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleString("fr-FR") : "";
+    el.querySelector(".etat").textContent = a.approuve ? "Publié" : "En attente";
+    el.querySelector(".texte").textContent = a.message || "";
+    el.querySelector('[data-act="toggle"]').textContent = a.approuve ? "Masquer" : "Publier";
+    el.querySelector('[data-act="toggle"]').onclick = () => { a.approuve = !a.approuve; rendreAvisAdmin(); };
+    el.querySelector('[data-act="suppr"]').onclick = () => { AVIS = AVIS.filter(x => x !== a); rendreAvisAdmin(); };
+    box.appendChild(el);
+  });
+}
+
+$("avisSave").onclick = async () => {
+  $("avisSave").disabled = true;
+  $("avisAdminMsg").textContent = "Enregistrement…";
+  try {
+    await putFile("avis.json", toB64(JSON.stringify(AVIS, null, 2)), "Modération des avis clients");
+    $("avisAdminMsg").textContent = "";
+    statusMsg("Avis enregistrés — le site se met à jour dans 1 à 2 minutes.");
+  } catch (e) {
+    $("avisAdminMsg").textContent = "";
+    statusMsg("Échec : " + e.message, "err");
+  }
+  $("avisSave").disabled = false;
+};
+
 async function ouvrirDash(){
   CFG = await readConfig();
   $("loginView").hidden = true; $("dashView").hidden = false;
   remplir();
+  AVIS = (await readJsonFile("avis.json")) || [];
+  if (!Array.isArray(AVIS)) AVIS = [];
+  rendreAvisAdmin();
 }
 
 let etape = "identifiants"; // puis "code" (mode serveur)

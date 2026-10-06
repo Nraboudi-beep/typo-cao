@@ -13,7 +13,14 @@ Ton site a une page d'administration rien que pour toi :
    - changer ton **WhatsApp** et ton **Instagram**
    - ajouter une **matière** à la galerie (l'image est automatiquement recadrée, réduite et filigranée)
    - mettre en ligne une **nouvelle collection complète** : tu sélectionnes tes 26 images (nommées A.png, B.png, … Z.png), la page les recadre, les réduit, applique le filigrane « TYPO CAO » et les met en ligne une par une
-4. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
+4. **Modérer tes avis clients** : les avis laissés sur le site arrivent dans la section « Avis clients » de ton espace — tu choisis ceux que tu publies (bouton Publier/Masquer), tu supprimes les indésirables, puis « Enregistrer les avis ». Rien ne s'affiche sur le site sans ta validation.
+5. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
+
+### Ta protection
+
+- Le site affiche « © Yuan Cao — Tous droits réservés » et une page **mentions** qui rappelle que tes créations sont protégées par le droit d'auteur (c'est automatique en France dès la création, articles L.111-1 et suivants du CPI — pas besoin de dépôt pour être protégée).
+- Pour pouvoir **prouver la date** de tes créations en cas de litige : garde tes fichiers originaux datés, et envisage une **enveloppe Soleau** à l'INPI (~15 €, en ligne sur inpi.fr) pour tes collections importantes.
+- Ne mets jamais tes images pleine qualité en ligne : le site ne montre que des aperçus filigranés.
 
 ⚠️ Ton mot de passe est personnel : ne le partage jamais. Si tu reçois un code WhatsApp sans avoir demandé de connexion, préviens Nizar.
 
