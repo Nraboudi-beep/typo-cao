@@ -837,6 +837,16 @@ mentionsModal.addEventListener("click", e => { if (e.target === mentionsModal) m
 
 /* ---- avis clients ---- */
 const ATELIER_API = "https://typo.atelierdedemain.fr/api/typo-cao";
+
+/* ---- balise de visite anonyme (compteur du journal de l'atelier : aucune identité, aucun cookie) ---- */
+try {
+  fetch(ATELIER_API + "/visite", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ page: "accueil" }),
+    keepalive: true
+  }).catch(() => {});
+} catch {}
 const avisModal = document.getElementById("avisModal");
 
 async function chargerAvis(){

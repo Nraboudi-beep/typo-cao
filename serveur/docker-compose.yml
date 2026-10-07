@@ -6,3 +6,15 @@ services:
     env_file: .env
     ports:
       - "127.0.0.1:8787:8787"
+    volumes:
+      - typo_cao_data:/data
+    networks:
+      - atelier_web
+
+volumes:
+  typo_cao_data:
+
+# réseau partagé avec Caddy (créé par le projet existant du VPS)
+networks:
+  atelier_web:
+    external: true

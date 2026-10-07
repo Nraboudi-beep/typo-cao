@@ -22,6 +22,26 @@ h2::after{content:"";display:block;width:44px;height:2px;background:var(--gold);
 .sub{color:var(--muted);font-size:.82rem;letter-spacing:.34em;text-transform:uppercase;margin-top:10px}
 section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:34px 34px 38px;margin-top:28px;box-shadow:0 1px 0 #fffdf8 inset}
 @media (max-width:640px){section{padding:24px 20px 28px}}
+/* ---- journal des visites & connexions ---- */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
+.chip{background:#faf6ec;border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-size:.86rem}
+.chip b{font-weight:600;color:var(--gold-deep)}
+.chip.alerte{background:#fdf0ee;border-color:#e8c4bc;color:#8c3b2e}
+.chip.alerte b{color:#a63d2a}
+.graph{display:flex;align-items:flex-end;gap:5px;height:110px;margin:18px 2px 4px;border-bottom:1px solid var(--line);padding-bottom:0}
+.graph .barre{flex:1;min-width:8px;background:linear-gradient(180deg,#d9b25e,#c09540);border-radius:3px 3px 0 0;position:relative;min-height:2px}
+.graph .barre.vide{background:#eee5d2}
+.graph .barre span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:.68rem;color:#8a7f6a;white-space:nowrap}
+.graph-legende{display:flex;gap:5px;margin-bottom:10px}
+.graph-legende i{flex:1;min-width:8px;font-style:normal;font-size:.64rem;color:#a89a7f;text-align:center}
+.conn-liste{margin-top:8px;border-top:1px solid var(--line)}
+.conn{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.86rem}
+.conn .quand{color:#8a7f6a;font-variant-numeric:tabular-nums;min-width:138px}
+.conn .quoi{font-weight:500}
+.conn .detail{color:#8a7f6a}
+.conn.ok .quoi{color:#4a6b3a}
+.conn.alerte{background:#fdf0ee;border-radius:6px}
+.conn.alerte .quoi{color:#a63d2a}
 .hint{color:var(--muted);font-size:.95rem;margin:10px 0 20px;max-width:56ch}
 label.f{display:block;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
 input[type=text],input[type=password],input[type=tel]{width:100%;box-sizing:border-box;background:#fffdf8;border:1px solid var(--line);border-radius:8px;padding:15px 16px;font-family:var(--body);font-size:1.1rem;color:var(--fg);outline:none;transition:border-color .2s,box-shadow .2s}
@@ -130,6 +150,20 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
         <button class="ghost small" id="logoutBtn">Se déconnecter</button>
       </div>
     </div>
+
+    <section id="journalSection" hidden>
+      <h2>Le journal de l'atelier</h2>
+      <p class="hint">Ta vitrine vue de l'intérieur : qui passe devant, et qui frappe à ta porte. Les passants sont comptés sans jamais être identifiés — ici on compte les pas, pas les visages.</p>
+      <div class="chips" id="journalChips"></div>
+      <div id="journalGraphBox" hidden>
+        <div class="graph" id="journalGraph"></div>
+        <div class="graph-legende" id="journalGraphLegende"></div>
+      </div>
+      <b style="font-weight:500;display:block;margin-top:18px">À ta porte</b>
+      <p class="hint" style="margin-top:4px">Chaque fois que quelqu'un tente d'entrer ici, dans ton atelier, c'est noté — que la porte se soit ouverte ou non.</p>
+      <div class="conn-liste" id="journalConnexions"></div>
+      <p class="hint" id="journalNote" style="margin-top:12px"></p>
+    </section>
 
     <section>
       <h2>Contacts</h2>
@@ -446,10 +480,85 @@ $("avisSave").onclick = async () => {
   $("avisSave").disabled = false;
 };
 
+/* ---- journal des visites & des tentatives d'entrée (mode serveur) ---- */
+const CONN_LIBELLES = {
+  connexion_reussie: ["La porte s'est ouverte — connexion réussie", "ok"],
+  code_envoye:       ["Code de connexion envoyé", "ok"],
+  numero_inconnu:    ["Refusé — numéro inconnu", "alerte"],
+  code_errone:       ["Refusé — code erroné", "alerte"],
+  code_expire:       ["Code expiré sans être utilisé", ""],
+  trop_essais:       ["Bloqué — trop d'essais", "alerte"]
+};
+
+async function chargerJournal(){
+  if (MODE !== "serveur") return;
+  let j;
+  try { j = await apiAtelier("/journal"); } catch { return; }
+  $("journalSection").hidden = false;
+
+  const parJour = {};
+  (j.jours || []).forEach(d => parJour[d.jour] = d);
+  const serie = [];
+  for (let i = 13; i >= 0; i--){
+    const d = new Date(Date.now() - i * 86400000);
+    serie.push({ cle: d.toISOString().slice(0, 10), date: d, data: parJour[d.toISOString().slice(0, 10)] });
+  }
+  const auj = serie[13].data;
+  const visites7 = serie.slice(-7).reduce((a, s) => a + (s.data ? s.data.visites : 0), 0);
+  const atelier7 = serie.slice(-7).reduce((a, s) => a + ((s.data && s.data.pages && s.data.pages.atelier) || 0), 0);
+  const refus = (j.connexions || []).filter(c => c.type === "numero_inconnu" || c.type === "code_errone" || c.type === "trop_essais").length;
+
+  const chips = $("journalChips");
+  chips.innerHTML = "";
+  const chip = (html, alerte) => { const s = document.createElement("span"); s.className = "chip" + (alerte ? " alerte" : ""); s.innerHTML = html; chips.appendChild(s); };
+  chip("Aujourd'hui : <b>" + (auj ? auj.visites : 0) + "</b> passage(s) · <b>" + (auj ? auj.visiteurs : 0) + "</b> visiteur(s)");
+  chip("7 derniers jours : <b>" + visites7 + "</b> passages");
+  if (atelier7) chip("dont <b>" + atelier7 + "</b> ouverture(s) de cette page atelier");
+  if (refus) chip("<b>" + refus + "</b> tentative(s) d'entrée refusée(s)", true);
+
+  const max = Math.max(1, ...serie.map(s => s.data ? s.data.visites : 0));
+  const g = $("journalGraph"), leg = $("journalGraphLegende");
+  g.innerHTML = ""; leg.innerHTML = "";
+  serie.forEach(s => {
+    const v = s.data ? s.data.visites : 0;
+    const b = document.createElement("div");
+    b.className = "barre" + (v ? "" : " vide");
+    b.style.height = Math.max(2, Math.round(v / max * 100)) + "%";
+    if (v) b.innerHTML = "<span>" + v + "</span>";
+    b.title = s.date.toLocaleDateString("fr-FR") + " — " + v + " passage(s)" + (s.data ? ", " + s.data.visiteurs + " visiteur(s)" : "");
+    g.appendChild(b);
+    const i = document.createElement("i");
+    i.textContent = s.date.getDate();
+    leg.appendChild(i);
+  });
+  $("journalGraphBox").hidden = false;
+
+  const box = $("journalConnexions");
+  box.innerHTML = "";
+  const conns = (j.connexions || []).slice(0, 40);
+  if (!conns.length){
+    box.innerHTML = '<p class="hint" style="padding-top:10px">Personne n\'a encore frappé — tout est calme dans l\'atelier. 🌙</p>';
+  }
+  conns.forEach(c => {
+    const lib = CONN_LIBELLES[c.type] || [c.type, ""];
+    const el = document.createElement("div");
+    el.className = "conn " + lib[1];
+    el.innerHTML = '<span class="quand"></span><span class="quoi"></span><span class="detail"></span>';
+    el.querySelector(".quand").textContent = new Date(c.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    el.querySelector(".quoi").textContent = lib[0];
+    el.querySelector(".detail").textContent = (c.numero ? "numéro " + c.numero + " · " : "") + "ip " + (c.ip || "?");
+    box.appendChild(el);
+  });
+  $("journalNote").textContent = refus
+    ? "Des tentatives refusées sans que vous ayez essayé de vous connecter ? Quelqu'un a cherché à entrer : préviens Nizar et garde une capture de cette liste — elle pourra servir de preuve."
+    : "Si un jour une ligne rouge apparaît sans que vous ayez essayé de vous connecter, préviens Nizar et garde une capture : ton journal veille sur l'atelier.";
+}
+
 async function ouvrirDash(){
   CFG = await readConfig();
   $("loginView").hidden = true; $("dashView").hidden = false;
   remplir();
+  chargerJournal();
   AVIS = (await readJsonFile("avis.json")) || [];
   if (!Array.isArray(AVIS)) AVIS = [];
   rendreAvisAdmin();
@@ -598,6 +707,8 @@ $("addCollBtn").onclick = async () => {
   } catch { MODE = "cle"; }
 
   if (MODE === "serveur"){
+    // balise anonyme : cette ouverture de la page atelier compte dans le journal
+    try { fetch(ATELIER_API + "/visite", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ page: "atelier" }), keepalive: true }).catch(() => {}); } catch {}
     $("authFields").hidden = false;
     let jeton = null, exp = null;
     try { jeton = localStorage.getItem("tc_session"); exp = localStorage.getItem("tc_session_exp"); } catch {}

@@ -15,13 +15,16 @@
  */
 
 const http = require("node:http");
+const fs = require("node:fs");
+const path = require("node:path");
 const { createHash, createHmac, randomInt, randomUUID, timingSafeEqual } = require("node:crypto");
 
 /* ---------- configuration (variables d'environnement) ---------- */
 const CFG = {
   PORT: Number(process.env.PORT || 8787),
   ORIGINE_AUTORISEE: process.env.TYPO_CAO_ORIGINE || "https://nraboudi-beep.github.io",
-  WHATSAPP_TO: process.env.TYPO_CAO_WHATSAPP_TO || "",
+  // un ou plusieurs numéros autorisés (séparés par des virgules) ; chacun reçoit son code sur son propre WhatsApp
+  NUMEROS_AUTORISES: String(process.env.TYPO_CAO_WHATSAPP_TO || "").split(",").map(n => n.trim()).filter(Boolean),
   GITHUB_TOKEN: process.env.TYPO_CAO_GITHUB_TOKEN || "",
   SESSION_SECRET: process.env.TYPO_CAO_SESSION_SECRET || "",
   GITHUB_REPO: process.env.TYPO_CAO_GITHUB_REPO || "Nraboudi-beep/typo-cao",
@@ -32,16 +35,17 @@ const CFG = {
   WA_API: process.env.WHATSAPP_GRAPH_API_VERSION || "v21.0",
   WA_TEMPLATE: process.env.TYPO_CAO_OTP_TEMPLATE || "typo_cao_code",
   WA_LANG: process.env.TYPO_CAO_OTP_TEMPLATE_LANGUAGE || "fr",
+  DATA_DIR: process.env.TYPO_CAO_DATA_DIR || "/data",
 };
 
 const configure = () =>
-  Boolean(CFG.WHATSAPP_TO && CFG.GITHUB_TOKEN && CFG.SESSION_SECRET && CFG.WA_TOKEN && CFG.WA_PHONE_ID);
+  Boolean(CFG.NUMEROS_AUTORISES.length && CFG.GITHUB_TOKEN && CFG.SESSION_SECRET && CFG.WA_TOKEN && CFG.WA_PHONE_ID);
 
 /* ---------- petits utilitaires ---------- */
 const sha256 = v => createHash("sha256").update(v).digest("hex");
 const OTP_TTL_MS = 5 * 60_000;
 const SESSION_TTL_MS = 24 * 60 * 60_000;
-let otp = null; // { codeSha256, expiresAt, attempts }
+const otps = new Map(); // numéro autorisé → { codeSha256, expiresAt, attempts }
 const fenetres = new Map(); // limitation de débit par ip+action
 
 function limiteDebit(cle, max, fenetreMs) {
@@ -62,6 +66,86 @@ function normaliserNumero(saisie) {
   else if (/^\d+$/.test(n)) n = "+" + n;
   return /^\+[1-9]\d{7,14}$/.test(n) ? n : null;
 }
+// normalise les numéros autorisés une fois pour toutes
+CFG.NUMEROS_AUTORISES = CFG.NUMEROS_AUTORISES.map(normaliserNumero).filter(Boolean);
+
+/* ---------- journal des visites et des connexions ----------
+ * Visites : compteurs anonymes par jour (aucune IP conservée — seulement une
+ * empreinte salée, différente chaque jour, impossible à inverser).
+ * Connexions : chaque tentative d'entrée dans l'espace atelier est consignée
+ * (numéro et IP masqués). Consultable dans l'atelier, section « Journal ». */
+const JOURNAL_FICHIER = path.join(CFG.DATA_DIR, "journal.json");
+const JOURNAL_JOURS_MAX = 60;
+const JOURNAL_CONNEXIONS_MAX = 200;
+let journal = { jours: {}, connexions: [] };
+let journalPersistant = false;
+try {
+  fs.mkdirSync(CFG.DATA_DIR, { recursive: true });
+  if (fs.existsSync(JOURNAL_FICHIER)) {
+    const j = JSON.parse(fs.readFileSync(JOURNAL_FICHIER, "utf8"));
+    if (j && typeof j === "object")
+      journal = { jours: j.jours && typeof j.jours === "object" ? j.jours : {}, connexions: Array.isArray(j.connexions) ? j.connexions : [] };
+  }
+  fs.writeFileSync(JOURNAL_FICHIER, JSON.stringify(journal));
+  journalPersistant = true;
+} catch (e) {
+  console.error("Journal en mémoire seulement (dossier data inaccessible) :", e.message);
+}
+
+let journalTimer = null;
+function journalSauver() {
+  if (!journalPersistant || journalTimer) return;
+  journalTimer = setTimeout(() => {
+    journalTimer = null;
+    fs.writeFile(JOURNAL_FICHIER, JSON.stringify(journal), err => {
+      if (err) console.error("Écriture du journal impossible :", err.message);
+    });
+  }, 3000);
+}
+
+const jourCle = () => new Date().toISOString().slice(0, 10);
+
+function visiteurEmpreinte(jour, ip, ua) {
+  return createHmac("sha256", CFG.SESSION_SECRET || "journal").update(`${jour}|${ip}|${ua}`).digest("hex").slice(0, 16);
+}
+
+function enregistrerVisite(page, ip, ua) {
+  const jour = jourCle();
+  const j = journal.jours[jour] || (journal.jours[jour] = { pages: {}, appareils: {}, visiteurs: [] });
+  j.pages[page] = (j.pages[page] || 0) + 1;
+  const appareil = /mobile|android|iphone|ipad/i.test(ua) ? "mobile" : "ordinateur";
+  j.appareils[appareil] = (j.appareils[appareil] || 0) + 1;
+  const emp = visiteurEmpreinte(jour, ip, ua);
+  if (!j.visiteurs.includes(emp) && j.visiteurs.length < 5000) j.visiteurs.push(emp);
+  const cles = Object.keys(journal.jours).sort();
+  while (cles.length > JOURNAL_JOURS_MAX) delete journal.jours[cles.shift()];
+  journalSauver();
+}
+
+function masquerNumero(saisie) {
+  const n = String(saisie || "").replace(/[^\d+]/g, "");
+  if (!n) return "(vide)";
+  if (n.length <= 4) return n[0] + "•••";
+  return n.slice(0, 3) + "•".repeat(Math.min(Math.max(n.length - 5, 2), 10)) + n.slice(-2);
+}
+
+function masquerIp(ip) {
+  const s = String(ip || "");
+  if (s.includes(".")) { const p = s.split("."); return `${p[0]}.${p[1] || "•"}.•.•`; }
+  return s.split(":").slice(0, 2).join(":") + ":…";
+}
+
+function enregistrerConnexion(type, ip, numeroSaisi) {
+  journal.connexions.push({
+    date: new Date().toISOString(),
+    type,
+    ...(numeroSaisi !== undefined ? { numero: masquerNumero(numeroSaisi) } : {}),
+    ip: masquerIp(ip),
+  });
+  if (journal.connexions.length > JOURNAL_CONNEXIONS_MAX)
+    journal.connexions.splice(0, journal.connexions.length - JOURNAL_CONNEXIONS_MAX);
+  journalSauver();
+}
 
 class ErreurApp extends Error {
   constructor(statut, code, message) {
@@ -72,14 +156,14 @@ class ErreurApp extends Error {
 }
 
 /* ---------- moteur WhatsApp (API Meta Cloud) ---------- */
-async function envoyerCodeWhatsApp(code) {
+async function envoyerCodeWhatsApp(code, destinataire) {
   const r = await fetch(`https://graph.facebook.com/${CFG.WA_API}/${CFG.WA_PHONE_ID}/messages`, {
     method: "POST",
     headers: { Authorization: `Bearer ${CFG.WA_TOKEN}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       messaging_product: "whatsapp",
       recipient_type: "individual",
-      to: CFG.WHATSAPP_TO.slice(1), // E.164 sans le « + »
+      to: destinataire.slice(1), // E.164 sans le « + »
       type: "template",
       template: {
         name: CFG.WA_TEMPLATE,
@@ -180,31 +264,73 @@ async function router(req, res, url, ip) {
 
   if (!configure()) throw new ErreurApp(503, "TYPO_CAO_NOT_CONFIGURED", "L'espace atelier n'est pas configuré");
 
+  // balise de visite anonyme (envoyée par les pages du site)
+  if (req.method === "POST" && chemin === "/api/typo-cao/visite") {
+    res.statusCode = 202;
+    if (!limiteDebit(`visite|${ip}`, 120, 60 * 60_000)) return { ok: true };
+    const corps = await lireCorps(req, 2048).catch(() => ({}));
+    const page = corps && corps.page === "atelier" ? "atelier" : "accueil";
+    enregistrerVisite(page, ip, String(req.headers["user-agent"] || ""));
+    return { ok: true };
+  }
+
+  // journal consultable dans l'espace atelier (session requise)
+  if (req.method === "GET" && chemin === "/api/typo-cao/journal") {
+    verifierSession(req.headers.authorization);
+    const jours = Object.keys(journal.jours).sort().slice(-30).map(d => {
+      const j = journal.jours[d];
+      return {
+        jour: d,
+        visites: Object.values(j.pages).reduce((a, b) => a + b, 0),
+        visiteurs: j.visiteurs.length,
+        pages: j.pages,
+        appareils: j.appareils,
+      };
+    });
+    return { jours, connexions: journal.connexions.slice(-100).reverse(), persistant: journalPersistant };
+  }
+
   if (req.method === "POST" && chemin === "/api/typo-cao/login") {
     if (!limiteDebit(`login|${ip}`, 5, 15 * 60_000))
       throw new ErreurApp(429, "TYPO_CAO_TOO_MANY_ATTEMPTS", "Trop de tentatives, réessaie dans quelques minutes");
     const { numero } = await lireCorps(req, 4096);
     const n = normaliserNumero(numero);
     const reponse = { codeEnvoye: true, expireDansSecondes: OTP_TTL_MS / 1000 };
-    // réponse identique quel que soit le numéro : seul celui de l'atelier reçoit un code
-    if (!n || n !== CFG.WHATSAPP_TO) return reponse;
+    // réponse identique quel que soit le numéro : seuls les numéros de l'atelier reçoivent un code
+    if (!n || !CFG.NUMEROS_AUTORISES.includes(n)) { enregistrerConnexion("numero_inconnu", ip, numero); return reponse; }
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
-    otp = { codeSha256: sha256(code), expiresAt: Date.now() + OTP_TTL_MS, attempts: 0 };
-    await envoyerCodeWhatsApp(code);
+    otps.set(n, { codeSha256: sha256(code), expiresAt: Date.now() + OTP_TTL_MS, attempts: 0 });
+    await envoyerCodeWhatsApp(code, n);
+    enregistrerConnexion("code_envoye", ip, n);
     return reponse;
   }
 
   if (req.method === "POST" && chemin === "/api/typo-cao/verify") {
     const { numero, code } = await lireCorps(req, 4096);
     const n = normaliserNumero(numero);
-    if (!otp || !n || n !== CFG.WHATSAPP_TO || !/^\d{6}$/.test(String(code || "")))
+    const otp = n ? otps.get(n) : null;
+    if (!otp || !/^\d{6}$/.test(String(code || ""))) {
+      enregistrerConnexion("code_errone", ip, numero);
       throw new ErreurApp(401, "TYPO_CAO_CODE_INVALID", "Code incorrect ou expiré");
-    if (Date.now() > otp.expiresAt) { otp = null; throw new ErreurApp(401, "TYPO_CAO_CODE_EXPIRED", "Code expiré, reconnecte-toi"); }
+    }
+    if (Date.now() > otp.expiresAt) {
+      otps.delete(n);
+      enregistrerConnexion("code_expire", ip, n);
+      throw new ErreurApp(401, "TYPO_CAO_CODE_EXPIRED", "Code expiré, reconnecte-toi");
+    }
     otp.attempts += 1;
-    if (otp.attempts > 5) { otp = null; throw new ErreurApp(429, "TYPO_CAO_TOO_MANY_ATTEMPTS", "Trop d'essais, reconnecte-toi"); }
+    if (otp.attempts > 5) {
+      otps.delete(n);
+      enregistrerConnexion("trop_essais", ip, n);
+      throw new ErreurApp(429, "TYPO_CAO_TOO_MANY_ATTEMPTS", "Trop d'essais, reconnecte-toi");
+    }
     const a = Buffer.from(otp.codeSha256, "hex"), b = Buffer.from(sha256(String(code)), "hex");
-    if (!timingSafeEqual(a, b)) throw new ErreurApp(401, "TYPO_CAO_CODE_INVALID", "Code incorrect ou expiré");
-    otp = null;
+    if (!timingSafeEqual(a, b)) {
+      enregistrerConnexion("code_errone", ip, n);
+      throw new ErreurApp(401, "TYPO_CAO_CODE_INVALID", "Code incorrect ou expiré");
+    }
+    otps.delete(n);
+    enregistrerConnexion("connexion_reussie", ip, n);
     return creerJeton();
   }
 
