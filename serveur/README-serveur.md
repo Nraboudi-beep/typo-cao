@@ -9,7 +9,7 @@ Petit service indépendant (un seul conteneur Docker, zéro dépendance npm) pou
 sudo mkdir -p /opt/typo-cao && sudo chown $USER /opt/typo-cao
 cd /opt/typo-cao
 git clone --depth 1 https://github.com/Nraboudi-beep/typo-cao.git tmp \
-  && mv tmp/serveur/* . && rm -rf tmp
+  && cp -r tmp/serveur/. . && rm -rf tmp
 
 # 2. Configurer
 cp .env.example .env
