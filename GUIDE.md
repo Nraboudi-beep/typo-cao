@@ -26,7 +26,7 @@ Ton site a une page d'administration rien que pour toi :
 
 ### Pour Nizar : côté serveur
 
-La connexion et les enregistrements passent par le module `typo-cao` du backend atelier-de-demain (branche `feat/typo-cao-atelier`) : connexion par numéro WhatsApp + code à usage unique (API Meta déjà en place), et le jeton GitHub reste dans les variables d'environnement du serveur. Détails d'installation dans la description de la pull request du dépôt atelier-de-demain. Tant que le serveur n'est pas configuré, la page bascule automatiquement sur l'ancienne connexion par clé GitHub.
+La connexion et les enregistrements passent par un **service autonome** : le dossier `serveur/` de ce dépôt (un seul conteneur Docker, indépendant de tout autre projet, qui réutilise uniquement le moteur WhatsApp Meta existant). Le jeton GitHub reste dans les variables d'environnement de ce service. Installation complète : `serveur/README-serveur.md`. Tant que le service n'est pas en ligne, la page bascule automatiquement sur l'ancienne connexion par clé GitHub.
 
 ---
 
