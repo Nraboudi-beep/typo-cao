@@ -3,40 +3,139 @@
   "instagram": "",
   "tarifs": [],
   "collections": [
-    { "id": "perles", "label": "Perles & Or", "sous_titre": "perles noires, or et cuivre — esprit haute joaillerie" },
-    { "id": "football", "label": "Football", "sous_titre": "noir laqué, or et ballons — pour les passionnés" }
+    {
+      "id": "perles",
+      "label": "Perles & Or"
+    },
+    {
+      "id": "football",
+      "label": "Football"
+    }
   ],
   "matieres": [
-    { "fichier": "mix_A.webp", "nom": "Noir matelassé" },
-    { "fichier": "mix_B.webp", "nom": "Ballon doré" },
-    { "fichier": "mix_B2.webp", "nom": "Ballon or nacré" },
-    { "fichier": "mix_C.webp", "nom": "Cuivre écailles" },
-    { "fichier": "mix_C2.webp", "nom": "Cookie doré" },
-    { "fichier": "mix_C3.webp", "nom": "Orange nacré" },
-    { "fichier": "mix_D.webp", "nom": "Grenat pailleté" },
-    { "fichier": "mix_E.webp", "nom": "Noir gonflé" },
-    { "fichier": "mix_E2.webp", "nom": "Orange brioché" },
-    { "fichier": "mix_F.webp", "nom": "Velours noir boutons or" },
-    { "fichier": "mix_G.webp", "nom": "Chocolat feuille d'or" },
-    { "fichier": "mix_H.webp", "nom": "Marbre noir veiné or" },
-    { "fichier": "mix_I.webp", "nom": "Verre de miel" },
-    { "fichier": "mix_J.webp", "nom": "Velours émeraude" },
-    { "fichier": "mix_K.webp", "nom": "Orange brioché" },
-    { "fichier": "mix_L.webp", "nom": "Paillettes cacao" },
-    { "fichier": "mix_L2.webp", "nom": "Paillettes or" },
-    { "fichier": "mix_M.webp", "nom": "Or matelassé" },
-    { "fichier": "mix_N.webp", "nom": "Cookie chocolat" },
-    { "fichier": "mix_O.webp", "nom": "Noir bulles d'or" },
-    { "fichier": "mix_P.webp", "nom": "Noir laqué" },
-    { "fichier": "mix_Q.webp", "nom": "Noir pois d'or" },
-    { "fichier": "mix_R.webp", "nom": "Or écailles" },
-    { "fichier": "mix_S.webp", "nom": "Cuir chocolat" },
-    { "fichier": "mix_T.webp", "nom": "Or satiné" },
-    { "fichier": "mix_U.webp", "nom": "Rouge & or" },
-    { "fichier": "mix_V.webp", "nom": "Cuivre pailleté" },
-    { "fichier": "mix_W.webp", "nom": "Mousse végétale" },
-    { "fichier": "mix_X.webp", "nom": "Noir gonflé" },
-    { "fichier": "mix_Y.webp", "nom": "Fourrure tigrée" },
-    { "fichier": "mix_Z.webp", "nom": "Rouge baroque" }
+    {
+      "fichier": "mix_A.webp",
+      "nom": "Noir matelassé"
+    },
+    {
+      "fichier": "mix_B.webp",
+      "nom": "Ballon doré"
+    },
+    {
+      "fichier": "mix_B2.webp",
+      "nom": "Ballon or nacré"
+    },
+    {
+      "fichier": "mix_C.webp",
+      "nom": "Cuivre écailles"
+    },
+    {
+      "fichier": "mix_C2.webp",
+      "nom": "Cookie doré"
+    },
+    {
+      "fichier": "mix_C3.webp",
+      "nom": "Orange nacré"
+    },
+    {
+      "fichier": "mix_D.webp",
+      "nom": "Grenat pailleté"
+    },
+    {
+      "fichier": "mix_E.webp",
+      "nom": "Noir gonflé"
+    },
+    {
+      "fichier": "mix_E2.webp",
+      "nom": "Orange brioché"
+    },
+    {
+      "fichier": "mix_F.webp",
+      "nom": "Velours noir boutons or"
+    },
+    {
+      "fichier": "mix_G.webp",
+      "nom": "Chocolat feuille d'or"
+    },
+    {
+      "fichier": "mix_H.webp",
+      "nom": "Marbre noir veiné or"
+    },
+    {
+      "fichier": "mix_I.webp",
+      "nom": "Verre de miel"
+    },
+    {
+      "fichier": "mix_J.webp",
+      "nom": "Velours émeraude"
+    },
+    {
+      "fichier": "mix_K.webp",
+      "nom": "Orange brioché"
+    },
+    {
+      "fichier": "mix_L.webp",
+      "nom": "Paillettes cacao"
+    },
+    {
+      "fichier": "mix_L2.webp",
+      "nom": "Paillettes or"
+    },
+    {
+      "fichier": "mix_M.webp",
+      "nom": "Or matelassé"
+    },
+    {
+      "fichier": "mix_N.webp",
+      "nom": "Cookie chocolat"
+    },
+    {
+      "fichier": "mix_O.webp",
+      "nom": "Noir bulles d'or"
+    },
+    {
+      "fichier": "mix_P.webp",
+      "nom": "Noir laqué"
+    },
+    {
+      "fichier": "mix_Q.webp",
+      "nom": "Noir pois d'or"
+    },
+    {
+      "fichier": "mix_R.webp",
+      "nom": "Or écailles"
+    },
+    {
+      "fichier": "mix_S.webp",
+      "nom": "Cuir chocolat"
+    },
+    {
+      "fichier": "mix_T.webp",
+      "nom": "Or satiné"
+    },
+    {
+      "fichier": "mix_U.webp",
+      "nom": "Rouge & or"
+    },
+    {
+      "fichier": "mix_V.webp",
+      "nom": "Cuivre pailleté"
+    },
+    {
+      "fichier": "mix_W.webp",
+      "nom": "Mousse végétale"
+    },
+    {
+      "fichier": "mix_X.webp",
+      "nom": "Noir gonflé"
+    },
+    {
+      "fichier": "mix_Y.webp",
+      "nom": "Fourrure tigrée"
+    },
+    {
+      "fichier": "mix_Z.webp",
+      "nom": "Rouge baroque"
+    }
   ]
 }
