@@ -7,26 +7,47 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
 :root{
-  --bg:#ece5d8; --surface:#f7f3eb; --fg:#2b2218; --muted:#8d7d67;
-  --gold:#a87c3f; --gold-deep:#8a6330; --line:#d9cdb8; --ok:#3d7a46; --err:#a33b2e;
+  --bg:#ece5d8; --surface:#faf6ee; --fg:#2b2218; --muted:#8d7d67;
+  --gold:#a87c3f; --gold-deep:#8a6330; --line:#ddd2bd; --ok:#3d7a46; --err:#a33b2e;
+  --ombre:0 24px 60px -24px rgba(90,62,28,.35);
   --display:"Fraunces",Georgia,serif; --body:"Outfit",system-ui,sans-serif;
 }
-body{margin:0;background:var(--bg);background-image:radial-gradient(1000px 500px at 50% -150px,#f6f0e4,var(--bg) 70%);color:var(--fg);font-family:var(--body);font-weight:300;line-height:1.6;padding-inline:16px}
-.wrap{max-width:860px;margin:0 auto;padding-block:40px 80px}
-h1{font-family:var(--display);font-weight:300;letter-spacing:.12em;font-size:2rem;margin:0}
+html{font-size:17px}
+body{margin:0;background:var(--bg);background-image:radial-gradient(1200px 700px at 50% -200px,#f7f1e4,var(--bg) 72%);color:var(--fg);font-family:var(--body);font-weight:300;line-height:1.65;padding-inline:16px;min-height:100vh}
+.wrap{max-width:900px;margin:0 auto;padding-block:40px 90px}
+h1{font-family:var(--display);font-weight:300;letter-spacing:.14em;font-size:clamp(2.2rem,6vw,3rem);margin:0}
 h1 b{color:var(--gold-deep);font-weight:600}
-h2{font-family:var(--display);font-weight:500;font-size:1.25rem;margin:0 0 4px}
-.sub{color:var(--muted);font-size:.8rem;letter-spacing:.24em;text-transform:uppercase;margin-top:6px}
-section{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;margin-top:22px}
-.hint{color:var(--muted);font-size:.82rem;margin:4px 0 14px}
-label.f{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:12px 0 4px}
-input[type=text],input[type=password]{width:100%;box-sizing:border-box;background:#fffdf8;border:1px solid var(--line);border-radius:4px;padding:10px 12px;font-family:var(--body);font-size:.95rem;color:var(--fg);outline:none}
-input:focus{border-color:var(--gold)}
-button{font-family:var(--body);font-weight:500;font-size:.8rem;letter-spacing:.08em;border-radius:4px;padding:10px 18px;cursor:pointer;border:1px solid var(--gold-deep);background:var(--gold-deep);color:#fdf9f1}
-button.ghost{background:transparent;color:var(--gold-deep)}
-button.small{padding:6px 10px;font-size:.72rem}
-button.danger{border-color:var(--err);color:var(--err);background:transparent}
-button:disabled{opacity:.5;cursor:default}
+h2{font-family:var(--display);font-weight:500;font-size:1.55rem;margin:0 0 6px;letter-spacing:.01em}
+h2::after{content:"";display:block;width:44px;height:2px;background:var(--gold);margin-top:10px;border-radius:2px}
+.sub{color:var(--muted);font-size:.82rem;letter-spacing:.34em;text-transform:uppercase;margin-top:10px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:34px 34px 38px;margin-top:28px;box-shadow:0 1px 0 #fffdf8 inset}
+@media (max-width:640px){section{padding:24px 20px 28px}}
+.hint{color:var(--muted);font-size:.95rem;margin:10px 0 20px;max-width:56ch}
+label.f{display:block;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+input[type=text],input[type=password],input[type=tel]{width:100%;box-sizing:border-box;background:#fffdf8;border:1px solid var(--line);border-radius:8px;padding:15px 16px;font-family:var(--body);font-size:1.1rem;color:var(--fg);outline:none;transition:border-color .2s,box-shadow .2s}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,124,63,.14)}
+button{font-family:var(--body);font-weight:500;font-size:.95rem;letter-spacing:.06em;border-radius:8px;padding:14px 26px;cursor:pointer;border:1px solid var(--gold-deep);background:linear-gradient(170deg,#a87c3f,#8a6330);color:#fdf9f1;box-shadow:0 10px 22px -12px rgba(138,99,48,.7);transition:transform .15s,box-shadow .2s}
+button:hover{transform:translateY(-1px);box-shadow:0 14px 26px -12px rgba(138,99,48,.75)}
+button.ghost{background:transparent;color:var(--gold-deep);box-shadow:none}
+button.small{padding:8px 14px;font-size:.82rem}
+button.danger{border-color:var(--err);color:var(--err);background:transparent;box-shadow:none}
+button:disabled{opacity:.5;cursor:default;transform:none}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--gold-deep);outline-offset:2px}
+
+/* ---- écran de connexion : l'entrée de l'atelier ---- */
+.porte{min-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.lettres{display:flex;align-items:flex-end;justify-content:center;gap:.3rem;margin:34px 0 10px;flex-wrap:wrap}
+.lettres img{height:clamp(44px,9vw,76px);width:auto;filter:drop-shadow(0 14px 18px rgba(90,62,28,.35))}
+@media (prefers-reduced-motion:no-preference){
+  .lettres img{animation:entree .6s cubic-bezier(.2,.9,.3,1.35) both;animation-delay:calc(var(--i)*90ms)}
+  @keyframes entree{from{opacity:0;transform:translateY(22px) scale(.82)}to{opacity:1;transform:none}}
+}
+.porte-carte{width:min(560px,100%);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:40px 40px 44px;margin-top:26px;box-shadow:var(--ombre);text-align:left}
+@media (max-width:640px){.porte-carte{padding:28px 22px 32px}}
+.porte-carte h2{font-size:1.7rem}
+.porte-carte input{font-size:1.25rem;letter-spacing:.04em;padding:17px 18px;text-align:center}
+.porte-carte button{width:100%;font-size:1.05rem;padding:16px;margin-top:6px}
+.bienvenue{font-family:var(--display);font-weight:300;font-size:1.15rem;color:var(--muted);margin:14px 0 0;font-style:italic}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .tarif-row{display:grid;grid-template-columns:1fr 110px 1.4fr auto;gap:8px;margin-bottom:8px}
 @media (max-width:640px){.tarif-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
@@ -52,23 +73,30 @@ button:disabled{opacity:.5;cursor:default}
 .savebar{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 20px;margin-top:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .savebar .note{color:var(--muted);font-size:.78rem}
 .topbar{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.topbar h1{font-size:1.7rem}
 .topbar .right{margin-left:auto}
-#loginView section{max-width:460px;margin:60px auto 0}
-.progress{font-size:.8rem;color:var(--gold-deep)}
+.progress{font-size:.9rem;color:var(--gold-deep)}
 [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- connexion -->
-  <div id="loginView">
-    <div style="text-align:center;margin-top:30px">
-      <h1>TYPO <b>CAO</b></h1>
-      <div class="sub">Espace atelier</div>
+  <!-- connexion : l'entrée de l'atelier -->
+  <div id="loginView" class="porte">
+    <h1>TYPO <b>CAO</b></h1>
+    <div class="sub">L'atelier de Yuan</div>
+    <div class="lettres" aria-hidden="true">
+      <img src="assets/mix_A.webp" alt="" style="--i:0">
+      <img src="assets/mix_T.webp" alt="" style="--i:1">
+      <img src="assets/mix_E.webp" alt="" style="--i:2">
+      <img src="assets/mix_L.webp" alt="" style="--i:3">
+      <img src="assets/mix_I.webp" alt="" style="--i:4">
+      <img src="assets/mix_E2.webp" alt="" style="--i:5">
+      <img src="assets/mix_R.webp" alt="" style="--i:6">
     </div>
-    <section>
-      <h2>Connexion</h2>
+    <div class="porte-carte">
+      <h2 id="salut">Bienvenue</h2>
       <div id="authFields" hidden>
         <p class="hint">Entre ton numéro WhatsApp : tu recevras un code de connexion à 6 chiffres.</p>
         <label class="f" for="numtel">Ton numéro WhatsApp</label>
@@ -84,11 +112,12 @@ button:disabled{opacity:.5;cursor:default}
         <label class="f" for="tok">Clé d'accès</label>
         <input type="password" id="tok" autocomplete="current-password" placeholder="github_pat_…">
       </div>
-      <div class="row" style="margin-top:16px">
+      <div style="margin-top:20px">
         <button id="loginBtn">Se connecter</button>
-        <span class="progress" id="loginMsg"></span>
+        <div class="progress" id="loginMsg" style="text-align:center;margin-top:10px"></div>
       </div>
-    </section>
+    </div>
+    <p class="bienvenue">Chaque lettre est une pièce unique — entre, c'est chez toi.</p>
   </div>
 
   <!-- tableau de bord -->
@@ -550,6 +579,12 @@ $("addCollBtn").onclick = async () => {
   } catch (e) { $("collMsg").textContent = ""; statusMsg("Échec : " + e.message, "err"); }
   $("addCollBtn").disabled = false;
 };
+
+/* accueil selon l'heure */
+(() => {
+  const h = new Date().getHours();
+  $("salut").textContent = (h >= 5 && h < 18) ? "Bonjour Yuan" : "Bonsoir Yuan";
+})();
 
 /* démarrage : détection du mode + reconnexion automatique */
 (async () => {
