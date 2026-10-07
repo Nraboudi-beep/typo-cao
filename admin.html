@@ -70,14 +70,12 @@ button:disabled{opacity:.5;cursor:default}
     <section>
       <h2>Connexion</h2>
       <div id="authFields" hidden>
-        <p class="hint">Entre ton identifiant et ton mot de passe, puis le code reçu sur ton WhatsApp.</p>
-        <label class="f" for="uid">Identifiant</label>
-        <input type="text" id="uid" autocomplete="username">
-        <label class="f" for="pwd">Mot de passe</label>
-        <input type="password" id="pwd" autocomplete="current-password">
+        <p class="hint">Entre ton numéro WhatsApp : tu recevras un code de connexion à 6 chiffres.</p>
+        <label class="f" for="numtel">Ton numéro WhatsApp</label>
+        <input type="tel" id="numtel" autocomplete="tel" placeholder="06 12 34 56 78">
       </div>
       <div id="codeFields" hidden>
-        <p class="hint">Un code à 6 chiffres vient d'être envoyé sur ton WhatsApp. Il est valable 5 minutes.</p>
+        <p class="hint">Si ce numéro est bien celui de l'atelier, un code à 6 chiffres vient d'arriver sur WhatsApp (valable 5 minutes).</p>
         <label class="f" for="otp">Code reçu sur WhatsApp</label>
         <input type="text" id="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
       </div>
@@ -435,9 +433,9 @@ $("loginBtn").onclick = async () => {
   try {
     if (MODE === "serveur"){
       if (etape === "identifiants"){
-        $("loginMsg").textContent = "Vérification…";
+        $("loginMsg").textContent = "Envoi du code…";
         await apiAtelier("/login", { method: "POST", body: JSON.stringify({
-          identifiant: $("uid").value, motDePasse: $("pwd").value
+          numero: $("numtel").value
         })});
         etape = "code";
         $("authFields").hidden = true; $("codeFields").hidden = false;
@@ -447,7 +445,7 @@ $("loginBtn").onclick = async () => {
       } else {
         $("loginMsg").textContent = "Validation…";
         const s = await apiAtelier("/verify", { method: "POST", body: JSON.stringify({
-          identifiant: $("uid").value, code: $("otp").value.trim()
+          numero: $("numtel").value, code: $("otp").value.trim()
         })});
         SESSION = s.jeton;
         try {

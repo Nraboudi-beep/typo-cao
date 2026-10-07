@@ -7,7 +7,7 @@ Ton site a une page d'administration rien que pour toi :
 **https://nraboudi-beep.github.io/typo-cao/admin.html**
 
 1. Ouvre cette adresse (mets-la en favori)
-2. Entre ton **identifiant** et ton **mot de passe**, puis le **code à 6 chiffres reçu sur ton WhatsApp** — ta connexion reste ensuite mémorisée 24 h sur ton appareil
+2. Entre ton **numéro WhatsApp**, puis le **code à 6 chiffres reçu sur WhatsApp** — pas de mot de passe, et ta connexion reste mémorisée 24 h sur ton appareil
 3. Tu peux alors, visuellement, sans aucun code :
    - ajouter / modifier / retirer **tes tarifs**
    - changer ton **WhatsApp** et ton **Instagram**
@@ -22,11 +22,11 @@ Ton site a une page d'administration rien que pour toi :
 - Pour pouvoir **prouver la date** de tes créations en cas de litige : garde tes fichiers originaux datés, et envisage une **enveloppe Soleau** à l'INPI (~15 €, en ligne sur inpi.fr) pour tes collections importantes.
 - Ne mets jamais tes images pleine qualité en ligne : le site ne montre que des aperçus filigranés.
 
-⚠️ Ton mot de passe est personnel : ne le partage jamais. Si tu reçois un code WhatsApp sans avoir demandé de connexion, préviens Nizar.
+⚠️ Si tu reçois un code de connexion WhatsApp sans l'avoir demandé, ignore-le et préviens Nizar : quelqu'un essaie d'entrer. Ne transmets jamais un code reçu, à personne.
 
 ### Pour Nizar : côté serveur
 
-La connexion et les enregistrements passent par le module `typo-cao` du backend atelier-de-demain (branche `feat/typo-cao-atelier`) : identifiant/mot de passe + code WhatsApp (API Meta déjà en place), et le jeton GitHub reste dans les variables d'environnement du serveur. Détails d'installation dans la description de la pull request du dépôt atelier-de-demain. Tant que le serveur n'est pas configuré, la page bascule automatiquement sur l'ancienne connexion par clé GitHub.
+La connexion et les enregistrements passent par le module `typo-cao` du backend atelier-de-demain (branche `feat/typo-cao-atelier`) : connexion par numéro WhatsApp + code à usage unique (API Meta déjà en place), et le jeton GitHub reste dans les variables d'environnement du serveur. Détails d'installation dans la description de la pull request du dépôt atelier-de-demain. Tant que le serveur n'est pas configuré, la page bascule automatiquement sur l'ancienne connexion par clé GitHub.
 
 ---
 
