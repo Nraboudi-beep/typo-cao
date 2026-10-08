@@ -36,6 +36,8 @@ const CFG = {
   WA_TEMPLATE: process.env.TYPO_CAO_OTP_TEMPLATE || "typo_cao_code",
   WA_LANG: process.env.TYPO_CAO_OTP_TEMPLATE_LANGUAGE || "fr",
   DATA_DIR: process.env.TYPO_CAO_DATA_DIR || "/data",
+  PUBLIC_URL: (process.env.TYPO_CAO_PUBLIC_URL || "https://typo.atelierdedemain.fr").replace(/\/+$/, ""),
+  SITE_URL: process.env.TYPO_CAO_SITE_URL || "https://nraboudi-beep.github.io/typo-cao/",
 };
 
 const configure = () =>
@@ -145,6 +147,60 @@ function enregistrerConnexion(type, ip, numeroSaisi) {
   if (journal.connexions.length > JOURNAL_CONNEXIONS_MAX)
     journal.connexions.splice(0, journal.connexions.length - JOURNAL_CONNEXIONS_MAX);
   journalSauver();
+}
+
+/* ---------- aperçus de création (image + message prêt à envoyer) ----------
+ * Le site fabrique une petite image filigranée de la création et l'envoie ici.
+ * On la sert sur /a/<id> (page avec vignette, visible dans WhatsApp) et on
+ * garde le texte du message pour /w/<id> : une redirection vers la
+ * conversation WhatsApp prête à envoyer — c'est ce lien court que le QR encode. */
+const APERCUS_DIR = path.join(CFG.DATA_DIR, "apercus");
+const APERCU_TTL_MS = 60 * 24 * 60 * 60_000;
+let apercusPersistants = false;
+try { fs.mkdirSync(APERCUS_DIR, { recursive: true }); apercusPersistants = true; }
+catch (e) { console.error("Aperçus désactivés (dossier inaccessible) :", e.message); }
+
+function apercusPurger() {
+  if (!apercusPersistants) return;
+  try {
+    const limite = Date.now() - APERCU_TTL_MS;
+    for (const f of fs.readdirSync(APERCUS_DIR)) {
+      const p = path.join(APERCUS_DIR, f);
+      try { if (fs.statSync(p).mtimeMs < limite) fs.unlinkSync(p); } catch {}
+    }
+  } catch {}
+}
+apercusPurger();
+setInterval(apercusPurger, 24 * 60 * 60_000).unref();
+
+const idValide = id => typeof id === "string" && /^[A-Za-z0-9]{10}$/.test(id);
+function nouvelId() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+  let s = "";
+  for (let i = 0; i < 10; i++) s += alphabet[randomInt(0, alphabet.length)];
+  return s;
+}
+const echapperHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function lireApercuMeta(id) {
+  try { return JSON.parse(fs.readFileSync(path.join(APERCUS_DIR, id + ".json"), "utf8")); } catch { return null; }
+}
+
+function pageApercu(id, meta) {
+  const img = `${CFG.PUBLIC_URL}/a/${id}.jpg`;
+  const titre = meta && meta.titre ? `Aperçu Typo Cao — ${meta.titre}` : "Aperçu Typo Cao";
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${echapperHtml(titre)}</title>
+<meta property="og:title" content="${echapperHtml(titre)}"><meta property="og:type" content="website">
+<meta property="og:image" content="${img}"><meta property="og:image:type" content="image/jpeg">
+<meta property="og:description" content="Aperçu filigrané d'une création Typo Cao. La version finale est réalisée par l'atelier.">
+<meta name="robots" content="noindex">
+<style>body{margin:0;background:#ece5d8;color:#2b2218;font:300 17px/1.6 Outfit,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+main{max-width:760px;text-align:center}img{max-width:100%;height:auto;border-radius:12px;box-shadow:0 24px 60px -24px rgba(90,62,28,.45)}
+h1{font:500 1.4rem Georgia,serif;margin:18px 0 4px}p{color:#8d7d67;margin:0 0 14px}a{color:#8a6330}</style></head>
+<body><main><img src="${img}" alt="Aperçu de la création"><h1>${echapperHtml(titre)}</h1>
+<p>Aperçu filigrané généré sur le site — la version finale, propre, est réalisée par l'atelier.</p>
+<a href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a></main></body></html>`;
 }
 
 class ErreurApp extends Error {
@@ -286,6 +342,45 @@ async function router(req, res, url, ip) {
     return { configure: configure() };
   }
 
+  // --- aperçus : dépôt (site), page (/a/<id>), image (/a/<id>.jpg), redirection WhatsApp (/w/<id>)
+  if (req.method === "POST" && chemin === "/api/typo-cao/apercu") {
+    if (!apercusPersistants) throw new ErreurApp(503, "APERCU_INDISPONIBLE", "Aperçus indisponibles");
+    if (!limiteDebit(`apercu|${ip}`, 40, 60 * 60_000))
+      throw new ErreurApp(429, "APERCU_RATE_LIMITED", "Trop d'aperçus, réessaie plus tard");
+    const corps = await lireCorps(req, 700_000);
+    const numero = String(corps.numero || "").replace(/\D/g, "");
+    const texte = String(corps.texte || "").slice(0, 1500);
+    const titre = String(corps.titre || "").slice(0, 40);
+    if (!/^\d{8,15}$/.test(numero)) throw new ErreurApp(400, "NUMERO_INVALIDE", "Numéro invalide");
+    let id = idValide(corps.id) && lireApercuMeta(corps.id) ? corps.id : null;
+    if (!id) {
+      const b64 = String(corps.imageB64 || "");
+      if (!/^\/9j\/[A-Za-z0-9+/]+=*$/.test(b64) || b64.length > 560_000)
+        throw new ErreurApp(400, "IMAGE_INVALIDE", "Image JPEG attendue (≤ 400 Ko)");
+      id = nouvelId();
+      fs.writeFileSync(path.join(APERCUS_DIR, id + ".jpg"), Buffer.from(b64, "base64"));
+    }
+    fs.writeFileSync(path.join(APERCUS_DIR, id + ".json"), JSON.stringify({ numero, texte, titre, date: new Date().toISOString() }));
+    res.statusCode = 201;
+    return { id, page: `${CFG.PUBLIC_URL}/a/${id}`, image: `${CFG.PUBLIC_URL}/a/${id}.jpg`, whatsapp: `${CFG.PUBLIC_URL}/w/${id}` };
+  }
+  {
+    const m = req.method === "GET" && chemin.match(/^\/(a|w)\/([A-Za-z0-9]{10})(\.jpg)?$/);
+    if (m) {
+      const [, type, id, ext] = m;
+      const meta = lireApercuMeta(id);
+      if (!meta) throw new ErreurApp(404, "APERCU_INTROUVABLE", "Aperçu introuvable ou expiré");
+      if (type === "a" && ext) {
+        let img; try { img = fs.readFileSync(path.join(APERCUS_DIR, id + ".jpg")); } catch { throw new ErreurApp(404, "APERCU_INTROUVABLE", "Image introuvable"); }
+        return { __brut: true, statut: 200, entetes: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" }, corps: img };
+      }
+      if (type === "a") return { __brut: true, statut: 200, entetes: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" }, corps: pageApercu(id, meta) };
+      // /w/<id> : la conversation WhatsApp, message prêt à envoyer
+      const cible = `https://wa.me/${meta.numero}?text=${encodeURIComponent(meta.texte || "")}`;
+      return { __brut: true, statut: 302, entetes: { Location: cible, "Cache-Control": "no-store" }, corps: "" };
+    }
+  }
+
   if (!configure()) throw new ErreurApp(503, "TYPO_CAO_NOT_CONFIGURED", "L'espace atelier n'est pas configuré");
 
   // balise de visite anonyme (envoyée par les pages du site)
@@ -424,6 +519,11 @@ const serveur = http.createServer(async (req, res) => {
   const ip = (String(req.headers["x-forwarded-for"] || "").split(",")[0] || req.socket.remoteAddress || "inconnu").trim();
   try {
     const resultat = await router(req, res, url, ip);
+    if (resultat && resultat.__brut) {
+      res.statusCode = resultat.statut;
+      for (const [k, v] of Object.entries(resultat.entetes)) res.setHeader(k, v);
+      return res.end(resultat.corps);
+    }
     res.end(JSON.stringify(resultat));
   } catch (e) {
     const statut = e instanceof ErreurApp ? e.statut : 500;
