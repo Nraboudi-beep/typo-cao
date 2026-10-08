@@ -6,6 +6,7 @@
 <meta name="description" content="Typo Cao — lettres 3D décoratives : composez votre prénom, choisissez une collection, importez votre vidéo et recevez votre aperçu.">
 <title>Typo Cao</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="lecteur-typo.js" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
 /* Layout : application plein écran sans défilement — scène centrale claire (écrin), collections à gauche, matières à droite, lightbox + formulaire de demande */
@@ -233,6 +234,9 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 .render-box{display:flex;flex-direction:column;gap:14px;align-items:center}
 .render-box canvas{max-width:100%;max-height:52vh;border-radius:8px;background:#000}
 .render-box video{max-width:100%;max-height:52vh;border-radius:8px;background:#000}
+.lecteur-box{width:100%;max-width:min(100%,calc(52vh * 16 / 9));margin:0 auto}
+.lecteur-box .video-js{border-radius:8px}
+.lecteur-box video:not(.vjs-tech){width:100%;display:block}
 .progress{width:100%;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
 .progress i{display:block;height:100%;width:0%;background:var(--gold);transition:width .3s linear}
 .render-note{font-size:.78rem;color:var(--muted);text-align:center;max-width:46ch}
@@ -368,7 +372,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   <div class="panel render-box" id="renderPanel">
     <h2 id="renderTitle">Fabrication de votre vidéo…</h2>
     <canvas id="renderCanvas" hidden></canvas>
-    <video id="resultVideo" controls playsinline hidden></video>
+    <div class="lecteur-box" id="resultBox" hidden><video id="resultVideo" controls playsinline></video></div>
     <div class="progress" id="renderProgress"><i></i></div>
     <p class="render-note" id="renderNote">Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.</p>
     <div class="actions">
@@ -864,6 +868,23 @@ const renderBtn = document.getElementById("renderBtn");
 const renderModal = document.getElementById("renderModal");
 const renderCanvas = document.getElementById("renderCanvas");
 const resultVideo = document.getElementById("resultVideo");
+let lecteurResultat = null;
+async function afficherResultat(url, type){
+  resultVideo.src = url; // lecture native en secours
+  if (!window.LecteurTypo) return;
+  try {
+    if (!lecteurResultat){
+      lecteurResultat = await LecteurTypo.monter(resultVideo, { site: "./" });
+      if (lecteurResultat){
+        lecteurResultat.on("loadedmetadata", () => {
+          const r = lecteurResultat.videoWidth() / lecteurResultat.videoHeight();
+          if (r) document.getElementById("resultBox").style.maxWidth = `min(100%, calc(52vh * ${r}))`;
+        });
+      }
+    }
+    if (lecteurResultat) lecteurResultat.src({ src: url, type: (type || "video/webm").split(";")[0] });
+  } catch {}
+}
 const renderBar = document.querySelector("#renderProgress i");
 const MAX_RENDER_S = 60;
 let renderAbort = null;
@@ -982,7 +1003,8 @@ async function startRender(){
   if (!file) return;
   renderModal.hidden = false;
   renderCanvas.hidden = false;
-  resultVideo.hidden = true;
+  document.getElementById("resultBox").hidden = true;
+  if (lecteurResultat) { try { lecteurResultat.pause(); } catch {} }
   document.getElementById("saveVideoBtn").hidden = true;
   document.getElementById("orderAfterRenderBtn").hidden = true;
   document.getElementById("renderTitle").textContent = "Fabrication de votre vidéo…";
@@ -1048,8 +1070,8 @@ async function startRender(){
   renderedOnce = true;
   renderBar.style.width = "100%";
   renderCanvas.hidden = true;
-  resultVideo.src = URL.createObjectURL(lastRenderBlob);
-  resultVideo.hidden = false;
+  afficherResultat(URL.createObjectURL(lastRenderBlob), lastRenderBlob.type);
+  document.getElementById("resultBox").hidden = false;
   document.getElementById("renderTitle").textContent = "Votre aperçu est prêt";
   document.getElementById("renderNote").textContent = "Aperçu avec filigrane. Dernière étape : envoyez votre demande — c'est votre devis. La version finale, en pleine qualité et sans filigrane, est réalisée et livrée par l'atelier.";
   document.getElementById("orderAfterRenderBtn").hidden = false;
