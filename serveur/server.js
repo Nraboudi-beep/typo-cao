@@ -188,17 +188,19 @@ function lireApercuMeta(id) {
 
 function pageApercu(id, meta) {
   const img = `${CFG.PUBLIC_URL}/a/${id}.jpg`;
+  const video = meta && meta.video ? `${CFG.PUBLIC_URL}/a/${id}.${meta.video}` : "";
   const titre = meta && meta.titre ? `Aperçu Typo Cao — ${meta.titre}` : "Aperçu Typo Cao";
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${echapperHtml(titre)}</title>
 <meta property="og:title" content="${echapperHtml(titre)}"><meta property="og:type" content="website">
-<meta property="og:image" content="${img}"><meta property="og:image:type" content="image/jpeg">
+<meta property="og:image" content="${img}"><meta property="og:image:type" content="image/jpeg">${video ? `
+<meta property="og:video" content="${video}"><meta property="og:video:type" content="video/${meta.video}">` : ""}
 <meta property="og:description" content="Aperçu filigrané d'une création Typo Cao. La version finale est réalisée par l'atelier.">
 <meta name="robots" content="noindex">
 <style>body{margin:0;background:#ece5d8;color:#2b2218;font:300 17px/1.6 Outfit,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
 main{max-width:760px;text-align:center}img{max-width:100%;height:auto;border-radius:12px;box-shadow:0 24px 60px -24px rgba(90,62,28,.45)}
 h1{font:500 1.4rem Georgia,serif;margin:18px 0 4px}p{color:#8d7d67;margin:0 0 14px}a{color:#8a6330}</style></head>
-<body><main><img src="${img}" alt="Aperçu de la création"><h1>${echapperHtml(titre)}</h1>
+<body><main>${video ? `<video controls playsinline preload="metadata" poster="${img}" src="${video}" style="max-width:100%;border-radius:12px;box-shadow:0 24px 60px -24px rgba(90,62,28,.45)"></video>` : `<img src="${img}" alt="Aperçu de la création">`}<h1>${echapperHtml(titre)}</h1>
 <p>Aperçu filigrané généré sur le site — la version finale, propre, est réalisée par l'atelier.</p>
 <a href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a></main></body></html>`;
 }
@@ -334,6 +336,36 @@ function lireCorps(req, maxOctets = 1_200_000) {
   });
 }
 
+function lireBrut(req, maxOctets) {
+  return new Promise((resolve, reject) => {
+    let taille = 0;
+    const morceaux = [];
+    req.on("data", c => {
+      taille += c.length;
+      if (taille > maxOctets) { reject(new ErreurApp(413, "REQUEST_TOO_LARGE", "Fichier trop volumineux")); req.destroy(); return; }
+      morceaux.push(c);
+    });
+    req.on("end", () => resolve(Buffer.concat(morceaux)));
+    req.on("error", () => reject(new ErreurApp(400, "BAD_REQUEST", "Requête interrompue")));
+  });
+}
+
+const VIDEO_MAX_OCTETS = 40 * 1024 * 1024;
+const VIDEO_TYPES = { "video/mp4": "mp4", "video/webm": "webm" };
+
+function servirFichier(req, chemin, type) {
+  let st; try { st = fs.statSync(chemin); } catch { throw new ErreurApp(404, "APERCU_INTROUVABLE", "Fichier introuvable"); }
+  const entetes = { "Content-Type": type, "Accept-Ranges": "bytes", "Cache-Control": "public, max-age=86400" };
+  const range = String(req.headers.range || "").match(/^bytes=(\d*)-(\d*)$/);
+  if (range && (range[1] || range[2])) {
+    const debut = range[1] ? Number(range[1]) : Math.max(0, st.size - Number(range[2]));
+    const fin = range[1] && range[2] ? Math.min(Number(range[2]), st.size - 1) : st.size - 1;
+    if (debut >= st.size || debut > fin) return { __brut: true, statut: 416, entetes: { "Content-Range": `bytes */${st.size}` }, corps: "" };
+    return { __brut: true, statut: 206, entetes: { ...entetes, "Content-Range": `bytes ${debut}-${fin}/${st.size}`, "Content-Length": fin - debut + 1 }, corps: fs.createReadStream(chemin, { start: debut, end: fin }) };
+  }
+  return { __brut: true, statut: 200, entetes: { ...entetes, "Content-Length": st.size }, corps: fs.createReadStream(chemin) };
+}
+
 /* ---------- routes ---------- */
 async function router(req, res, url, ip) {
   const chemin = url.pathname.replace(/\/+$/, "");
@@ -364,15 +396,38 @@ async function router(req, res, url, ip) {
     res.statusCode = 201;
     return { id, page: `${CFG.PUBLIC_URL}/a/${id}`, image: `${CFG.PUBLIC_URL}/a/${id}.jpg`, whatsapp: `${CFG.PUBLIC_URL}/w/${id}` };
   }
+  // vidéo d'aperçu fabriquée par le moteur (PUT binaire, ≤ 40 Mo)
   {
-    const m = req.method === "GET" && chemin.match(/^\/(a|w)\/([A-Za-z0-9]{10})(\.jpg)?$/);
+    const mv = req.method === "PUT" && chemin.match(/^\/api\/typo-cao\/apercu\/([A-Za-z0-9]{10})\/video$/);
+    if (mv) {
+      const id = mv[1];
+      const meta = lireApercuMeta(id);
+      if (!meta) throw new ErreurApp(404, "APERCU_INTROUVABLE", "Aperçu introuvable");
+      if (!limiteDebit(`apercu-video|${ip}`, 12, 60 * 60_000))
+        throw new ErreurApp(429, "APERCU_RATE_LIMITED", "Trop d'envois, réessaie plus tard");
+      const ext = VIDEO_TYPES[String(req.headers["content-type"] || "").split(";")[0].trim()];
+      if (!ext) throw new ErreurApp(415, "VIDEO_TYPE", "Vidéo MP4 ou WebM attendue");
+      const data = await lireBrut(req, VIDEO_MAX_OCTETS);
+      if (data.length < 1000) throw new ErreurApp(400, "VIDEO_VIDE", "Vidéo vide");
+      for (const e of Object.values(VIDEO_TYPES)) { try { fs.unlinkSync(path.join(APERCUS_DIR, `${id}.${e}`)); } catch {} }
+      fs.writeFileSync(path.join(APERCUS_DIR, `${id}.${ext}`), data);
+      fs.writeFileSync(path.join(APERCUS_DIR, id + ".json"), JSON.stringify({ ...meta, video: ext, videoOctets: data.length }));
+      return { id, video: `${CFG.PUBLIC_URL}/a/${id}.${ext}`, page: `${CFG.PUBLIC_URL}/a/${id}` };
+    }
+  }
+  {
+    const m = req.method === "GET" && chemin.match(/^\/(a|w)\/([A-Za-z0-9]{10})(\.jpg|\.mp4|\.webm)?$/);
     if (m) {
       const [, type, id, ext] = m;
       const meta = lireApercuMeta(id);
       if (!meta) throw new ErreurApp(404, "APERCU_INTROUVABLE", "Aperçu introuvable ou expiré");
-      if (type === "a" && ext) {
+      if (type === "a" && ext === ".jpg") {
         let img; try { img = fs.readFileSync(path.join(APERCUS_DIR, id + ".jpg")); } catch { throw new ErreurApp(404, "APERCU_INTROUVABLE", "Image introuvable"); }
         return { __brut: true, statut: 200, entetes: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" }, corps: img };
+      }
+      if (type === "a" && ext) {
+        if (!meta.video || "." + meta.video !== ext) throw new ErreurApp(404, "APERCU_INTROUVABLE", "Vidéo introuvable");
+        return servirFichier(req, path.join(APERCUS_DIR, id + ext), ext === ".mp4" ? "video/mp4" : "video/webm");
       }
       if (type === "a") return { __brut: true, statut: 200, entetes: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" }, corps: pageApercu(id, meta) };
       // /w/<id> : la conversation WhatsApp, message prêt à envoyer
@@ -522,6 +577,7 @@ const serveur = http.createServer(async (req, res) => {
     if (resultat && resultat.__brut) {
       res.statusCode = resultat.statut;
       for (const [k, v] of Object.entries(resultat.entetes)) res.setHeader(k, v);
+      if (resultat.corps && typeof resultat.corps.pipe === "function") return resultat.corps.pipe(res);
       return res.end(resultat.corps);
     }
     res.end(JSON.stringify(resultat));
