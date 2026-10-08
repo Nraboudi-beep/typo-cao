@@ -124,6 +124,8 @@ header input:focus{border-color:var(--gold)}
 
 /* ---- barre d'actions ---- */
 .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.bar .etape i{display:inline-grid;place-items:center;width:18px;height:18px;margin-right:8px;border-radius:50%;font-style:normal;font-size:.68rem;font-weight:600;background:rgba(255,255,255,.22);border:1px solid currentColor;vertical-align:-3px;letter-spacing:0}
+.bar .etape.ghost i{background:transparent}
 button{
   font-family:var(--body);font-weight:500;font-size:.78rem;letter-spacing:.1em;
   border-radius:4px;padding:10px 18px;cursor:pointer;border:1px solid var(--gold-deep);
@@ -265,7 +267,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   </div>
 
   <div class="bar">
-    <button class="ghost" id="importBtn" type="button">Importer ma vidéo</button>
+    <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
     <div class="anim-seg" role="group" aria-label="Animation des lettres">
       <span class="lbl">Animation</span>
       <button type="button" data-anim="pop" class="on">Pop</button>
@@ -273,8 +275,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <button type="button" data-anim="fondu">Fondu</button>
     </div>
     <button class="ghost" id="replayBtn" type="button">Rejouer</button>
-    <button id="renderBtn" type="button" hidden>Générer ma vidéo</button>
-    <button id="orderBtn" type="button">Envoyer ma demande</button>
+    <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
+    <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
     <button class="ghost" id="avisBtn" type="button">Avis ★</button>
     <a class="insta" id="instaLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
     <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · Tous droits réservés · <a href="#" id="mentionsLink" style="color:inherit">mentions</a> · <a href="admin.html" style="color:inherit">atelier</a></span>
@@ -348,7 +350,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="progress" id="renderProgress"><i></i></div>
     <p class="render-note" id="renderNote">Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.</p>
     <div class="actions">
-      <button id="saveVideoBtn" type="button" hidden>Télécharger ma vidéo</button>
+      <button id="orderAfterRenderBtn" type="button" hidden>Envoyer ma demande →</button>
+      <button class="ghost" id="saveVideoBtn" type="button" hidden>Télécharger l'aperçu</button>
       <button class="ghost" id="renderCancelBtn" type="button">Annuler</button>
     </div>
   </div>
@@ -360,6 +363,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="close-row"><button type="button" class="x" id="orderClose" aria-label="Fermer">✕</button></div>
     <h2>Votre demande</h2>
     <p class="sum">Prénom <b id="sumName">—</b> · Collection <b id="sumStyle">—</b> · Vidéo <b id="sumVideo">à envoyer avec votre message</b></p>
+    <p class="sum" id="sumEtape" hidden>Conseil : pour un devis précis, importez d'abord votre vidéo et fabriquez votre aperçu (étapes 1 et 2), puis envoyez votre demande.</p>
     <div class="apercu-ligne" id="apercuLigne">
       <img id="apercuImg" alt="" hidden>
       <span id="apercuTxt"><b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.</span>
@@ -576,14 +580,14 @@ function buildMessage(){
   // ce que le client a réellement tapé (jamais le mot de démonstration)
   const saisi = document.getElementById("nameInput").value.trim();
   const lines = [
-    "DEMANDE TYPO",
-    "Prénom / message à composer : " + (saisi || "(non précisé — merci de l'indiquer)"),
-    "Collection : " + STYLES[currentStyle],
-    "Animation : " + ANIMS[currentAnim],
+    "DEMANDE TYPO — devis",
+    "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
+    "Collection : " + STYLES[currentStyle] + " · animation " + ANIMS[currentAnim],
     ...(formule ? ["Formule : " + formule.value] : []),
-    ...(pay.ligne ? ["Règlement : " + pay.ligne] : []),
-    "Vidéo : " + (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"),
-    ...(APERCU.page ? ["Aperçu de la création : " + APERCU.page] : ["Aperçu vidéo généré sur le site : " + (renderedOnce ? "oui" : "non")])
+    "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
+    ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
+    "Aperçu : " + (APERCU.page || (renderedOnce ? "vidéo générée sur le site" : "non généré")),
+    "Vidéo : " + (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message")
   ];
   if (cliName)    lines.push("Nom : " + cliName);
   if (cliNotes)   lines.push("Précisions : " + cliNotes);
@@ -763,6 +767,7 @@ document.getElementById("orderBtn").addEventListener("click", () => {
   document.getElementById("sumName").textContent  = document.getElementById("nameInput").value.trim() || "— (non précisé)";
   document.getElementById("sumStyle").textContent = STYLES[currentStyle];
   document.getElementById("sumVideo").textContent = videoFileName || "à envoyer avec votre message";
+  document.getElementById("sumEtape").hidden = renderedOnce;
   refreshWa();
   orderModal.hidden = false;
   document.getElementById("cliName").focus();
@@ -913,6 +918,7 @@ async function startRender(){
   renderCanvas.hidden = false;
   resultVideo.hidden = true;
   document.getElementById("saveVideoBtn").hidden = true;
+  document.getElementById("orderAfterRenderBtn").hidden = true;
   document.getElementById("renderTitle").textContent = "Fabrication de votre vidéo…";
   document.getElementById("renderNote").textContent = "Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.";
   renderBar.style.width = "0%";
@@ -978,8 +984,9 @@ async function startRender(){
   renderCanvas.hidden = true;
   resultVideo.src = URL.createObjectURL(lastRenderBlob);
   resultVideo.hidden = false;
-  document.getElementById("renderTitle").textContent = "Votre vidéo est prête ✨";
-  document.getElementById("renderNote").textContent = "Aperçu avec filigrane. La version finale en pleine qualité, sans filigrane, est réalisée et livrée par l'atelier après votre commande.";
+  document.getElementById("renderTitle").textContent = "Votre aperçu est prêt";
+  document.getElementById("renderNote").textContent = "Aperçu avec filigrane. Dernière étape : envoyez votre demande — c'est votre devis. La version finale, en pleine qualité et sans filigrane, est réalisée et livrée par l'atelier.";
+  document.getElementById("orderAfterRenderBtn").hidden = false;
   document.getElementById("renderCancelBtn").textContent = "Fermer";
   const saveBtn = document.getElementById("saveVideoBtn");
   const fileName = `typo-cao-${(currentName.trim()||"apercu").toLowerCase().replace(/ /g,"-")}.${lastRenderExt}`;
@@ -1011,6 +1018,10 @@ async function startRender(){
 renderBtn.addEventListener("click", startRender);
 document.getElementById("renderCancelBtn").addEventListener("click", () => {
   if (renderAbort) renderAbort(); else renderModal.hidden = true;
+});
+document.getElementById("orderAfterRenderBtn").addEventListener("click", () => {
+  renderModal.hidden = true;
+  document.getElementById("orderBtn").click();
 });
 
 /* ---- mentions légales ---- */
