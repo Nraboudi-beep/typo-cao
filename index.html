@@ -102,6 +102,15 @@ header input:focus{border-color:var(--gold)}
 }
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .stage video[hidden]{display:none}
+.drop-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(255,253,248,.85);border:1px dashed var(--gold);border-radius:999px;padding:8px 16px 8px 12px;color:var(--gold-deep);font:inherit;font-size:.78rem;letter-spacing:.04em;text-transform:none;cursor:pointer;box-shadow:none;backdrop-filter:blur(4px);z-index:3;transition:background .2s,border-color .2s}
+.drop-hint:hover{background:#fffdf8;border-style:solid;transform:translateX(-50%)}
+.drop-hint .ic{font-size:1.1rem;line-height:1}
+.drop-hint small{display:block;font-size:.66rem;color:var(--muted);letter-spacing:.02em}
+.stage.has-video .drop-hint{top:auto;bottom:12px;left:12px;transform:none;padding:6px 12px;opacity:.75}
+.stage.has-video .drop-hint small{display:none}
+.drop-veil{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(168,124,63,.14);border:2px dashed var(--gold);border-radius:10px;z-index:4;pointer-events:none}
+.drop-veil span{background:var(--surface);border:1px solid var(--gold);border-radius:6px;padding:12px 22px;color:var(--gold-deep);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase}
+.stage.drag-over .drop-veil{display:flex}
 [hidden]{display:none!important}
 .scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,14,8,.5));opacity:0;transition:opacity .3s;pointer-events:none}
 .stage.has-video .scrim{opacity:1}
@@ -267,6 +276,10 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <video id="video" muted loop playsinline hidden></video>
       <div class="scrim"></div>
       <div class="word" id="word"></div>
+      <button type="button" class="drop-hint" id="dropHint" aria-label="Importer ou glisser une vidéo">
+        <span class="ic">⤓</span><span>Glissez votre vidéo ici<small>ou cliquez pour la choisir — vous verrez votre création dessus</small></span>
+      </button>
+      <div class="drop-veil" id="dropVeil" aria-hidden="true"><span>Déposez votre vidéo</span></div>
     </div>
 
     <div class="rail rail-right">
@@ -562,16 +575,38 @@ function openLightbox(src, caption){
 /* vidéo */
 const videoInput = document.getElementById("videoInput");
 document.getElementById("importBtn").addEventListener("click", () => videoInput.click());
+let videoFile = null;
 videoInput.addEventListener("change", () => {
   const f = videoInput.files[0];
   if (!f || !f.type.startsWith("video/")) return;
+  videoFile = f;
   videoFileName = f.name;
+  document.getElementById("dropHint").querySelector("span:last-child").firstChild.textContent = "Changer de vidéo";
   video.src = URL.createObjectURL(f);
   video.hidden = false;
   stage.classList.add("has-video");
   video.play().catch(()=>{});
   renderWord(true);
   updateRenderBtn();
+});
+document.getElementById("dropHint").addEventListener("click", () => videoInput.click());
+// glisser-déposer d'une vidéo dans le cadre (ou n'importe où sur la page)
+function recevoirFichier(f){
+  if (!f || !f.type.startsWith("video/")) return false;
+  try { const dt = new DataTransfer(); dt.items.add(f); videoInput.files = dt.files; } catch {}
+  videoInput.dispatchEvent(new Event("change"));
+  return true;
+}
+["dragenter", "dragover"].forEach(ev => document.addEventListener(ev, e => {
+  if (![...(e.dataTransfer && e.dataTransfer.types || [])].includes("Files")) return;
+  e.preventDefault(); e.dataTransfer.dropEffect = "copy"; stage.classList.add("drag-over");
+}));
+document.addEventListener("dragleave", e => { if (!e.relatedTarget || e.relatedTarget === document.documentElement) stage.classList.remove("drag-over"); });
+document.addEventListener("drop", e => {
+  stage.classList.remove("drag-over");
+  if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  recevoirFichier(e.dataTransfer.files[0]);
 });
 document.getElementById("replayBtn").addEventListener("click", () => {
   if (!video.hidden){ video.currentTime = 0; video.play().catch(()=>{}); }
@@ -596,7 +631,7 @@ function buildMessage(){
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
     ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
     "Aperçu : " + (APERCU.page || (renderedOnce ? "vidéo générée sur le site" : "non généré")),
-    "Vidéo : " + (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message")
+    "Vidéo : " + (APERCU.video ? "aperçu animé inclus dans le lien ci-dessus (l'original vous sera demandé pour la version finale)" : (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"))
   ];
   if (cliName)    lines.push("Nom : " + cliName);
   if (cliNotes)   lines.push("Précisions : " + cliNotes);
@@ -646,7 +681,22 @@ function refreshWa(){
 }
 
 /* ---- aperçu de la création : image fabriquée ici, hébergée par l'atelier, lien dans le message ---- */
-const APERCU = { id: null, page: "", whatsapp: "", cle: "", enCours: false };
+const APERCU = { id: null, page: "", whatsapp: "", cle: "", enCours: false, video: false };
+const VIDEO_APERCU_MAX = 40 * 1024 * 1024;
+
+function envoyerVideoApercu(id, blob){
+  return new Promise(resolve => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", ATELIER_API + "/apercu/" + id + "/video");
+    xhr.setRequestHeader("Content-Type", (blob.type || "video/webm").split(";")[0]);
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) afficherEtatApercu("<b>Envoi de votre aperçu vidéo… " + Math.round(e.loaded / e.total * 100) + " %</b>il sera visible dans le message, rien à joindre.", document.getElementById("apercuImg").src);
+    };
+    xhr.onload = () => resolve(xhr.status >= 200 && xhr.status < 300);
+    xhr.onerror = () => resolve(false);
+    xhr.send(blob);
+  });
+}
 const delai = ms => new Promise(r => setTimeout(r, ms));
 
 async function imageVideo(file){
@@ -666,7 +716,7 @@ async function fabriquerImageApercu(){
   const saisi = document.getElementById("nameInput").value.trim();
   const imgs = saisi ? await loadLetterImages() : [];
   let W = 720, H = 405, v = null;
-  const file = videoInput && videoInput.files && videoInput.files[0];
+  const file = videoFile || (videoInput && videoInput.files && videoInput.files[0]);
   if (file){ try { v = await imageVideo(file); } catch {} }
   if (v){ const sc = Math.min(720 / v.videoWidth, 720 / v.videoHeight, 1); W = Math.round(v.videoWidth * sc); H = Math.round(v.videoHeight * sc); }
   const c = document.createElement("canvas"); c.width = W; c.height = H;
@@ -702,8 +752,8 @@ function afficherEtatApercu(html, src){
 }
 
 async function publierApercu(){
-  const cle = [document.getElementById("nameInput").value.trim(), currentStyle, currentAnim, videoFileName || ""].join("|");
-  if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", document.getElementById("apercuImg").src); refreshWa(); return; }
+  const cle = [document.getElementById("nameInput").value.trim(), currentStyle, currentAnim, videoFileName || "", lastRenderBlob ? lastRenderBlob.size : 0].join("|");
+  if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu(APERCU.video ? "<b>Aperçu vidéo joint au message</b>Yuan verra votre création animée en ouvrant votre demande — rien à joindre." : "<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", document.getElementById("apercuImg").src); refreshWa(); return; }
   if (APERCU.enCours) return;
   APERCU.enCours = true;
   afficherEtatApercu("<b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.");
@@ -715,10 +765,17 @@ async function publierApercu(){
     });
     if (!r.ok) throw new Error("serveur");
     const j = await r.json();
-    Object.assign(APERCU, { id: j.id, page: j.page, whatsapp: j.whatsapp, cle });
-    afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", "data:image/jpeg;base64," + imageB64);
+    Object.assign(APERCU, { id: j.id, page: j.page, whatsapp: j.whatsapp, cle, video: false });
+    const vignette = "data:image/jpeg;base64," + imageB64;
+    afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", vignette);
+    // l'aperçu vidéo fabriqué par le moteur part aussi : le client n'a rien à joindre
+    if (lastRenderBlob && lastRenderBlob.size <= VIDEO_APERCU_MAX){
+      refreshWa();
+      APERCU.video = await envoyerVideoApercu(j.id, lastRenderBlob);
+      afficherEtatApercu(APERCU.video ? "<b>Aperçu vidéo joint au message</b>Yuan verra votre création animée en ouvrant votre demande — rien à joindre." : "<b>Aperçu joint au message</b>la vidéo n'a pas pu être envoyée : joignez-la dans la conversation.", vignette);
+    }
   } catch {
-    Object.assign(APERCU, { id: null, page: "", whatsapp: "", cle: "" });
+    Object.assign(APERCU, { id: null, page: "", whatsapp: "", cle: "", video: false });
     afficherEtatApercu("<b>Aperçu non joint</b>pas grave : envoyez votre demande, et joignez votre vidéo dans la conversation.");
   }
   APERCU.enCours = false;
@@ -921,7 +978,7 @@ function drawLetters(ctx, imgs, t, W, H){
 }
 
 async function startRender(){
-  const file = videoInput.files[0];
+  const file = videoFile || videoInput.files[0];
   if (!file) return;
   renderModal.hidden = false;
   renderCanvas.hidden = false;
