@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Typo Cao — lettres 3D décoratives : composez votre prénom, choisissez une collection, importez votre vidéo et recevez votre aperçu.">
 <title>Typo Cao</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
 /* Layout : application plein écran sans défilement — scène centrale claire (écrin), collections à gauche, matières à droite, lightbox + formulaire de demande */
@@ -95,6 +96,7 @@ header input:focus{border-color:var(--gold)}
 }
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .stage video[hidden]{display:none}
+[hidden]{display:none!important}
 .scrim{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,14,8,.5));opacity:0;transition:opacity .3s;pointer-events:none}
 .stage.has-video .scrim{opacity:1}
 .word{
@@ -147,6 +149,23 @@ button.ghost{background:transparent;color:var(--gold-deep)}
 .panel{
   background:var(--surface);border:1px solid var(--line);border-radius:10px;max-width:460px;width:100%;
   max-height:92vh;overflow-y:auto;padding:26px;box-sizing:border-box;box-shadow:0 30px 60px var(--shadow);
+}
+.panel#orderForm{max-width:520px}
+.apercu-ligne{display:flex;gap:14px;align-items:center;margin:-6px 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fffdf8}
+.apercu-ligne img{height:64px;width:auto;max-width:114px;border-radius:4px;object-fit:cover;box-shadow:0 6px 14px -6px var(--shadow)}
+.apercu-ligne span{font-size:.8rem;color:var(--muted)}
+.apercu-ligne b{display:block;color:var(--fg);font-weight:500;font-size:.86rem}
+.envoi{display:grid;grid-template-columns:1fr;gap:16px;margin-top:18px;align-items:start}
+.envoi .actions{margin-top:0}
+.qr-bloc{display:none;text-align:center;border:1px solid var(--line);border-radius:8px;padding:12px 10px 10px;background:#fffdf8}
+.qr-bloc #qrBox{display:inline-block;padding:6px;background:#fff;border-radius:4px}
+.qr-bloc #qrBox img,.qr-bloc #qrBox canvas{display:block}
+.qr-bloc small{display:block;margin-top:8px;font-size:.72rem;color:var(--muted);line-height:1.4}
+.qr-bloc b{display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:8px}
+@media (pointer:fine) and (min-width:900px){
+  .panel#orderForm{max-width:720px}
+  .envoi{grid-template-columns:1fr 212px}
+  .qr-bloc.pret{display:block}
 }
 .panel h2{font-family:var(--display);font-weight:500;font-size:1.3rem;margin:0 0 4px}
 .panel .sum{color:var(--muted);font-size:.82rem;margin:0 0 18px}
@@ -341,6 +360,10 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="close-row"><button type="button" class="x" id="orderClose" aria-label="Fermer">✕</button></div>
     <h2>Votre demande</h2>
     <p class="sum">Prénom <b id="sumName">—</b> · Collection <b id="sumStyle">—</b> · Vidéo <b id="sumVideo">à envoyer avec votre message</b></p>
+    <div class="apercu-ligne" id="apercuLigne">
+      <img id="apercuImg" alt="" hidden>
+      <span id="apercuTxt"><b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.</span>
+    </div>
     <div class="field" id="tarifField" hidden>
       <label>Votre formule</label>
       <div class="tarifs" id="tarifChoices"></div>
@@ -350,19 +373,22 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <input id="cliName" type="text" autocomplete="name" required>
     </div>
     <div class="field">
-      <label for="cliContact">Votre WhatsApp ou Instagram</label>
-      <input id="cliContact" type="text" placeholder="06 12 34 56 78 ou @pseudo" required>
-    </div>
-    <div class="field">
       <label for="cliNotes">Précisions (matières souhaitées, occasion, couleurs…)</label>
       <textarea id="cliNotes" rows="3" placeholder="Ex. : le S en cuir chocolat, c'est pour un anniversaire…"></textarea>
     </div>
-    <div class="actions">
-      <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
-      <a class="pp" id="ppLink" href="#" target="_blank" rel="noopener" hidden>Payer sur PayPal</a>
-      <button type="button" id="copyBtn">Copier le message</button>
-      <p class="pay-note" id="payNote" hidden></p>
-      <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
+    <div class="envoi">
+      <div class="actions">
+        <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
+        <a class="pp" id="ppLink" href="#" target="_blank" rel="noopener" hidden>Payer sur PayPal</a>
+        <button type="button" id="copyBtn">Copier le message</button>
+        <p class="pay-note" id="payNote" hidden></p>
+        <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
+      </div>
+      <div class="qr-bloc" id="qrBloc">
+        <b>Depuis votre téléphone</b>
+        <div id="qrBox"></div>
+        <small>Scannez avec l'appareil photo : WhatsApp s'ouvre, message et aperçu prêts — il ne reste qu'à appuyer sur Envoyer.</small>
+      </div>
     </div>
   </form>
 </div>
@@ -544,24 +570,22 @@ const orderModal = document.getElementById("orderModal");
 
 function buildMessage(){
   const cliName = document.getElementById("cliName").value.trim();
-  const cliContact = document.getElementById("cliContact").value.trim();
   const cliNotes = document.getElementById("cliNotes").value.trim();
   const formule = document.querySelector('#tarifChoices input:checked');
   const pay = infoPaiement();
   // ce que le client a réellement tapé (jamais le mot de démonstration)
   const saisi = document.getElementById("nameInput").value.trim();
   const lines = [
-    "DEMANDE TYPO CAO — pour Yuan Cao",
+    "DEMANDE TYPO",
     "Prénom / message à composer : " + (saisi || "(non précisé — merci de l'indiquer)"),
     "Collection : " + STYLES[currentStyle],
     "Animation : " + ANIMS[currentAnim],
     ...(formule ? ["Formule : " + formule.value] : []),
     ...(pay.ligne ? ["Règlement : " + pay.ligne] : []),
     "Vidéo : " + (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"),
-    "Aperçu généré sur le site : " + (renderedOnce ? "oui" : "non")
+    ...(APERCU.page ? ["Aperçu de la création : " + APERCU.page] : ["Aperçu vidéo généré sur le site : " + (renderedOnce ? "oui" : "non")])
   ];
   if (cliName)    lines.push("Nom : " + cliName);
-  if (cliContact) lines.push("Contact : " + cliContact);
   if (cliNotes)   lines.push("Précisions : " + cliNotes);
   return lines.join("\n");
 }
@@ -604,6 +628,113 @@ function refreshWa(){
   if (!CFG.whatsapp){ wa.hidden = true; return; }
   wa.hidden = false;
   wa.href = "https://wa.me/" + CFG.whatsapp + "?text=" + encodeURIComponent(buildMessage());
+  planifierMajApercu();
+  afficherQr();
+}
+
+/* ---- aperçu de la création : image fabriquée ici, hébergée par l'atelier, lien dans le message ---- */
+const APERCU = { id: null, page: "", whatsapp: "", cle: "", enCours: false };
+const delai = ms => new Promise(r => setTimeout(r, ms));
+
+async function imageVideo(file){
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto";
+  v.src = URL.createObjectURL(file);
+  await Promise.race([new Promise(r => { v.onloadedmetadata = r; v.onerror = r; }), delai(4000)]);
+  if (!v.videoWidth) return null;
+  try {
+    v.currentTime = Math.min(1.2, (v.duration || 2) / 2);
+    await Promise.race([new Promise(r => { v.onseeked = r; }), delai(4000)]);
+  } catch {}
+  return v;
+}
+
+async function fabriquerImageApercu(){
+  const saisi = document.getElementById("nameInput").value.trim();
+  const imgs = saisi ? await loadLetterImages() : [];
+  let W = 720, H = 405, v = null;
+  const file = videoInput && videoInput.files && videoInput.files[0];
+  if (file){ try { v = await imageVideo(file); } catch {} }
+  if (v){ const sc = Math.min(720 / v.videoWidth, 720 / v.videoHeight, 1); W = Math.round(v.videoWidth * sc); H = Math.round(v.videoHeight * sc); }
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+  if (v) ctx.drawImage(v, 0, 0, W, H);
+  else {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, "#f7f1e4"); g.addColorStop(1, "#d9cdb8");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  if (imgs.length){
+    if (v) drawLetters(ctx, imgs, 99, W, H); // même placement que dans la vidéo
+    else { // sans vidéo : lettres plus grandes, centrées
+      const HH = H * 2.2;
+      ctx.save(); ctx.translate(0, H * 0.78 - HH * 0.92); drawLetters(ctx, imgs, 99, W, HH); ctx.restore();
+    }
+  }
+  // filigrane
+  ctx.save();
+  ctx.globalAlpha = 0.3; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `600 ${Math.max(14, Math.round(H * 0.055))}px Outfit, system-ui, sans-serif`;
+  ctx.translate(W / 2, H / 2); ctx.rotate(-0.32);
+  ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,.35)"; ctx.fillStyle = "rgba(255,255,255,.9)";
+  for (let y = -H; y <= H; y += H * 0.3){ ctx.strokeText("TYPO CAO · APERÇU", 0, y); ctx.fillText("TYPO CAO · APERÇU", 0, y); }
+  ctx.restore();
+  return c.toDataURL("image/jpeg", 0.78).split(",")[1];
+}
+
+function afficherEtatApercu(html, src){
+  const img = document.getElementById("apercuImg");
+  document.getElementById("apercuTxt").innerHTML = html;
+  if (src){ img.src = src; img.hidden = false; } else img.hidden = true;
+}
+
+async function publierApercu(){
+  const cle = [document.getElementById("nameInput").value.trim(), currentStyle, currentAnim, videoFileName || ""].join("|");
+  if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", document.getElementById("apercuImg").src); refreshWa(); return; }
+  if (APERCU.enCours) return;
+  APERCU.enCours = true;
+  afficherEtatApercu("<b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.");
+  try {
+    const imageB64 = await fabriquerImageApercu();
+    const r = await fetch(ATELIER_API + "/apercu", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ numero: CFG.whatsapp, texte: buildMessage(), titre: document.getElementById("nameInput").value.trim().slice(0, 40), imageB64 })
+    });
+    if (!r.ok) throw new Error("serveur");
+    const j = await r.json();
+    Object.assign(APERCU, { id: j.id, page: j.page, whatsapp: j.whatsapp, cle });
+    afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", "data:image/jpeg;base64," + imageB64);
+  } catch {
+    Object.assign(APERCU, { id: null, page: "", whatsapp: "", cle: "" });
+    afficherEtatApercu("<b>Aperçu non joint</b>pas grave : envoyez votre demande, et joignez votre vidéo dans la conversation.");
+  }
+  APERCU.enCours = false;
+  refreshWa();
+}
+
+let majApercuTimer = null;
+function planifierMajApercu(){
+  // le texte du message a peut-être changé (nom, précisions, formule) : on le met à jour pour le lien /w/ du QR
+  if (!APERCU.id) return;
+  clearTimeout(majApercuTimer);
+  majApercuTimer = setTimeout(() => {
+    fetch(ATELIER_API + "/apercu", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: APERCU.id, numero: CFG.whatsapp, texte: buildMessage(), titre: document.getElementById("nameInput").value.trim().slice(0, 40) }) }).catch(() => {});
+  }, 700);
+}
+
+function afficherQr(){
+  const bloc = document.getElementById("qrBloc"), box = document.getElementById("qrBox");
+  if (!window.QRCode || !CFG.whatsapp){ bloc.classList.remove("pret"); return; }
+  // lien court si l'aperçu est hébergé (QR net), sinon le lien WhatsApp complet
+  const cible = APERCU.whatsapp || ("https://wa.me/" + CFG.whatsapp + "?text=" + encodeURIComponent(buildMessage()));
+  if (box.dataset.cible === cible){ bloc.classList.add("pret"); return; }
+  box.innerHTML = "";
+  try {
+    new QRCode(box, { text: cible, width: 176, height: 176, correctLevel: QRCode.CorrectLevel.M, colorDark: "#2b2218", colorLight: "#ffffff" });
+    box.dataset.cible = cible;
+    bloc.classList.add("pret");
+  } catch { bloc.classList.remove("pret"); }
 }
 
 function construireTarifs(){
@@ -635,11 +766,12 @@ document.getElementById("orderBtn").addEventListener("click", () => {
   refreshWa();
   orderModal.hidden = false;
   document.getElementById("cliName").focus();
+  publierApercu();
 });
 document.getElementById("orderClose").addEventListener("click", () => { orderModal.hidden = true; });
 orderModal.addEventListener("click", e => { if (e.target === orderModal) orderModal.hidden = true; });
 document.getElementById("orderForm").addEventListener("submit", e => e.preventDefault());
-for (const id of ["cliName","cliContact","cliNotes"]){
+for (const id of ["cliName","cliNotes"]){
   document.getElementById(id).addEventListener("input", refreshWa);
 }
 
