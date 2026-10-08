@@ -115,6 +115,16 @@ body.dash .wrap{height:100vh;padding-block:18px 0;display:flex;flex-direction:co
 .accueil-mot h2::after{display:none}
 .accueil-mot p{margin:6px 0 0;color:var(--muted);font-size:.95rem;max-width:56ch}
 .savebar{z-index:2}
+body.dash .wrap{max-width:1480px}
+.j-cols{display:grid;grid-template-columns:1fr;gap:28px 48px;margin-top:6px}
+.j-droite .hint{margin-bottom:8px}
+@media (min-width:1100px){
+  .j-cols{grid-template-columns:1.05fr .95fr}
+  .j-droite{border-left:1px solid var(--line);padding-left:40px}
+  body.dash section{padding:38px 44px 42px}
+  body.dash .mat-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+  body.dash .hint{max-width:72ch}
+}
 @media (max-width:640px){.accueil-mot{padding:22px 20px}.onglets button{padding:10px 12px;font-size:.86rem}}
 [hidden]{display:none!important}
 </style>
@@ -193,15 +203,22 @@ body.dash .wrap{height:100vh;padding-block:18px 0;display:flex;flex-direction:co
     <section id="journalSection" hidden>
       <h2>Le journal de l'atelier</h2>
       <p class="hint">Ta vitrine vue de l'intérieur : qui passe devant, et qui frappe à ta porte. Les passants sont comptés sans jamais être identifiés — ici on compte les pas, pas les visages.</p>
-      <div class="chips" id="journalChips"></div>
-      <div id="journalGraphBox" hidden>
-        <div class="graph" id="journalGraph"></div>
-        <div class="graph-legende" id="journalGraphLegende"></div>
+      <div class="j-cols">
+        <div class="j-gauche">
+          <b style="font-weight:500;display:block">Devant ta vitrine</b>
+          <div class="chips" id="journalChips"></div>
+          <div id="journalGraphBox" hidden>
+            <div class="graph" id="journalGraph"></div>
+            <div class="graph-legende" id="journalGraphLegende"></div>
+          </div>
+        </div>
+        <div class="j-droite">
+          <b style="font-weight:500;display:block">À ta porte</b>
+          <p class="hint" style="margin-top:4px">Chaque fois que quelqu'un tente d'entrer ici, dans ton atelier, c'est noté — que la porte se soit ouverte ou non.</p>
+          <div class="conn-liste" id="journalConnexions"></div>
+          <p class="hint" id="journalNote" style="margin-top:12px"></p>
+        </div>
       </div>
-      <b style="font-weight:500;display:block;margin-top:18px">À ta porte</b>
-      <p class="hint" style="margin-top:4px">Chaque fois que quelqu'un tente d'entrer ici, dans ton atelier, c'est noté — que la porte se soit ouverte ou non.</p>
-      <div class="conn-liste" id="journalConnexions"></div>
-      <p class="hint" id="journalNote" style="margin-top:12px"></p>
     </section>
     </div>
 
