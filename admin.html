@@ -126,6 +126,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
         <p class="hint">Si ce numéro est bien celui de l'atelier, un code à 6 chiffres vient d'arriver sur WhatsApp (valable 5 minutes).</p>
         <label class="f" for="otp">Code reçu sur WhatsApp</label>
         <input type="text" id="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
+        <p class="hint" id="codeAide" hidden style="margin-top:14px">Pas de code après 30 secondes ? Depuis ton WhatsApp, envoie n'importe quel message (par exemple « code ») au numéro de l'atelier <b>+33 7 58 88 29 33</b>, puis <a href="#" id="renvoyerCode">renvoie le code</a> : il arrivera en message texte.</p>
       </div>
       <div id="tokenFields" hidden>
         <p class="hint">Entre ta clé d'accès personnelle. Elle reste enregistrée sur cet appareil.</p>
@@ -565,6 +566,31 @@ async function ouvrirDash(){
 }
 
 let etape = "identifiants"; // puis "code" (mode serveur)
+let aideTimer = null;
+
+function demanderCode(){
+  return apiAtelier("/login", { method: "POST", body: JSON.stringify({ numero: $("numtel").value }) });
+}
+
+function montrerAideCode(){
+  $("codeAide").hidden = true;
+  clearTimeout(aideTimer);
+  aideTimer = setTimeout(() => { if (etape === "code") $("codeAide").hidden = false; }, 30000);
+}
+
+$("renvoyerCode").onclick = async (ev) => {
+  ev.preventDefault();
+  $("loginMsg").textContent = "Nouvel envoi du code…";
+  try {
+    await demanderCode();
+    $("loginMsg").textContent = "";
+    statusMsg("Code renvoyé — regarde ton WhatsApp.");
+    montrerAideCode();
+  } catch (e) {
+    $("loginMsg").textContent = "";
+    statusMsg(e.message || "Renvoi impossible.", "err");
+  }
+};
 
 $("loginBtn").onclick = async () => {
   $("loginBtn").disabled = true;
@@ -572,14 +598,13 @@ $("loginBtn").onclick = async () => {
     if (MODE === "serveur"){
       if (etape === "identifiants"){
         $("loginMsg").textContent = "Envoi du code…";
-        await apiAtelier("/login", { method: "POST", body: JSON.stringify({
-          numero: $("numtel").value
-        })});
+        await demanderCode();
         etape = "code";
         $("authFields").hidden = true; $("codeFields").hidden = false;
         $("loginBtn").textContent = "Valider le code";
         $("loginMsg").textContent = "";
         $("otp").focus();
+        montrerAideCode();
       } else {
         $("loginMsg").textContent = "Validation…";
         const s = await apiAtelier("/verify", { method: "POST", body: JSON.stringify({
@@ -606,6 +631,7 @@ $("loginBtn").onclick = async () => {
     if (MODE === "serveur" && etape === "code" &&
         (e.code === "TYPO_CAO_CODE_EXPIRED" || e.code === "TYPO_CAO_TOO_MANY_ATTEMPTS")){
       etape = "identifiants";
+      clearTimeout(aideTimer); $("codeAide").hidden = true;
       $("codeFields").hidden = true; $("authFields").hidden = false;
       $("loginBtn").textContent = "Se connecter";
     }

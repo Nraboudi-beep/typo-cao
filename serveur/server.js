@@ -182,6 +182,30 @@ async function envoyerCodeWhatsApp(code, destinataire) {
   }
 }
 
+/**
+ * Second canal : le même code en texte libre. WhatsApp ne le délivre que si le
+ * destinataire a écrit au numéro de l'atelier dans les 24 h (sinon il est
+ * accepté puis ignoré, sans erreur). Utile quand le template d'authentification
+ * n'atteint pas certains téléphones. Échec silencieux : le template reste la voie principale.
+ */
+async function envoyerCodeTexte(code, destinataire) {
+  try {
+    await fetch(`https://graph.facebook.com/${CFG.WA_API}/${CFG.WA_PHONE_ID}/messages`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${CFG.WA_TOKEN}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: destinataire.slice(1),
+        type: "text",
+        text: { body: `Code de connexion à l'atelier Typo Cao : ${code}\nValable 5 minutes. Ne le partage à personne.` },
+      }),
+    });
+  } catch (e) {
+    console.error("Envoi du code en texte impossible :", e.message);
+  }
+}
+
 /* ---------- sessions ---------- */
 function creerJeton() {
   const exp = Date.now() + SESSION_TTL_MS;
@@ -301,6 +325,7 @@ async function router(req, res, url, ip) {
     const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
     otps.set(n, { codeSha256: sha256(code), expiresAt: Date.now() + OTP_TTL_MS, attempts: 0 });
     await envoyerCodeWhatsApp(code, n);
+    envoyerCodeTexte(code, n); // second canal, sans attendre
     enregistrerConnexion("code_envoye", ip, n);
     return reponse;
   }
