@@ -69,7 +69,8 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .porte-carte button{width:100%;font-size:1.05rem;padding:16px;margin-top:6px}
 .bienvenue{font-family:var(--display);font-weight:300;font-size:1.15rem;color:var(--muted);margin:14px 0 0;font-style:italic}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tarif-row{display:grid;grid-template-columns:1fr 110px 1.4fr auto;gap:8px;margin-bottom:8px}
+.tarif-row{display:grid;grid-template-columns:1.2fr 120px 120px 1.6fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.tarif-row .t-montant{text-align:right}
 @media (max-width:640px){.tarif-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
 .mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
 .mat{border:1px solid var(--line);border-radius:6px;padding:8px;background:#fffdf8;display:flex;flex-direction:column;gap:6px}
@@ -229,11 +230,14 @@ body.dash .wrap{max-width:1480px}
       <input type="text" id="fWhatsapp" placeholder="33612345678">
       <label class="f">Pseudo Instagram (sans @, vide = pas de lien)</label>
       <input type="text" id="fInstagram" placeholder="mon.pseudo">
+      <label class="f">Pseudo PayPal.Me (pour le paiement des forfaits)</label>
+      <input type="text" id="fPaypal" placeholder="ex. YuanCao — ton lien est paypal.me/YuanCao">
+      <p class="hint" style="margin-top:8px">Avec ce pseudo, chaque formule à montant fixe affiche un bouton « Payer … € sur PayPal » sur le site : l'argent arrive directement sur ton compte PayPal, sans intermédiaire. Pas encore de lien ? Crée-le en une minute sur <a href="https://www.paypal.me" target="_blank" rel="noopener">paypal.me</a>. Les formules sans montant restent « sur devis » : tu envoies toi-même ton lien avec le prix convenu (paypal.me/TonPseudo/40).</p>
     </section>
 
     <section>
       <h2>Tarifs</h2>
-      <p class="hint">Tes formules apparaissent dans le formulaire de demande. Aucune formule = la section est masquée sur le site.</p>
+      <p class="hint">Tes formules apparaissent dans le formulaire de demande. Aucune formule = la section est masquée sur le site.<br><b>Forfait</b> : indique un montant en euros → le client peut payer directement sur PayPal. <b>Sur devis</b> : laisse le montant vide (et écris « sur devis » dans le prix affiché).</p>
       <div id="tarifList"></div>
       <button class="ghost small" id="addTarif">+ Ajouter une formule</button>
     </section>
@@ -432,12 +436,19 @@ function tarifRow(t = {}){
   const row = document.createElement("div");
   row.className = "tarif-row";
   row.innerHTML = `<input type="text" placeholder="Nom (ex. Prénom simple)" class="t-nom">
-    <input type="text" placeholder="Prix (ex. 15 €)" class="t-prix">
+    <input type="text" placeholder="Prix affiché (ex. 15 € / sur devis)" class="t-prix">
+    <input type="text" inputmode="decimal" placeholder="Montant € (vide = devis)" class="t-montant" title="Montant payable sur PayPal. Vide = sur devis.">
     <input type="text" placeholder="Détail (ex. jusqu'à 8 lettres)" class="t-det">
     <button class="danger small" type="button">✕</button>`;
   row.querySelector(".t-nom").value = t.nom || "";
   row.querySelector(".t-prix").value = t.prix || "";
+  row.querySelector(".t-montant").value = t.montant ? String(t.montant) : "";
   row.querySelector(".t-det").value = t.detail || "";
+  // si l'on saisit un montant et que le prix affiché est vide, on le propose
+  row.querySelector(".t-montant").addEventListener("change", () => {
+    const m = Number(row.querySelector(".t-montant").value.replace(",", "."));
+    if (m > 0 && !row.querySelector(".t-prix").value.trim()) row.querySelector(".t-prix").value = m + " €";
+  });
   row.querySelector("button").onclick = () => row.remove();
   $("tarifList").appendChild(row);
 }
@@ -471,6 +482,7 @@ function collRow(c){
 function remplir(){
   $("fWhatsapp").value = CFG.whatsapp || "";
   $("fInstagram").value = CFG.instagram || "";
+  $("fPaypal").value = CFG.paypal || "";
   $("tarifList").innerHTML = ""; (CFG.tarifs || []).forEach(tarifRow);
   $("matGrid").innerHTML = ""; (CFG.matieres || []).forEach(matCard);
   $("collList").innerHTML = ""; (CFG.collections || []).forEach(collRow);
@@ -480,11 +492,16 @@ function lireFormulaire(){
   return {
     whatsapp: $("fWhatsapp").value.replace(/[^\d]/g, ""),
     instagram: $("fInstagram").value.trim().replace(/^@/, ""),
-    tarifs: [...document.querySelectorAll(".tarif-row")].map(r => ({
-      nom: r.querySelector(".t-nom").value.trim(),
-      prix: r.querySelector(".t-prix").value.trim(),
-      detail: r.querySelector(".t-det").value.trim()
-    })).filter(t => t.nom),
+    paypal: $("fPaypal").value.trim().replace(/^https?:\/\/(www\.)?paypal\.me\//i, "").replace(/^@/, "").replace(/\/.*$/, ""),
+    tarifs: [...document.querySelectorAll(".tarif-row")].map(r => {
+      const m = Number(r.querySelector(".t-montant").value.trim().replace(",", "."));
+      return {
+        nom: r.querySelector(".t-nom").value.trim(),
+        prix: r.querySelector(".t-prix").value.trim(),
+        ...(m > 0 ? { montant: Math.round(m * 100) / 100 } : {}),
+        detail: r.querySelector(".t-det").value.trim()
+      };
+    }).filter(t => t.nom),
     collections: [...document.querySelectorAll(".coll-row")].map(r => ({ id: r.dataset.id, label: r.dataset.label })),
     matieres: [...document.querySelectorAll(".mat")].map(m => ({ fichier: m.dataset.fichier, nom: m.querySelector(".m-nom").value.trim() }))
   };
