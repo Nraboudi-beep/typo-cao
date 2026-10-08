@@ -197,12 +197,31 @@ function pageApercu(id, meta) {
 <meta property="og:video" content="${video}"><meta property="og:video:type" content="video/${meta.video}">` : ""}
 <meta property="og:description" content="Aperçu filigrané d'une création Typo Cao. La version finale est réalisée par l'atelier.">
 <meta name="robots" content="noindex">
-<style>body{margin:0;background:#ece5d8;color:#2b2218;font:300 17px/1.6 Outfit,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
-main{max-width:760px;text-align:center}img{max-width:100%;height:auto;border-radius:12px;box-shadow:0 24px 60px -24px rgba(90,62,28,.45)}
-h1{font:500 1.4rem Georgia,serif;margin:18px 0 4px}p{color:#8d7d67;margin:0 0 14px}a{color:#8a6330}</style></head>
-<body><main>${video ? `<video controls playsinline preload="metadata" poster="${img}" src="${video}" style="max-width:100%;border-radius:12px;box-shadow:0 24px 60px -24px rgba(90,62,28,.45)"></video>` : `<img src="${img}" alt="Aperçu de la création">`}<h1>${echapperHtml(titre)}</h1>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
+<style>body{margin:0;background:#ece5d8;background-image:radial-gradient(1200px 600px at 50% -200px,#f6f0e4 0%,#ece5d8 70%);color:#2b2218;font:300 17px/1.6 Outfit,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+main{width:min(100%,860px);text-align:center}.marque{font-family:Fraunces,Georgia,serif;letter-spacing:.14em;font-size:1.1rem;color:#2b2218;text-decoration:none}.marque b{color:#8a6330;font-weight:600}
+.cadre{margin:18px auto 0;border-radius:12px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(90,62,28,.45);background:#000}
+img.apercu{max-width:100%;height:auto;display:block}
+h1{font:500 1.5rem Fraunces,Georgia,serif;margin:20px 0 4px}p{color:#8d7d67;margin:0 0 14px}a.cta{display:inline-block;margin-top:6px;color:#fdf9f1;background:linear-gradient(170deg,#a87c3f,#8a6330);border-radius:6px;padding:10px 20px;text-decoration:none;font-size:.9rem;letter-spacing:.08em}</style></head>
+<body><main><a class="marque" href="${echapperHtml(CFG.SITE_URL)}">TYPO <b>CAO</b></a>
+<div class="cadre" id="cadre">${video ? `<video id="lecteur" controls playsinline preload="metadata" poster="${img}" style="width:100%;display:block"><source src="${video}" type="video/${meta.video}"></video>` : `<img class="apercu" src="${img}" alt="Aperçu de la création">`}</div>
+<h1>${echapperHtml(titre)}</h1>
 <p>Aperçu filigrané généré sur le site — la version finale, propre, est réalisée par l'atelier.</p>
-<a href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a></main></body></html>`;
+<a class="cta" href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a></main>${video ? `
+<script src="${echapperHtml(CFG.SITE_URL.replace(/\/+$/, ""))}/lecteur-typo.js"></script>
+<script>
+(function(){
+  var el = document.getElementById("lecteur");
+  if (!window.LecteurTypo || !el) return;
+  LecteurTypo.monter(el, { site: ${JSON.stringify(CFG.SITE_URL)}, poster: ${JSON.stringify(img)} }).then(function(p){
+    if (!p) return;
+    p.on("loadedmetadata", function(){
+      var r = p.videoWidth() / p.videoHeight();
+      if (r) document.getElementById("cadre").style.maxWidth = "min(100%, calc(72vh * " + r + "))";
+    });
+  });
+})();
+</script>` : ""}</body></html>`;
 }
 
 class ErreurApp extends Error {
