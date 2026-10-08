@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Typo Cao — lettres 3D décoratives : composez votre prénom, choisissez une collection, importez votre vidéo et recevez votre aperçu.">
 <title>Typo Cao</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
@@ -159,6 +165,11 @@ a.wa{
   display:inline-block;text-decoration:none;font-weight:500;font-size:.78rem;letter-spacing:.1em;
   border-radius:4px;padding:10px 18px;border:1px solid #1fa855;background:#1fa855;color:#fff;white-space:nowrap;
 }
+a.pp{
+  display:inline-block;text-decoration:none;font-weight:500;font-size:.78rem;letter-spacing:.1em;
+  border-radius:4px;padding:10px 18px;border:1px solid #0d3b8e;background:#0d3b8e;color:#fff;white-space:nowrap;
+}
+.pay-note{flex-basis:100%;color:var(--muted);font-size:.78rem;margin:2px 0 0}
 a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid var(--gold)}
 .avis-liste{display:flex;flex-direction:column;gap:12px;max-height:38vh;overflow-y:auto;overscroll-behavior:contain}
 .avis-item{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffdf8}
@@ -348,7 +359,9 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     </div>
     <div class="actions">
       <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
+      <a class="pp" id="ppLink" href="#" target="_blank" rel="noopener" hidden>Payer sur PayPal</a>
       <button type="button" id="copyBtn">Copier le message</button>
+      <p class="pay-note" id="payNote" hidden></p>
       <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
     </div>
   </form>
@@ -359,6 +372,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 const DEFAUTS = {
   whatsapp: "33665433314",
   instagram: "",
+  paypal: "",
   tarifs: [],
   collections: [
     { id:"perles", label:"Perles & Or" },
@@ -533,13 +547,17 @@ function buildMessage(){
   const cliContact = document.getElementById("cliContact").value.trim();
   const cliNotes = document.getElementById("cliNotes").value.trim();
   const formule = document.querySelector('#tarifChoices input:checked');
+  const pay = infoPaiement();
+  // ce que le client a réellement tapé (jamais le mot de démonstration)
+  const saisi = document.getElementById("nameInput").value.trim();
   const lines = [
-    "✨ Demande Typo Cao — pour Yuan Cao",
-    "Prénom à composer : " + (currentName.trim() || "—"),
+    "DEMANDE TYPO CAO — pour Yuan Cao",
+    "Prénom / message à composer : " + (saisi || "(non précisé — merci de l'indiquer)"),
     "Collection : " + STYLES[currentStyle],
     "Animation : " + ANIMS[currentAnim],
     ...(formule ? ["Formule : " + formule.value] : []),
-    "Vidéo : " + (videoFileName ? videoFileName + " (envoyée avec ce message)" : "envoyée avec ce message"),
+    ...(pay.ligne ? ["Règlement : " + pay.ligne] : []),
+    "Vidéo : " + (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"),
     "Aperçu généré sur le site : " + (renderedOnce ? "oui" : "non")
   ];
   if (cliName)    lines.push("Nom : " + cliName);
@@ -548,7 +566,40 @@ function buildMessage(){
   return lines.join("\n");
 }
 
+/* paiement : forfait (montant fixé par Yuan → lien PayPal.Me) ou sur devis */
+function pseudoPaypal(){
+  return String(CFG.paypal || "").trim().replace(/^https?:\/\/(www\.)?paypal\.me\//i, "").replace(/^@/, "").replace(/\/.*$/, "");
+}
+function infoPaiement(){
+  const formule = document.querySelector('#tarifChoices input:checked');
+  const pseudo = pseudoPaypal();
+  if (!formule) return { ligne: pseudo ? "" : "", lien: "" };
+  const montant = Number(formule.dataset.montant || 0);
+  if (montant > 0 && pseudo){
+    const lien = "https://paypal.me/" + encodeURIComponent(pseudo) + "/" + montant + "EUR";
+    return { montant, lien, ligne: montant + " € via PayPal (" + lien + ")" };
+  }
+  if (montant > 0) return { montant, lien: "", ligne: montant + " €" };
+  return { lien: "", ligne: "sur devis" };
+}
+
+function refreshPaiement(){
+  const pp = document.getElementById("ppLink"), note = document.getElementById("payNote");
+  const pay = infoPaiement();
+  const formule = document.querySelector('#tarifChoices input:checked');
+  if (pay.lien){
+    pp.hidden = false; pp.href = pay.lien;
+    pp.textContent = "Payer " + pay.montant + " € sur PayPal";
+    note.hidden = false; note.textContent = "Envoyez d'abord votre demande sur WhatsApp, puis réglez le forfait sur PayPal : Yuan démarre votre vidéo dès réception.";
+  } else {
+    pp.hidden = true;
+    if (formule && pseudoPaypal()){ note.hidden = false; note.textContent = "Formule sur devis : Yuan vous répond sur WhatsApp avec le prix, puis vous envoie son lien de paiement PayPal."; }
+    else note.hidden = true;
+  }
+}
+
 function refreshWa(){
+  refreshPaiement();
   const wa = document.getElementById("waLink");
   if (!CFG.whatsapp){ wa.hidden = true; return; }
   wa.hidden = false;
@@ -565,6 +616,8 @@ function construireTarifs(){
     const val = t.nom + (t.prix ? " (" + t.prix + ")" : "");
     lab.innerHTML = `<input type="radio" name="formule"><span class="nm"></span><span class="det"></span><span class="prix"></span>`;
     lab.querySelector("input").value = val;
+    const montant = Number(String(t.montant || "").replace(",", "."));
+    if (montant > 0) lab.querySelector("input").dataset.montant = montant;
     if (i === 0) lab.querySelector("input").checked = true;
     lab.querySelector(".nm").textContent = t.nom;
     lab.querySelector(".det").textContent = t.detail || "";
@@ -576,7 +629,7 @@ function construireTarifs(){
 }
 
 document.getElementById("orderBtn").addEventListener("click", () => {
-  document.getElementById("sumName").textContent  = currentName.trim() || "—";
+  document.getElementById("sumName").textContent  = document.getElementById("nameInput").value.trim() || "— (non précisé)";
   document.getElementById("sumStyle").textContent = STYLES[currentStyle];
   document.getElementById("sumVideo").textContent = videoFileName || "à envoyer avec votre message";
   refreshWa();

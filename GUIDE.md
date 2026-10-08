@@ -9,8 +9,8 @@ Ton site a une page d'administration rien que pour toi :
 1. Ouvre cette adresse (mets-la en favori)
 2. Entre ton **numéro WhatsApp**, puis le **code à 6 chiffres reçu sur WhatsApp** — pas de mot de passe, et ta connexion reste mémorisée 24 h sur ton appareil
 3. Tu peux alors, visuellement, sans aucun code :
-   - ajouter / modifier / retirer **tes tarifs**
-   - changer ton **WhatsApp** et ton **Instagram**
+   - ajouter / modifier / retirer **tes tarifs** — avec un **montant** = forfait payable sur PayPal directement depuis le site ; sans montant = **sur devis** (tu chiffres sur WhatsApp, puis tu envoies ton lien `paypal.me/TonPseudo/40`)
+   - changer ton **WhatsApp**, ton **Instagram** et ton **pseudo PayPal.Me** (à créer en 1 minute sur paypal.me si besoin ; l'argent arrive directement sur ton compte PayPal)
    - ajouter une **matière** à la galerie (l'image est automatiquement recadrée, réduite et filigranée)
    - mettre en ligne une **nouvelle collection complète** : tu sélectionnes tes 26 images (nommées A.png, B.png, … Z.png), la page les recadre, les réduit, applique le filigrane « TYPO CAO » et les met en ligne une par une
 4. **Modérer tes avis clients** : les avis laissés sur le site arrivent dans la section « Avis clients » de ton espace — tu choisis ceux que tu publies (bouton Publier/Masquer), tu supprimes les indésirables, puis « Enregistrer les avis ». Rien ne s'affiche sur le site sans ta validation.
@@ -45,14 +45,15 @@ Tout se passe dans **un seul fichier : `config.json`**. Pour le modifier : ouvre
 Remplace `"tarifs": []` par tes formules :
 
 ```json
+"paypal": "TonPseudoPayPalMe",
 "tarifs": [
-  { "nom": "Prénom simple", "prix": "15 €", "detail": "jusqu'à 8 lettres, 1 vidéo" },
-  { "nom": "Message complet", "prix": "25 €", "detail": "jusqu'à 30 lettres" },
+  { "nom": "Prénom simple", "prix": "15 €", "montant": 15, "detail": "jusqu'à 8 lettres, 1 vidéo" },
+  { "nom": "Message complet", "prix": "25 €", "montant": 25, "detail": "jusqu'à 30 lettres" },
   { "nom": "Sur mesure", "prix": "sur devis", "detail": "matières spéciales, longue vidéo" }
 ]
 ```
 
-Les formules apparaissent dans le formulaire de demande ; le choix du client arrive dans ton message WhatsApp. Pour masquer les tarifs, remets `"tarifs": []`.
+Les formules apparaissent dans le formulaire de demande ; le choix du client arrive dans ton message WhatsApp. Une formule avec `"montant"` affiche un bouton « Payer … € sur PayPal » (lien `paypal.me/TonPseudo/15EUR`) ; sans `"montant"`, elle est « sur devis ». Pour masquer les tarifs, remets `"tarifs": []`.
 
 ## 2. Ajouter une nouvelle collection de typos
 
