@@ -12,7 +12,7 @@
   --ombre:0 24px 60px -24px rgba(90,62,28,.35);
   --display:"Fraunces",Georgia,serif; --body:"Outfit",system-ui,sans-serif;
 }
-html{font-size:17px}
+html{font-size:19px}
 body{margin:0;background:var(--bg);background-image:radial-gradient(1200px 700px at 50% -200px,#f7f1e4,var(--bg) 72%);color:var(--fg);font-family:var(--body);font-weight:300;line-height:1.65;padding-inline:16px;min-height:100vh}
 .wrap{max-width:900px;margin:0 auto;padding-block:40px 90px}
 h1{font-family:var(--display);font-weight:300;letter-spacing:.14em;font-size:clamp(2.2rem,6vw,3rem);margin:0}
@@ -24,32 +24,32 @@ section{background:var(--surface);border:1px solid var(--line);border-radius:14p
 @media (max-width:640px){section{padding:24px 20px 28px}}
 /* ---- journal des visites & connexions ---- */
 .chips{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 4px}
-.chip{background:#faf6ec;border:1px solid var(--line);border-radius:999px;padding:7px 16px;font-size:.86rem}
+.chip{background:#faf6ec;border:1px solid var(--line);border-radius:999px;padding:8px 18px;font-size:.95rem}
 .chip b{font-weight:600;color:var(--gold-deep)}
 .chip.alerte{background:#fdf0ee;border-color:#e8c4bc;color:#8c3b2e}
 .chip.alerte b{color:#a63d2a}
 .graph{display:flex;align-items:flex-end;gap:5px;height:110px;margin:18px 2px 4px;border-bottom:1px solid var(--line);padding-bottom:0}
 .graph .barre{flex:1;min-width:8px;background:linear-gradient(180deg,#d9b25e,#c09540);border-radius:3px 3px 0 0;position:relative;min-height:2px}
 .graph .barre.vide{background:#eee5d2}
-.graph .barre span{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-size:.68rem;color:#8a7f6a;white-space:nowrap}
+.graph .barre span{position:absolute;top:-21px;left:50%;transform:translateX(-50%);font-size:.78rem;color:#8a7f6a;white-space:nowrap}
 .graph-legende{display:flex;gap:5px;margin-bottom:10px}
-.graph-legende i{flex:1;min-width:8px;font-style:normal;font-size:.64rem;color:#a89a7f;text-align:center}
+.graph-legende i{flex:1;min-width:8px;font-style:normal;font-size:.74rem;color:#a89a7f;text-align:center}
 .conn-liste{margin-top:8px;border-top:1px solid var(--line)}
-.conn{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;padding:9px 2px;border-bottom:1px solid var(--line);font-size:.86rem}
+.conn{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;padding:10px 4px;border-bottom:1px solid var(--line);font-size:.95rem}
 .conn .quand{color:#8a7f6a;font-variant-numeric:tabular-nums;min-width:138px}
 .conn .quoi{font-weight:500}
 .conn .detail{color:#8a7f6a}
 .conn.ok .quoi{color:#4a6b3a}
 .conn.alerte{background:#fdf0ee;border-radius:6px}
 .conn.alerte .quoi{color:#a63d2a}
-.hint{color:var(--muted);font-size:.95rem;margin:10px 0 20px;max-width:56ch}
-label.f{display:block;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+.hint{color:var(--fg);opacity:.78;font-size:1rem;margin:10px 0 20px;max-width:56ch}
+label.f{display:block;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
 input[type=text],input[type=password],input[type=tel]{width:100%;box-sizing:border-box;background:#fffdf8;border:1px solid var(--line);border-radius:8px;padding:15px 16px;font-family:var(--body);font-size:1.1rem;color:var(--fg);outline:none;transition:border-color .2s,box-shadow .2s}
 input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,124,63,.14)}
 button{font-family:var(--body);font-weight:500;font-size:.95rem;letter-spacing:.06em;border-radius:8px;padding:14px 26px;cursor:pointer;border:1px solid var(--gold-deep);background:linear-gradient(170deg,#a87c3f,#8a6330);color:#fdf9f1;box-shadow:0 10px 22px -12px rgba(138,99,48,.7);transition:transform .15s,box-shadow .2s}
 button:hover{transform:translateY(-1px);box-shadow:0 14px 26px -12px rgba(138,99,48,.75)}
 button.ghost{background:transparent;color:var(--gold-deep);box-shadow:none}
-button.small{padding:8px 14px;font-size:.82rem}
+button.small{padding:9px 15px;font-size:.9rem}
 button.danger{border-color:var(--err);color:var(--err);background:transparent;box-shadow:none}
 button:disabled{opacity:.5;cursor:default;transform:none}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--gold-deep);outline-offset:2px}
@@ -74,7 +74,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
 .mat{border:1px solid var(--line);border-radius:6px;padding:8px;background:#fffdf8;display:flex;flex-direction:column;gap:6px}
 .mat img{height:76px;object-fit:contain}
-.mat input{font-size:.78rem;padding:6px 8px}
+.mat input{font-size:.88rem;padding:7px 9px}
 .coll-row{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;background:#fffdf8}
 .coll-row img{height:44px}
 .avis-admin{display:flex;flex-direction:column;gap:10px}
@@ -83,7 +83,7 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .avis-card .tete{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
 .avis-card .nom{font-weight:500}
 .avis-card .note{color:var(--gold-deep);letter-spacing:2px}
-.avis-card .quand{color:var(--muted);font-size:.72rem}
+.avis-card .quand{color:var(--muted);font-size:.82rem}
 .avis-card .etat{margin-left:auto;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .avis-card.publie .etat{color:var(--ok)}
 .avis-card .texte{margin:6px 0 10px;font-size:.88rem}
@@ -91,11 +91,31 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .status.err{background:var(--err)}
 .status.ok{background:var(--ok)}
 .savebar{position:sticky;bottom:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 20px;margin-top:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.savebar .note{color:var(--muted);font-size:.78rem}
+.savebar .note{color:var(--muted);font-size:.88rem}
 .topbar{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .topbar h1{font-size:1.7rem}
 .topbar .right{margin-left:auto}
 .progress{font-size:.9rem;color:var(--gold-deep)}
+/* ---- tableau de bord à onglets, écran fixe ---- */
+body.dash{height:100vh;overflow:hidden}
+body.dash .wrap{height:100vh;padding-block:18px 0;display:flex;flex-direction:column;box-sizing:border-box}
+#dashView{display:flex;flex-direction:column;flex:1;min-height:0}
+.onglets{display:flex;gap:4px;margin-top:16px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.onglets::-webkit-scrollbar{display:none}
+.onglets button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:12px 16px 11px;font:inherit;font-size:.92rem;font-weight:400;color:var(--muted);cursor:pointer;white-space:nowrap;letter-spacing:.01em;transition:color .15s,border-color .15s;border-radius:0;box-shadow:none;transform:none}
+.onglets button:hover{color:var(--fg);background:none;transform:none;box-shadow:none}
+.onglets button.actif{color:var(--gold-deep);font-weight:500;border-bottom-color:var(--gold)}
+.onglets button .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:6px;border-radius:999px;background:#efe6d3;color:var(--gold-deep);font-size:.7rem;font-weight:600;line-height:18px;text-align:center;vertical-align:1px}
+.pages{flex:1;min-height:0;overflow-y:auto;padding-bottom:24px;scroll-behavior:smooth}
+.pages section:first-child{margin-top:22px}
+.page[hidden]{display:none}
+.accueil-mot{margin-top:22px;padding:28px 34px;border-radius:14px;background:linear-gradient(135deg,#fbf7ef,#f3eadb);border:1px solid var(--line);display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.accueil-mot .lettre{width:64px;height:64px;object-fit:contain;filter:drop-shadow(0 10px 14px rgba(70,48,22,.25));flex-shrink:0}
+.accueil-mot h2{font-size:1.75rem;margin:0}
+.accueil-mot h2::after{display:none}
+.accueil-mot p{margin:6px 0 0;color:var(--muted);font-size:.95rem;max-width:56ch}
+.savebar{z-index:2}
+@media (max-width:640px){.accueil-mot{padding:22px 20px}.onglets button{padding:10px 12px;font-size:.86rem}}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -152,6 +172,24 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
       </div>
     </div>
 
+    <nav class="onglets" aria-label="Pages de l'atelier">
+      <button type="button" data-page="accueil" class="actif">Accueil</button>
+      <button type="button" data-page="boutique">Contacts &amp; tarifs</button>
+      <button type="button" data-page="collections">Collections<span class="n" id="nColl"></span></button>
+      <button type="button" data-page="matieres">Matières<span class="n" id="nMat"></span></button>
+      <button type="button" data-page="avis">Avis clients<span class="n" id="nAvis" hidden></span></button>
+    </nav>
+
+    <div class="pages">
+    <div class="page" data-page="accueil">
+    <div class="accueil-mot">
+      <img class="lettre" src="assets/perles_Y.webp" alt="">
+      <div>
+        <h2 id="accueilSalut">Bienvenue chez toi, Yuan</h2>
+        <p>Tout ce qui est ici t'appartient : tes lettres, tes tarifs, les avis de tes clients — et ce journal, qui veille sur ta porte pendant que tu crées.</p>
+      </div>
+    </div>
+
     <section id="journalSection" hidden>
       <h2>Le journal de l'atelier</h2>
       <p class="hint">Ta vitrine vue de l'intérieur : qui passe devant, et qui frappe à ta porte. Les passants sont comptés sans jamais être identifiés — ici on compte les pas, pas les visages.</p>
@@ -165,7 +203,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
       <div class="conn-liste" id="journalConnexions"></div>
       <p class="hint" id="journalNote" style="margin-top:12px"></p>
     </section>
+    </div>
 
+    <div class="page" data-page="boutique" hidden>
     <section>
       <h2>Contacts</h2>
       <label class="f">Numéro WhatsApp (commandes) — format international sans +</label>
@@ -180,7 +220,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
       <div id="tarifList"></div>
       <button class="ghost small" id="addTarif">+ Ajouter une formule</button>
     </section>
+    </div>
 
+    <div class="page" data-page="collections" hidden>
     <section>
       <h2>Collections de lettres</h2>
       <p class="hint">Chaque collection est un alphabet complet. Les images sont automatiquement recadrées, réduites et <b>filigranées « TYPO CAO »</b> avant mise en ligne — tes originaux ne quittent jamais ton ordinateur en pleine qualité.</p>
@@ -197,7 +239,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
         </div>
       </div>
     </section>
+    </div>
 
+    <div class="page" data-page="matieres" hidden>
     <section>
       <h2>Matières (galerie)</h2>
       <div class="mat-grid" id="matGrid"></div>
@@ -211,7 +255,9 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
         <span class="progress" id="matMsg"></span>
       </div>
     </section>
+    </div>
 
+    <div class="page" data-page="avis" hidden>
     <section>
       <h2>Avis clients</h2>
       <p class="hint">Les avis envoyés par tes clients arrivent ici. Publie ceux que tu veux afficher sur le site, supprime les autres. N'oublie pas d'enregistrer.</p>
@@ -221,11 +267,13 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
         <span class="progress" id="avisAdminMsg"></span>
       </div>
     </section>
+    </div>
 
-    <div class="savebar">
+    <div class="savebar" id="savebar" hidden>
       <button id="saveBtn">Enregistrer les modifications</button>
       <span class="note">Le site public se met à jour 1 à 2 minutes après l'enregistrement.</span>
     </div>
+    </div><!-- /.pages -->
   </div>
 </div>
 
@@ -391,7 +439,7 @@ function matCard(m){
 function collRow(c){
   const el = document.createElement("div");
   el.className = "coll-row";
-  el.innerHTML = `<img alt=""><b style="font-weight:500"></b><span style="color:var(--muted);font-size:.78rem"></span><button class="danger small" style="margin-left:auto" type="button">Retirer du site</button>`;
+  el.innerHTML = `<img alt=""><b style="font-weight:500"></b><span style="color:var(--muted);font-size:.9rem"></span><button class="danger small" style="margin-left:auto" type="button">Retirer du site</button>`;
   el.querySelector("img").src = `assets/${c.id}_A.webp`;
   el.querySelector("b").textContent = c.label;
   el.querySelector("span").textContent = "(" + c.id + ")";
@@ -465,6 +513,7 @@ function rendreAvisAdmin(){
     el.querySelector('[data-act="suppr"]').onclick = () => { AVIS = AVIS.filter(x => x !== a); rendreAvisAdmin(); };
     box.appendChild(el);
   });
+  if (typeof compteurs === "function") compteurs();
 }
 
 $("avisSave").onclick = async () => {
@@ -555,14 +604,44 @@ async function chargerJournal(){
     : "Si un jour une ligne rouge apparaît sans que vous ayez essayé de vous connecter, préviens Nizar et garde une capture : ton journal veille sur l'atelier.";
 }
 
+/* ---- navigation par onglets (écran fixe) ---- */
+const PAGES_AVEC_ENREGISTRER = new Set(["boutique", "collections", "matieres"]);
+
+function allerPage(nom){
+  if (!document.querySelector(`.page[data-page="${nom}"]`)) nom = "accueil";
+  document.querySelectorAll(".page").forEach(p => p.hidden = p.dataset.page !== nom);
+  document.querySelectorAll(".onglets button").forEach(b => b.classList.toggle("actif", b.dataset.page === nom));
+  $("savebar").hidden = !PAGES_AVEC_ENREGISTRER.has(nom);
+  document.querySelector(".pages").scrollTop = 0;
+  try { localStorage.setItem("tc_page", nom); } catch {}
+}
+document.querySelectorAll(".onglets button").forEach(b => b.onclick = () => allerPage(b.dataset.page));
+
+function compteurs(){
+  $("nColl").textContent = $("collList").children.length || "";
+  $("nMat").textContent = $("matGrid").children.length || "";
+  const attente = AVIS.filter(a => !a.approuve).length;
+  $("nAvis").hidden = !attente;
+  $("nAvis").textContent = attente || "";
+}
+new MutationObserver(compteurs).observe($("collList"), { childList: true });
+new MutationObserver(compteurs).observe($("matGrid"), { childList: true });
+
 async function ouvrirDash(){
   CFG = await readConfig();
   $("loginView").hidden = true; $("dashView").hidden = false;
+  document.body.classList.add("dash");
+  const h = new Date().getHours();
+  $("accueilSalut").textContent = (h >= 5 && h < 18 ? "Bonjour" : "Bonsoir") + " Yuan — bienvenue chez toi";
+  let derniere = "accueil";
+  try { derniere = localStorage.getItem("tc_page") || "accueil"; } catch {}
+  allerPage(derniere);
   remplir();
   chargerJournal();
   AVIS = (await readJsonFile("avis.json")) || [];
   if (!Array.isArray(AVIS)) AVIS = [];
   rendreAvisAdmin();
+  compteurs();
 }
 
 let etape = "identifiants"; // puis "code" (mode serveur)
