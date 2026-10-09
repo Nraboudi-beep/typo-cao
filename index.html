@@ -152,7 +152,7 @@ header .bar{justify-self:center}
 .retirer-video{position:absolute;top:12px;right:12px;z-index:3;background:rgba(43,34,24,.55);color:#fdf9f1;border:1px solid rgba(255,253,248,.35);border-radius:999px;padding:6px 12px;font-size:.7rem;letter-spacing:.06em;box-shadow:none;backdrop-filter:blur(4px)}
 .retirer-video:hover{background:rgba(163,59,46,.85);transform:none}
 /* ---- timeline ---- */
-.timeline{display:grid;grid-template-columns:auto auto auto auto 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.timeline{display:grid;grid-template-columns:auto auto auto auto 1fr auto auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .tl-play{padding:0;width:2.4rem;height:2.4rem;border-radius:50%;font-size:.7rem;letter-spacing:0;display:grid;place-items:center}
 .tl-boucle{padding:0;width:2.1rem;height:2.1rem;border-radius:50%;background:transparent;color:var(--muted);border-color:var(--line);box-shadow:none;font-size:1rem;letter-spacing:0;display:grid;place-items:center}
 .tl-boucle:hover{transform:none;color:var(--gold-deep);border-color:var(--gold)}
@@ -160,6 +160,14 @@ header .bar{justify-self:center}
 .timeline.demo{grid-template-columns:auto auto auto;justify-content:center;background:transparent;border-color:transparent;padding:4px 12px}
 .timeline.demo .tl-time,.timeline.demo .tl-piste,.timeline.demo .tl-info{display:none}
 .tl-boucle.on{background:var(--gold-deep);color:#fdf9f1;border-color:var(--gold-deep)}
+.tl-suivi{padding:.45em .9em;font-size:.68rem;letter-spacing:.06em;border-radius:999px;background:transparent;color:var(--gold-deep);box-shadow:none;display:inline-flex;align-items:center;gap:.4em}
+.tl-suivi:hover{transform:none;background:rgba(163,120,60,.08)}
+.tl-suivi.on{background:var(--gold-deep);color:#fdf9f1}
+.tl-suivi.calcul{color:var(--muted);border-color:var(--line);cursor:progress}
+.tl-suivi.vieux{border-style:dashed}
+.tl-suivi i{width:.8em;height:.8em;border-radius:50%;border:2px solid currentColor;box-sizing:border-box;position:relative}
+.tl-suivi i::after{content:"";position:absolute;inset:2px;border-radius:50%;background:currentColor}
+.timeline.demo .tl-suivi{display:none}
 .tl-time{font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--fg);min-width:6rem;white-space:nowrap}
 .tl-info{font-size:.7rem;color:var(--muted);text-align:right;width:8rem;line-height:1.35}
 .tl-info b{display:block;color:var(--gold-deep);font-weight:500}
@@ -177,7 +185,7 @@ header .bar{justify-self:center}
 .tl-lettres span{rotate:45deg;font-family:var(--display);font-weight:600;font-size:.72rem;line-height:1}
 .tl-tete{position:absolute;top:-6px;bottom:-6px;width:2px;background:#fdf9f1;transform:translateX(-50%);z-index:2;pointer-events:none;box-shadow:0 0 0 1px rgba(43,34,24,.4)}
 .tl-tete::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top:8px solid #fdf9f1;border-bottom:0}
-@media (max-width:760px){.timeline{grid-template-columns:auto auto auto 1fr;grid-template-rows:auto auto}.timeline.demo{grid-template-columns:auto auto auto;grid-template-rows:auto}.tl-piste{grid-column:1/-1;height:46px}.tl-info{display:none}}
+@media (max-width:760px){.timeline{grid-template-columns:auto auto auto 1fr;grid-template-rows:auto auto auto}.tl-suivi{grid-column:1/-1;justify-self:center}.timeline.demo{grid-template-columns:auto auto auto;grid-template-rows:auto}.tl-piste{grid-column:1/-1;height:46px}.tl-info{display:none}}
 .word img{height:var(--lh,96px);width:auto;max-width:100%;cursor:zoom-in;filter:drop-shadow(0 14px 22px var(--shadow))}
 .word .sp{width:1.1em}
 .word .empty{font-family:var(--display);color:var(--gold);font-size:2rem;letter-spacing:.3em}
@@ -367,6 +375,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
         <div class="tl-tete" id="tlTete"></div>
       </div>
       <span class="tl-info" id="tlInfo"></span>
+      <button type="button" class="tl-suivi" id="tlSuivi" aria-pressed="false" title="Les lettres suivent le mouvement de la caméra ou de l'objet"><i></i><span>Suivre le mouvement</span></button>
     </div>
     </div>
 
@@ -791,7 +800,17 @@ function etoile(ctx, x, y, r){
 }
 
 /** Dessine toute la composition à l'instant t. Renvoie la boîte englobante (pour les poignées). */
-function dessinerScene(ctx, imgs, t, W, H, tFin){
+function dessinerScene(ctx, imgs, t, W, H, tFin, suivre){
+  // suivi de mouvement : le point d'ancrage et l'échelle suivent la trajectoire mesurée
+  const m = suivre === false ? null : suiviA(t);
+  if (m){
+    const sauve = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle };
+    MONTAGE.cx += m.dx; MONTAGE.by += m.dy; MONTAGE.echelle *= m.s;
+    try { return dessinerSceneBrut(ctx, imgs, t, W, H, tFin); } finally { Object.assign(MONTAGE, sauve); }
+  }
+  return dessinerSceneBrut(ctx, imgs, t, W, H, tFin);
+}
+function dessinerSceneBrut(ctx, imgs, t, W, H, tFin){
   const L = layoutLetters(imgs, W, H);
   if (!L) return null;
   const n = L.length;
@@ -936,6 +955,7 @@ function deplacerTimeline(e){
   }
   majTimeline();
   APERCU.cle = ""; // l'aperçu devra être refabriqué
+  majBoutonSuivi();
 }
 
 tl.play.addEventListener("click", () => {
@@ -955,6 +975,249 @@ document.getElementById("tlBoucle").addEventListener("click", () => {
   b.classList.toggle("on", LECTURE.boucle); b.setAttribute("aria-pressed", String(LECTURE.boucle));
   if (LECTURE.boucle){ LECTURE.restantes = Infinity; if (avecVideo() ? video.paused : demoFinie()) lancerLecture(Infinity); }
   else LECTURE.restantes = 1;
+});
+
+/* ================== SUIVI DE MOUVEMENT ==================
+   Le passage est analysé une fois : une grille de repères est suivie image par image
+   (corrélation de petites vignettes en niveaux de gris). À l'affichage, les repères
+   proches du mot donnent son déplacement et son changement d'échelle par rapport
+   à l'instant où les lettres apparaissent. Même trajectoire pour la scène, l'aperçu
+   et la vidéo fabriquée. */
+const SUIVI = { actif: false, donnees: null, calcul: null, cache: null };
+const SUIVI_L = 320, SUIVI_DEMI = 14, SUIVI_RAYON = 12, SUIVI_MAX_SAD = 34;
+const btnSuivi = document.getElementById("tlSuivi");
+
+function oublierSuivi(){
+  if (SUIVI.calcul) SUIVI.calcul.annule = true;
+  SUIVI.actif = false; SUIVI.donnees = null; SUIVI.calcul = null;
+  majBoutonSuivi();
+}
+function suiviCouvre(){
+  const D = SUIVI.donnees;
+  return !!D && D.debut <= MONTAGE.debut + 0.05 && D.fin >= MONTAGE.fin - 0.05;
+}
+function majBoutonSuivi(){
+  const sp = btnSuivi.querySelector("span");
+  btnSuivi.classList.toggle("calcul", !!SUIVI.calcul);
+  btnSuivi.classList.toggle("on", SUIVI.actif && !SUIVI.calcul);
+  btnSuivi.classList.toggle("vieux", SUIVI.actif && !SUIVI.calcul && !suiviCouvre());
+  btnSuivi.setAttribute("aria-pressed", String(SUIVI.actif));
+  if (SUIVI.calcul) sp.textContent = "Analyse " + Math.round(SUIVI.calcul.progres * 100) + " % — annuler";
+  else if (SUIVI.actif && !suiviCouvre()) sp.textContent = "Recalculer le suivi";
+  else if (SUIVI.actif) sp.textContent = "Mouvement suivi";
+  else sp.textContent = "Suivre le mouvement";
+}
+
+/* image → niveaux de gris (Uint8) à la taille d'analyse */
+function grisDepuis(ctx, v, W, H){
+  ctx.drawImage(v, 0, 0, W, H);
+  const d = ctx.getImageData(0, 0, W, H).data, g = new Uint8ClampedArray(W * H);
+  for (let i = 0, j = 0; i < g.length; i++, j += 4) g[i] = (d[j] * 77 + d[j + 1] * 151 + d[j + 2] * 28) >> 8;
+  return g;
+}
+/* qualité d'un repère (coin de Shi-Tomasi : plus petite valeur propre du tenseur de structure) :
+   une zone unie ou un simple bord droit ne peuvent pas être suivis dans les deux directions */
+function qualiteCoin(g, W, H, x, y){
+  const h = SUIVI_DEMI; let sxx = 0, syy = 0, sxy = 0;
+  for (let j = y - h; j < y + h; j++) for (let i = x - h; i < x + h; i++){
+    const k = j * W + i, gx = g[k + 1] - g[k - 1], gy = g[k + W] - g[k - W];
+    sxx += gx * gx; syy += gy * gy; sxy += gx * gy;
+  }
+  const n = (2 * h) * (2 * h); sxx /= n; syy /= n; sxy /= n;
+  const tr = sxx + syy, det = sxx * syy - sxy * sxy;
+  return tr / 2 - Math.sqrt(Math.max(0, tr * tr / 4 - det));
+}
+/* meilleur coin dans une case de la grille */
+function meilleurCoin(g, W, H, x0, y0, x1, y1){
+  const m = SUIVI_DEMI + SUIVI_RAYON + 2; let best = -1, bx = 0, by = 0;
+  for (let y = Math.max(m, y0); y <= Math.min(H - m - 1, y1); y += 3) for (let x = Math.max(m, x0); x <= Math.min(W - m - 1, x1); x += 3){
+    const q = qualiteCoin(g, W, H, x, y); if (q > best){ best = q; bx = x; by = y; }
+  }
+  return { x: bx, y: by, q: best };
+}
+/* déplacements candidats, du plus petit au plus grand (en cas d'égalité, on préfère ne pas bouger) */
+const SUIVI_OFFSETS = (() => { const o = []; for (let dy = -SUIVI_RAYON; dy <= SUIVI_RAYON; dy++) for (let dx = -SUIVI_RAYON; dx <= SUIVI_RAYON; dx++) o.push([dx, dy]); return o.sort((a, b) => (a[0] * a[0] + a[1] * a[1]) - (b[0] * b[0] + b[1] * b[1])); })();
+/* meilleur déplacement d'une vignette entre deux images (somme des différences absolues) */
+function chercherVignette(prev, cur, W, H, x, y){
+  const h = SUIVI_DEMI, aire = (2 * h) * (2 * h);
+  const x0 = Math.round(x), y0 = Math.round(y);
+  const sad = (nx, ny, limite) => {
+    if (nx - h < 0 || nx + h > W || ny - h < 0 || ny + h > H) return Infinity;
+    let s = 0;
+    for (let j = -h; j < h && s < limite; j++){
+      let a = (y0 + j) * W + x0 - h, b = (ny + j) * W + nx - h;
+      for (let i = 0; i < 2 * h; i++) s += Math.abs(prev[a + i] - cur[b + i]);
+    }
+    return s;
+  };
+  let best = Infinity, bx = 0, by = 0;
+  for (const [dx, dy] of SUIVI_OFFSETS){
+    const v = sad(x0 + dx, y0 + dy, best);
+    if (v < best){ best = v; bx = dx; by = dy; }
+  }
+  // affinage sous-pixel (parabole sur les voisins) : évite le biais vers les petits déplacements
+  const sub = (m, p) => { const d = m - 2 * best + p; return isFinite(m) && isFinite(p) && d > 0 ? Math.max(-0.5, Math.min(0.5, 0.5 * (m - p) / d)) : 0; };
+  const fx = sub(sad(x0 + bx - 1, y0 + by, Infinity), sad(x0 + bx + 1, y0 + by, Infinity));
+  const fy = sub(sad(x0 + bx, y0 + by - 1, Infinity), sad(x0 + bx, y0 + by + 1, Infinity));
+  // on repart de la position réelle (fractionnaire), pas de l'arrondi
+  return { dx: x0 + bx + fx - x, dy: y0 + by + fy - y, erreur: best / aire };
+}
+
+async function analyserMouvement(){
+  const file = videoFile || videoInput.files[0];
+  if (!file || !avecVideo()) return;
+  if (SUIVI.calcul){ SUIVI.calcul.annule = true; SUIVI.calcul = null; majBoutonSuivi(); return; }
+  const calcul = { annule: false, progres: 0 };
+  SUIVI.calcul = calcul; majBoutonSuivi();
+  const v = document.createElement("video");
+  v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = URL.createObjectURL(file);
+  try {
+    await Promise.race([new Promise(r => { v.onloadedmetadata = r; v.onerror = r; }), delai(8000)]);
+    if (!v.videoWidth) throw new Error("vidéo illisible");
+    const W = SUIVI_L, H = Math.max(2, Math.round(v.videoHeight / v.videoWidth * W));
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    const debut = MONTAGE.debut, fin = MONTAGE.fin;
+    v.currentTime = debut;
+    await Promise.race([new Promise(r => { v.onseeked = r; }), delai(4000)]);
+    let prev = grisDepuis(ctx, v, W, H);
+    // grille 5 × 4 : dans chaque case, un repère sur le coin le mieux marqué (zones unies et bords droits écartés) ;
+    // un repère perdu (sorti de l'image, caché, trop changé) est remplacé par un nouveau coin de sa case
+    const cases = [];
+    for (let gy = 0; gy < 4; gy++) for (let gx = 0; gx < 5; gx++)
+      cases.push({ x0: Math.round(W * gx / 5), y0: Math.round(H * gy / 4), x1: Math.round(W * (gx + 1) / 5) - 1, y1: Math.round(H * (gy + 1) / 4) - 1, seg: null });
+    const segments = [];            // {k0, xs, ys} : trajectoire d'un repère entre deux images-échantillons
+    const semer = (c, g, k) => { const m = meilleurCoin(g, W, H, c.x0, c.y0, c.x1, c.y1); if (m.q > 25){ c.seg = { k0: k, xs: [m.x], ys: [m.y] }; segments.push(c.seg); } else c.seg = null; };
+    for (const c of cases) semer(c, prev, 0);
+    const temps = [0];
+    let tPrev = debut;
+    const pas = () => {
+      const t = v.currentTime;
+      if (t - tPrev < 1 / 40) return; // pas plus de 40 mesures par seconde
+      tPrev = t;
+      const cur = grisDepuis(ctx, v, W, H);
+      const k = temps.length; temps.push(Math.max(0, t - debut));
+      const h = SUIVI_DEMI + SUIVI_RAYON;
+      for (const c of cases){
+        const sg = c.seg;
+        if (sg){
+          const x = sg.xs[sg.xs.length - 1], y = sg.ys[sg.ys.length - 1];
+          const r = chercherVignette(prev, cur, W, H, x, y);
+          const nx = x + r.dx, ny = y + r.dy;
+          if (r.erreur <= SUIVI_MAX_SAD && nx >= h && ny >= h && nx <= W - h && ny <= H - h){ sg.xs.push(nx); sg.ys.push(ny); continue; }
+          c.seg = null; // perdu : on resème dans la même case
+        }
+        if (k % 4 === 0 || !sg) semer(c, cur, k);
+      }
+      prev = cur;
+      calcul.progres = Math.min(1, (t - debut) / Math.max(0.1, fin - debut));
+      majBoutonSuivi();
+    };
+    v.playbackRate = 2;
+    await v.play();
+    await new Promise(res => {
+      let fini = false;
+      const terminer = () => { if (!fini){ fini = true; res(); } };
+      const boucle = () => {
+        if (fini) return;
+        if (calcul.annule || v.ended || v.paused || v.currentTime >= fin - 0.03) return terminer();
+        pas();
+        if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(boucle);
+      };
+      v.onended = terminer; v.onerror = terminer;
+      // garde-fou : les rappels d'image s'arrêtent avec la vidéo
+      const garde = () => { if (fini) return; if (calcul.annule || v.ended || v.paused || v.currentTime >= fin - 0.03){ pas(); return terminer(); } requestAnimationFrame(garde); };
+      requestAnimationFrame(garde);
+      if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(boucle);
+    });
+    v.pause();
+    if (calcul.annule) return;
+    // les dernières mesures d'un repère perdu sont suspectes (il était en train de décrocher) : on les coupe
+    const kDernier = temps.length - 1;
+    for (const sg of segments){ if (sg.k0 + sg.xs.length - 1 < kDernier){ sg.xs = sg.xs.slice(0, -3); sg.ys = sg.ys.slice(0, -3); } }
+    // lissage léger (moyenne glissante sur 5 mesures, fenêtre complète uniquement : pas de biais aux extrémités)
+    const lisser = a => a.map((v, i) => { if (i < 2 || i > a.length - 3) return v; return (a[i - 2] + a[i - 1] + a[i] + a[i + 1] + a[i + 2]) / 5; });
+    for (const sg of segments){ sg.xs = lisser(sg.xs); sg.ys = lisser(sg.ys); }
+    SUIVI.donnees = { debut, fin, temps, segments: segments.filter(sg => sg.xs.length > 1), W, H, id: Math.random() };
+    SUIVI.cache = null;
+    SUIVI.actif = true;
+    APERCU.cle = "";
+  } catch (e) {
+    console.warn("suivi impossible", e);
+    SUIVI.actif = false;
+  } finally {
+    if (SUIVI.calcul === calcul) SUIVI.calcul = null;
+    try { v.pause(); URL.revokeObjectURL(v.src); } catch {}
+    majBoutonSuivi();
+  }
+}
+
+/* trajectoire de l'ancre du mot : intégrée image par image à partir de l'instant d'apparition,
+   avec les repères voisins (pondération gaussienne) ; translation + échelle locale. Mise en cache. */
+function trajectoireAncre(){
+  const D = SUIVI.donnees;
+  const cle = [D.id, MONTAGE.cx.toFixed(4), MONTAGE.by.toFixed(4), MONTAGE.apparition.toFixed(3), MONTAGE.debut.toFixed(3)].join("|");
+  if (SUIVI.cache && SUIVI.cache.cle === cle) return SUIVI.cache;
+  const n = D.temps.length, X = new Float32Array(n), Y = new Float32Array(n), S = new Float32Array(n);
+  const tr = (MONTAGE.debut - D.debut) + MONTAGE.apparition;
+  let iRef = 0; while (iRef < n - 1 && D.temps[iRef + 1] <= tr) iRef++;
+  const ax = MONTAGE.cx * D.W, ay = MONTAGE.by * D.H, sig2 = 2 * (0.3 * D.W) ** 2;
+  for (let k = 0; k <= iRef; k++){ X[k] = ax; Y[k] = ay; S[k] = 1; }
+  // index des segments vivants à chaque pas : balayage linéaire (segments triés par k0)
+  const segs = D.segments;
+  let x = ax, y = ay, sc = 1;
+  for (let k = iRef; k < n - 1; k++){
+    let sw = 0, cx0 = 0, cy0 = 0, cx1 = 0, cy1 = 0; const pts = [];
+    for (const sg of segs){
+      const i = k - sg.k0; if (i < 0 || i + 1 >= sg.xs.length) continue;
+      const px = sg.xs[i], py = sg.ys[i];
+      const w = Math.exp(-((px - x) ** 2 + (py - y) ** 2) / sig2);
+      if (w < 1e-4) continue;
+      sw += w; cx0 += px * w; cy0 += py * w; cx1 += sg.xs[i + 1] * w; cy1 += sg.ys[i + 1] * w;
+      pts.push({ px, py, qx: sg.xs[i + 1], qy: sg.ys[i + 1], w });
+    }
+    if (sw > 1e-3){
+      cx0 /= sw; cy0 /= sw; cx1 /= sw; cy1 /= sw;
+      // échelle du pas : médiane pondérée des rapports de distances entre repères (robuste aux repères qui décrochent)
+      const rap = [];
+      for (let a = 0; a < pts.length; a++) for (let b = a + 1; b < pts.length; b++){
+        const dr = Math.hypot(pts[a].px - pts[b].px, pts[a].py - pts[b].py);
+        if (dr < D.W * 0.12) continue;
+        const dt = Math.hypot(pts[a].qx - pts[b].qx, pts[a].qy - pts[b].qy);
+        rap.push([Math.log(Math.max(0.9, Math.min(1.1, dt / dr))), pts[a].w * pts[b].w]);
+      }
+      let st = 1;
+      if (rap.length >= 3){
+        rap.sort((u, v) => u[0] - v[0]);
+        const tot = rap.reduce((acc, r) => acc + r[1], 0); let cum = 0;
+        for (const r of rap){ cum += r[1]; if (cum >= tot / 2){ st = Math.exp(r[0]); break; } }
+      }
+      x = cx1 + (x - cx0) * st; y = cy1 + (y - cy0) * st; sc = Math.max(0.5, Math.min(2.2, sc * st));
+    }
+    X[k + 1] = x; Y[k + 1] = y; S[k + 1] = sc;
+  }
+  SUIVI.cache = { cle, X, Y, S, ax, ay };
+  return SUIVI.cache;
+}
+/* déplacement (normalisé) et échelle du mot à l'instant t du passage */
+function suiviA(t){
+  const D = SUIVI.donnees;
+  if (!SUIVI.actif || !D || D.temps.length < 2) return null;
+  const C = trajectoireAncre();
+  const n = D.temps.length;
+  const tt = Math.max(D.temps[0], Math.min(D.temps[n - 1], (MONTAGE.debut - D.debut) + t));
+  let lo = 0, hi = n - 1;
+  while (hi - lo > 1){ const mi = (lo + hi) >> 1; if (D.temps[mi] <= tt) lo = mi; else hi = mi; }
+  const f = D.temps[hi] === D.temps[lo] ? 0 : (tt - D.temps[lo]) / (D.temps[hi] - D.temps[lo]);
+  const x = C.X[lo] + (C.X[hi] - C.X[lo]) * f, y = C.Y[lo] + (C.Y[hi] - C.Y[lo]) * f, s = C.S[lo] + (C.S[hi] - C.S[lo]) * f;
+  return { dx: (x - C.ax) / D.W, dy: (y - C.ay) / D.H, s };
+}
+
+btnSuivi.addEventListener("click", () => {
+  if (SUIVI.calcul){ analyserMouvement(); return; }                      // annuler
+  if (SUIVI.actif && suiviCouvre()){ SUIVI.actif = false; APERCU.cle = ""; majBoutonSuivi(); return; }
+  if (SUIVI.donnees && suiviCouvre()){ SUIVI.actif = true; APERCU.cle = ""; majBoutonSuivi(); return; }
+  analyserMouvement();
 });
 
 async function construireFilm(){
@@ -997,6 +1260,7 @@ function retirerVideo(){
   video.pause(); video.removeAttribute("src"); video.load(); video.hidden = true;
   stage.classList.remove("has-video");
   videoFile = null; videoFileName = null; videoInput.value = "";
+  oublierSuivi();
   tl.bloc.classList.add("demo"); motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
   APERCU.cle = "";
@@ -1275,7 +1539,7 @@ function dessinerTuiles(){
     const imgs = multi ? lettres.slice(0, Math.max(3, Math.min(5, lettres.length))) : [lettres[0]];
     Object.assign(MONTAGE, { cx: 0.5, by: multi ? 0.74 : 0.8, echelle: multi ? 1.9 : 2.6, apparition: 0.25 });
     const tFin = cat === "sortie" ? 2.6 : Infinity;
-    ctx.save(); dessinerScene(ctx, imgs, cat === "sortie" ? t : Math.min(t, 2.9), W, H, tFin); ctx.restore();
+    ctx.save(); dessinerScene(ctx, imgs, cat === "sortie" ? t : Math.min(t, 2.9), W, H, tFin, false); ctx.restore();
   }
   Object.assign(EFFETS, sauveE); Object.assign(MONTAGE, sauveM);
   requestAnimationFrame(dessinerTuiles);
@@ -1385,6 +1649,7 @@ videoInput.addEventListener("change", () => {
   video.src = URL.createObjectURL(f);
   video.hidden = false;
   stage.classList.add("has-video");
+  oublierSuivi();
   video.addEventListener("loadedmetadata", () => { initMontage(); chargerLettresScene(); lancerLecture(1); }, { once: true });
   renderWord(true);
   updateRenderBtn();
@@ -1423,7 +1688,7 @@ function buildMessage(){
     "DEMANDE TYPO — devis",
     "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
     "Collection : " + STYLES[currentStyle],
-    "Effets : " + resumeEffets(),
+    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : ""),
     ...(formule ? ["Formule : " + formule.value] : []),
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
     ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
