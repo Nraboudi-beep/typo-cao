@@ -152,8 +152,14 @@ header .bar{justify-self:center}
 .retirer-video{position:absolute;top:12px;right:12px;z-index:3;background:rgba(43,34,24,.55);color:#fdf9f1;border:1px solid rgba(255,253,248,.35);border-radius:999px;padding:6px 12px;font-size:.7rem;letter-spacing:.06em;box-shadow:none;backdrop-filter:blur(4px)}
 .retirer-video:hover{background:rgba(163,59,46,.85);transform:none}
 /* ---- timeline ---- */
-.timeline{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.timeline{display:grid;grid-template-columns:auto auto auto auto 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .tl-play{padding:0;width:2.4rem;height:2.4rem;border-radius:50%;font-size:.7rem;letter-spacing:0;display:grid;place-items:center}
+.tl-boucle{padding:0;width:2.1rem;height:2.1rem;border-radius:50%;background:transparent;color:var(--muted);border-color:var(--line);box-shadow:none;font-size:1rem;letter-spacing:0;display:grid;place-items:center}
+.tl-boucle:hover{transform:none;color:var(--gold-deep);border-color:var(--gold)}
+.tl-rejouer{font-size:1.25rem;line-height:1}
+.timeline.demo{grid-template-columns:auto auto auto;justify-content:center;background:transparent;border-color:transparent;padding:4px 12px}
+.timeline.demo .tl-time,.timeline.demo .tl-piste,.timeline.demo .tl-info{display:none}
+.tl-boucle.on{background:var(--gold-deep);color:#fdf9f1;border-color:var(--gold-deep)}
 .tl-time{font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--fg);min-width:6rem;white-space:nowrap}
 .tl-info{font-size:.7rem;color:var(--muted);text-align:right;width:8rem;line-height:1.35}
 .tl-info b{display:block;color:var(--gold-deep);font-weight:500}
@@ -171,7 +177,7 @@ header .bar{justify-self:center}
 .tl-lettres span{rotate:45deg;font-family:var(--display);font-weight:600;font-size:.72rem;line-height:1}
 .tl-tete{position:absolute;top:-6px;bottom:-6px;width:2px;background:#fdf9f1;transform:translateX(-50%);z-index:2;pointer-events:none;box-shadow:0 0 0 1px rgba(43,34,24,.4)}
 .tl-tete::before{content:"";position:absolute;top:-6px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top:8px solid #fdf9f1;border-bottom:0}
-@media (max-width:760px){.timeline{grid-template-columns:auto 1fr;grid-template-rows:auto auto}.tl-piste{grid-column:1/-1;height:46px}.tl-info{display:none}}
+@media (max-width:760px){.timeline{grid-template-columns:auto auto auto 1fr;grid-template-rows:auto auto}.timeline.demo{grid-template-columns:auto auto auto;grid-template-rows:auto}.tl-piste{grid-column:1/-1;height:46px}.tl-info{display:none}}
 .word img{height:var(--lh,96px);width:auto;max-width:100%;cursor:zoom-in;filter:drop-shadow(0 14px 22px var(--shadow))}
 .word .sp{width:1.1em}
 .word .empty{font-family:var(--display);color:var(--gold);font-size:2rem;letter-spacing:.3em}
@@ -322,7 +328,6 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="bar">
       <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
       <button class="ghost" id="effetsBtn" type="button">Effets ✨<span class="n" id="effetsN" hidden></span></button>
-      <button class="ghost" id="replayBtn" type="button">Rejouer</button>
       <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
       <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
       <button class="ghost" id="avisBtn" type="button">Avis ★</button>
@@ -347,8 +352,10 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <div class="drop-veil" id="dropVeil" aria-hidden="true"><span>Déposez votre vidéo</span></div>
       <button type="button" class="retirer-video" id="retirerVideo" hidden title="Retirer la vidéo">✕ Retirer la vidéo</button>
     </div>
-    <div class="timeline" id="timeline" hidden>
+    <div class="timeline demo" id="timeline">
       <button type="button" class="tl-play" id="tlPlay" aria-label="Lire ou mettre en pause">❚❚</button>
+      <button type="button" class="tl-play tl-rejouer" id="tlRejouer" aria-label="Rejouer depuis le début" title="Rejouer">↺</button>
+      <button type="button" class="tl-boucle" id="tlBoucle" aria-pressed="false" title="Lire en boucle">↻</button>
       <span class="tl-time" id="tlTime">0:00 / 0:00</span>
       <div class="tl-piste" id="tlPiste">
         <div class="tl-film" id="tlFilm"></div>
@@ -876,7 +883,7 @@ const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = Ma
 const pct = t => (MONTAGE.duree ? (t / MONTAGE.duree * 100) : 0) + "%";
 
 function majTimeline(){
-  if (tl.bloc.hidden) return;
+  if (!avecVideo()){ tl.play.textContent = demoEnPause() ? "▶" : "❚❚"; return; }
   tl.ombreG.style.width = pct(MONTAGE.debut);
   tl.ombreD.style.width = pct(MONTAGE.duree - MONTAGE.fin);
   tl.debut.style.left = pct(MONTAGE.debut);
@@ -931,7 +938,24 @@ function deplacerTimeline(e){
   APERCU.cle = ""; // l'aperçu devra être refabriqué
 }
 
-tl.play.addEventListener("click", () => { if (video.paused) video.play().catch(()=>{}); else video.pause(); });
+tl.play.addEventListener("click", () => {
+  if (!avecVideo()){
+    if (demoGel !== null){ demoDepart = performance.now() - demoGel * 1000; demoGel = null; }       // reprendre
+    else if (demoFinie()) lancerLecture(1);                                                          // relancer
+    else demoGel = (performance.now() - demoDepart) / 1000;                                          // mettre en pause
+    majTimeline(); return;
+  }
+  if (!video.paused){ video.pause(); return; }
+  if (video.currentTime >= MONTAGE.fin - 0.1 || LECTURE.restantes === 0) lancerLecture(1); else { LECTURE.restantes = Math.max(1, LECTURE.restantes); video.play().catch(()=>{}); }
+});
+document.getElementById("tlRejouer").addEventListener("click", () => { chargerLettresScene(); lancerLecture(1); });
+document.getElementById("tlBoucle").addEventListener("click", () => {
+  LECTURE.boucle = !LECTURE.boucle;
+  const b = document.getElementById("tlBoucle");
+  b.classList.toggle("on", LECTURE.boucle); b.setAttribute("aria-pressed", String(LECTURE.boucle));
+  if (LECTURE.boucle){ LECTURE.restantes = Infinity; if (avecVideo() ? video.paused : demoFinie()) lancerLecture(Infinity); }
+  else LECTURE.restantes = 1;
+});
 
 async function construireFilm(){
   tl.film.innerHTML = "";
@@ -963,7 +987,7 @@ function initMontage(){
   MONTAGE.debut = 0;
   MONTAGE.fin = Math.min(MONTAGE.duree, MAX_RENDER_S);
   MONTAGE.apparition = Math.min(0.35, Math.max(0, MONTAGE.fin - 1));
-  tl.bloc.hidden = false;
+  tl.bloc.classList.remove("demo");
   document.getElementById("retirerVideo").hidden = false;
   majTimeline();
   construireFilm();
@@ -973,7 +997,7 @@ function retirerVideo(){
   video.pause(); video.removeAttribute("src"); video.load(); video.hidden = true;
   stage.classList.remove("has-video");
   videoFile = null; videoFileName = null; videoInput.value = "";
-  tl.bloc.hidden = true; motCadre.hidden = true;
+  tl.bloc.classList.add("demo"); motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
   APERCU.cle = "";
   renderWord(true); updateRenderBtn();
@@ -1000,7 +1024,7 @@ function chargerLettresScene(){
 }
 
 /* compat : l'ancien point d'entrée relance simplement la démo */
-function renderWord(){ chargerLettresScene(); demoDepart = performance.now(); }
+function renderWord(){ chargerLettresScene(); if (!avecVideo()) lancerLecture(1); }
 function sizeLetters(){}
 
 function rectVideo(){
@@ -1011,9 +1035,27 @@ function rectVideo(){
   return { x: (sw - rw) / 2, y: (sh - rh) / 2, w: rw, h: rh };
 }
 
+/* lecture : N passages puis arrêt sur image (ou boucle) */
+const LECTURE = { boucle: false, restantes: 3 };
+const avecVideo = () => stage.classList.contains("has-video") && !!video.videoWidth;
+function instantArret(tFin){ // là où l'on fige : lettres en place, avant une éventuelle sortie
+  const r = RYTHMES[EFFETS.rythme] || 1;
+  return Math.max(0.6, EFFETS.sortie === "aucune" ? tFin - 0.05 : tFin - 0.75 * r - 0.05);
+}
+let demoGel = null;             // démo en pause : temps figé (s), sinon null
+function lancerLecture(fois){
+  LECTURE.restantes = LECTURE.boucle ? Infinity : fois;
+  if (avecVideo()){ video.currentTime = MONTAGE.debut; video.play().catch(()=>{}); }
+  else { demoDepart = performance.now(); demoGel = null; }
+  majTimeline();
+}
+const demoBrut = () => demoGel !== null ? demoGel : (performance.now() - demoDepart) / 1000;
+const demoFinie = () => !LECTURE.boucle && Math.floor(demoBrut() / DEMO_DUREE) >= LECTURE.restantes;
+const demoEnPause = () => demoGel !== null || demoFinie();
 function tempsScene(){
-  if (stage.classList.contains("has-video") && video.videoWidth) return Math.max(0, video.currentTime - MONTAGE.debut);
-  return ((performance.now() - demoDepart) / 1000) % DEMO_DUREE;
+  if (avecVideo()) return Math.max(0, video.currentTime - MONTAGE.debut);
+  if (demoFinie()) return instantArret(DEMO_DUREE - 0.6);
+  return demoBrut() % DEMO_DUREE;
 }
 
 function dessinerSceneDirect(){
@@ -1028,13 +1070,13 @@ function dessinerSceneDirect(){
   if (!lettresScene.length || lettresScene.every(l => l === null)){ motCadre.hidden = true; return; }
   const r = rectVideo();
   rectScene = r;
-  const avecVideo = stage.classList.contains("has-video") && video.videoWidth;
+  const video_ok = avecVideo();
   const t = tempsScene();
-  const tFin = avecVideo ? (MONTAGE.fin - MONTAGE.debut) : DEMO_DUREE - 0.6;
+  const tFin = video_ok ? (MONTAGE.fin - MONTAGE.debut) : DEMO_DUREE - 0.6;
   sceneCtx.save();
   sceneCtx.translate(r.x, r.y);
   let bloc;
-  if (avecVideo){
+  if (video_ok){
     bloc = dessinerScene(sceneCtx, lettresScene, t, r.w, r.h, tFin);
   } else {
     // démonstration sans vidéo : grandes lettres centrées (mêmes réglages de forme/effets)
@@ -1046,7 +1088,7 @@ function dessinerSceneDirect(){
   sceneCtx.restore();
   blocScene = bloc ? { x: r.x + bloc.x, y: r.y + bloc.y, w: bloc.w, h: bloc.h } : null;
   // cadre de sélection (uniquement avec une vidéo : c'est là que le placement compte)
-  if (avecVideo && blocScene){
+  if (video_ok && blocScene){
     // cadre autour du mot, toujours contenu dans la scène (la poignée reste atteignable)
     const m = 12;
     const x1 = Math.max(m, blocScene.x - 10), y1 = Math.max(m, blocScene.y - 10);
@@ -1058,11 +1100,23 @@ function dessinerSceneDirect(){
 
 /* boucle : lecture bouclée dans le passage + dessin */
 function boucleLecture(){
-  if (stage.classList.contains("has-video") && video.videoWidth){
+  if (avecVideo()){
     const t = video.currentTime;
-    if (!tlScrub && !video.paused && (t >= MONTAGE.fin - 0.02 || t < MONTAGE.debut - 0.2)) video.currentTime = MONTAGE.debut;
-    majTimeline();
+    if (!tlScrub && !video.paused){
+      if (t < MONTAGE.debut - 0.2) video.currentTime = MONTAGE.debut;
+      else if (t >= MONTAGE.fin - 0.02){
+        if (LECTURE.boucle || LECTURE.restantes > 1){
+          if (!LECTURE.boucle) LECTURE.restantes -= 1;
+          video.currentTime = MONTAGE.debut;
+        } else {
+          LECTURE.restantes = 0;
+          video.pause();
+          video.currentTime = MONTAGE.debut + instantArret(MONTAGE.fin - MONTAGE.debut);
+        }
+      }
+    }
   }
+  majTimeline();
   dessinerSceneDirect();
   requestAnimationFrame(boucleLecture);
 }
@@ -1187,7 +1241,8 @@ function construireGrille(){
         if (g.cat === "bascules") EFFETS[val] = !EFFETS[val]; else EFFETS[g.cat] = val;
         if (g.cat === "entree") currentAnim = val;
         wrap.querySelectorAll(".tuile").forEach(t => t.classList.toggle("on", t === b ? (g.cat === "bascules" ? EFFETS[val] : true) : (g.cat === "bascules" ? !!EFFETS[t.dataset.val] : false)));
-        APERCU.cle = ""; demoDepart = performance.now(); tuilesDepart = performance.now();
+        APERCU.cle = ""; tuilesDepart = performance.now();
+        lancerLecture(3);
         majBadgeEffets();
       };
       b.dataset.val = val;
@@ -1236,14 +1291,13 @@ document.getElementById("effetsTabs").addEventListener("click", e => {
 document.getElementById("effetsBtn").addEventListener("click", () => {
   chargerLettresScene();
   construireGrille(); majBadgeEffets();
-  effetsModal.hidden = false; tuilesDepart = performance.now(); demoDepart = performance.now();
-  if (stage.classList.contains("has-video") && video.videoWidth){ video.currentTime = MONTAGE.debut; video.play().catch(()=>{}); }
+  effetsModal.hidden = false; tuilesDepart = performance.now();
 });
 document.getElementById("effetsClose").addEventListener("click", () => { effetsModal.hidden = true; });
 document.getElementById("effetsOk").addEventListener("click", () => { effetsModal.hidden = true; });
 document.getElementById("effetsReset").addEventListener("click", () => {
   Object.assign(EFFETS, JSON.parse(JSON.stringify(EFFETS_DEFAUT))); currentAnim = EFFETS.entree;
-  construireGrille(); majBadgeEffets(); APERCU.cle = ""; demoDepart = performance.now();
+  construireGrille(); majBadgeEffets(); APERCU.cle = ""; lancerLecture(3);
 });
 effetsModal.addEventListener("click", e => { if (e.target === effetsModal) effetsModal.hidden = true; });
 majBadgeEffets();
@@ -1331,8 +1385,7 @@ videoInput.addEventListener("change", () => {
   video.src = URL.createObjectURL(f);
   video.hidden = false;
   stage.classList.add("has-video");
-  video.addEventListener("loadedmetadata", () => { initMontage(); renderWord(true); }, { once: true });
-  video.play().catch(()=>{});
+  video.addEventListener("loadedmetadata", () => { initMontage(); chargerLettresScene(); lancerLecture(1); }, { once: true });
   renderWord(true);
   updateRenderBtn();
   APERCU.cle = "";
@@ -1354,10 +1407,6 @@ document.addEventListener("drop", e => {
   if (!e.dataTransfer || !e.dataTransfer.files.length) return;
   e.preventDefault();
   recevoirFichier(e.dataTransfer.files[0]);
-});
-document.getElementById("replayBtn").addEventListener("click", () => {
-  if (!video.hidden){ video.currentTime = MONTAGE.debut; video.play().catch(()=>{}); }
-  renderWord(true);
 });
 
 /* ---- moteur de demande ---- */
