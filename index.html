@@ -24,12 +24,8 @@
   --body:"Outfit",system-ui,sans-serif;
 }
 html,body{height:100%}
-/* mise à l'échelle automatique sur grands écrans : la composition (prévue pour 1280 px) remplit l'écran */
-@media (min-width:1480px) and (min-height:760px){body{zoom:1.15}}
-@media (min-width:1680px) and (min-height:860px){body{zoom:1.32}}
-@media (min-width:1880px) and (min-height:940px){body{zoom:1.48}}
-@media (min-width:2400px) and (min-height:1200px){body{zoom:1.85}}
-@media (min-width:3200px) and (min-height:1600px){body{zoom:2.5}}
+/* mise en page fluide : la taille des textes et des éléments suit la fenêtre (≈15,5 px sur un portable, ≈18 px en 1920, ≈22 px en 2560) */
+html{font-size:clamp(15px, 0.46vw + 9.3px, 23px)}
 img{-webkit-user-drag:none;user-select:none}
 .word,.mats,.coll,.lightbox,.stage{user-select:none}
 body{
@@ -48,25 +44,29 @@ body{
   gap:10px;
   padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
   box-sizing:border-box;
-  max-width:1280px;
+  max-width:2200px;
   margin:0 auto;
 }
 
 /* ---- header ---- */
-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:18px}
+header{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px}
+header .bar{justify-self:center}
 .brand{font-family:var(--display);font-weight:300;font-size:clamp(1.3rem,3vw,1.9rem);letter-spacing:.14em;margin:0;white-space:nowrap}
 .brand b{color:var(--gold-deep);font-weight:600}
-header input{
-  justify-self:center;width:min(460px,42vw);min-width:150px;text-align:center;background:var(--surface);border:1px solid var(--line);
-  color:var(--fg);font-family:var(--body);font-weight:500;font-size:1rem;
-  letter-spacing:.18em;text-transform:uppercase;padding:9px 14px;border-radius:4px;outline:none;
-}
-header input:focus{border-color:var(--gold)}
+/* ---- saisie en bas, comme une messagerie ---- */
+.saisie{display:flex;flex-direction:column;align-items:center;gap:6px}
+.saisie-boite{position:relative;box-sizing:border-box;width:min(720px,60vw);display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 18px 6px 16px;box-shadow:0 10px 30px -18px var(--shadow);transition:border-color .2s,box-shadow .2s}
+.saisie-boite:focus-within{border-color:var(--gold);box-shadow:0 14px 34px -16px var(--shadow)}
+.saisie-ic{color:var(--gold-deep);font-size:1.05rem}
+.saisie-boite input{flex:1;min-width:0;background:transparent;border:0;outline:none;color:var(--fg);font-family:var(--body);font-weight:500;font-size:1.05rem;letter-spacing:.16em;text-transform:uppercase;padding:8px 0;text-align:center}
+.saisie-boite input::placeholder{text-transform:none;letter-spacing:.02em;font-weight:300;color:var(--muted)}
+.saisie-compteur{font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:1.6em;text-align:right}
+.pied{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
 .chosen{justify-self:end;color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
 .chosen b{color:var(--gold-deep);font-weight:500}
 
 /* ---- corps 3 colonnes ---- */
-.main{display:grid;grid-template-columns:170px 1fr 236px;gap:12px;min-height:0}
+.main{display:grid;grid-template-columns:clamp(150px,11.5vw,250px) 1fr clamp(200px,15.5vw,340px);gap:clamp(10px,.8vw,18px);min-height:0}
 .rail{display:flex;flex-direction:column;gap:10px;min-height:0}
 .rail-title{font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold-deep);font-weight:500;flex:none}
 
@@ -76,7 +76,7 @@ header input:focus{border-color:var(--gold)}
   padding:10px;cursor:pointer;text-align:center;transition:border-color .2s,box-shadow .2s;
 }
 .coll.selected{border-color:var(--gold);box-shadow:0 4px 14px var(--shadow)}
-.coll img{height:78px;width:auto;max-width:100%;filter:drop-shadow(0 6px 10px var(--shadow))}
+.coll img{height:clamp(64px,5.4vw,122px);width:auto;max-width:100%;filter:drop-shadow(0 6px 10px var(--shadow))}
 .coll .nm{font-size:.68rem;letter-spacing:.08em;color:var(--muted);margin-top:6px}
 .coll.selected .nm{color:var(--gold-deep);font-weight:500}
 
@@ -103,12 +103,11 @@ header input:focus{border-color:var(--gold)}
 }
 .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .stage video[hidden]{display:none}
-.drop-hint{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(255,253,248,.85);border:1px dashed var(--gold);border-radius:999px;padding:8px 16px 8px 12px;color:var(--gold-deep);font:inherit;font-size:.78rem;letter-spacing:.04em;text-transform:none;cursor:pointer;box-shadow:none;backdrop-filter:blur(4px);z-index:3;transition:background .2s,border-color .2s}
-.drop-hint:hover{background:#fffdf8;border-style:solid;transform:translateX(-50%)}
-.drop-hint .ic{font-size:1.1rem;line-height:1}
-.drop-hint small{display:block;font-size:.66rem;color:var(--muted);letter-spacing:.02em}
-.stage.has-video .drop-hint{top:auto;bottom:12px;left:12px;transform:none;padding:6px 12px;opacity:.75}
-.stage.has-video .drop-hint small{display:none}
+.stage-invite{position:absolute;left:50%;top:27%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:1;color:var(--gold-deep)}
+.stage-invite b{display:block;font-family:var(--display);font-weight:500;font-size:clamp(1.1rem,1.6vw,1.6rem);letter-spacing:.06em}
+.stage-invite span{display:block;margin-top:6px;font-size:.78rem;color:var(--muted);letter-spacing:.03em}
+.stage:not(.has-video){cursor:pointer}
+.stage.has-video .stage-invite{display:none}
 .drop-veil{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(168,124,63,.14);border:2px dashed var(--gold);border-radius:10px;z-index:4;pointer-events:none}
 .drop-veil span{background:var(--surface);border:1px solid var(--gold);border-radius:6px;padding:12px 22px;color:var(--gold-deep);font-size:.9rem;letter-spacing:.12em;text-transform:uppercase}
 .stage.drag-over .drop-veil{display:flex}
@@ -127,7 +126,7 @@ header input:focus{border-color:var(--gold)}
 .scene-canvas.saisi{cursor:grabbing!important}
 #effetsBtn .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:8px;border-radius:999px;background:var(--gold-deep);color:#fdf9f1;font-size:.66rem;font-weight:600;letter-spacing:0}
 .modal.effets{background:transparent;justify-content:flex-end;align-items:stretch;padding:0;pointer-events:none}
-.modal.effets .effets-panel{pointer-events:auto;max-width:440px;width:min(100%,440px);height:auto;max-height:none;align-self:stretch;border-radius:0;border-width:0 0 0 1px;box-shadow:-30px 0 60px var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px;overflow:hidden}
+.modal.effets .effets-panel{pointer-events:auto;max-width:none;width:min(100%,clamp(400px,30vw,640px));height:auto;max-height:none;align-self:stretch;border-radius:0;border-width:0 0 0 1px;box-shadow:-30px 0 60px var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px;overflow:hidden}
 .effets-panel .close-row{justify-content:space-between;align-items:center}
 .effets-panel h2{margin:0}
 .effets-panel .hint-e{color:var(--muted);font-size:.78rem;margin:4px 0 12px}
@@ -137,7 +136,7 @@ header input:focus{border-color:var(--gold)}
 .effets-tabs button.on{color:var(--gold-deep);border-bottom-color:var(--gold);font-weight:600}
 .effets-grille{flex:1;min-height:0;overflow-y:auto;padding:12px 2px 6px;scrollbar-width:thin}
 .effets-grille h3{font-family:var(--body);font-weight:500;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
-.tuiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
 .tuile{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;background:#fffdf8;border:1px solid var(--line);border-radius:8px;color:var(--fg);box-shadow:none;letter-spacing:.02em;font-size:.76rem;font-weight:400;text-transform:none;white-space:normal;text-align:center;transition:border-color .15s,box-shadow .15s}
 .tuile:hover{transform:none;border-color:var(--gold)}
 .tuile.on{border-color:var(--gold-deep);box-shadow:0 0 0 2px rgba(168,124,63,.25)}
@@ -154,12 +153,12 @@ header input:focus{border-color:var(--gold)}
 .retirer-video:hover{background:rgba(163,59,46,.85);transform:none}
 /* ---- timeline ---- */
 .timeline{display:grid;grid-template-columns:auto auto 1fr auto;gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
-.tl-play{padding:0;width:36px;height:36px;border-radius:50%;font-size:.7rem;letter-spacing:0;display:grid;place-items:center}
-.tl-time{font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--fg);min-width:92px;white-space:nowrap}
-.tl-info{font-size:.7rem;color:var(--muted);text-align:right;width:120px;line-height:1.35}
+.tl-play{padding:0;width:2.4rem;height:2.4rem;border-radius:50%;font-size:.7rem;letter-spacing:0;display:grid;place-items:center}
+.tl-time{font-variant-numeric:tabular-nums;font-size:.8rem;color:var(--fg);min-width:6rem;white-space:nowrap}
+.tl-info{font-size:.7rem;color:var(--muted);text-align:right;width:8rem;line-height:1.35}
 .tl-info b{display:block;color:var(--gold-deep);font-weight:500}
 .stage.deja-deplace .mot-cadre b{display:none}
-.tl-piste{position:relative;height:52px;border-radius:6px;overflow:visible;background:#2b2218;cursor:pointer;touch-action:none;user-select:none}
+.tl-piste{position:relative;height:clamp(48px,3.6vw,78px);border-radius:6px;overflow:visible;background:#2b2218;cursor:pointer;touch-action:none;user-select:none}
 .tl-film{position:absolute;inset:0;display:flex;border-radius:6px;overflow:hidden}
 .tl-film i{flex:1;background:#3a2f22 center/cover no-repeat;border-right:1px solid rgba(0,0,0,.35)}
 .tl-ombre{position:absolute;top:0;bottom:0;background:rgba(43,34,24,.72);pointer-events:none}
@@ -197,7 +196,7 @@ header input:focus{border-color:var(--gold)}
 .bar .etape.ghost i{background:transparent}
 button{
   font-family:var(--body);font-weight:500;font-size:.78rem;letter-spacing:.1em;
-  border-radius:4px;padding:10px 18px;cursor:pointer;border:1px solid var(--gold-deep);
+  border-radius:4px;padding:.7em 1.2em;cursor:pointer;border:1px solid var(--gold-deep);
   background:var(--gold-deep);color:#fdf9f1;white-space:nowrap;
 }
 button.ghost{background:transparent;color:var(--gold-deep)}
@@ -221,7 +220,7 @@ button.ghost{background:transparent;color:var(--gold-deep)}
   background:var(--surface);border:1px solid var(--line);border-radius:10px;max-width:460px;width:100%;
   max-height:92vh;overflow-y:auto;padding:26px;box-sizing:border-box;box-shadow:0 30px 60px var(--shadow);
 }
-.panel#orderForm{max-width:520px}
+.panel#orderForm{max-width:min(92vw,34rem)}
 .apercu-ligne{display:flex;gap:14px;align-items:center;margin:-6px 0 16px;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:#fffdf8}
 .apercu-ligne img{height:64px;width:auto;max-width:114px;border-radius:4px;object-fit:cover;box-shadow:0 6px 14px -6px var(--shadow)}
 .apercu-ligne span{font-size:.8rem;color:var(--muted)}
@@ -234,8 +233,8 @@ button.ghost{background:transparent;color:var(--gold-deep)}
 .qr-bloc small{display:block;margin-top:8px;font-size:.72rem;color:var(--muted);line-height:1.4}
 .qr-bloc b{display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:8px}
 @media (pointer:fine) and (min-width:900px){
-  .panel#orderForm{max-width:720px}
-  .envoi{grid-template-columns:1fr 212px}
+  .panel#orderForm{max-width:min(92vw,46rem)}
+  .envoi{grid-template-columns:1fr 13rem}
   .qr-bloc.pret{display:block}
 }
 .panel h2{font-family:var(--display);font-weight:500;font-size:1.3rem;margin:0 0 4px}
@@ -296,9 +295,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
 /* ---- mobile ---- */
 @media (max-width:760px){
-  header{display:flex;flex-wrap:wrap}
-  header input{width:100%;text-align:left}
-  .chosen{margin-left:auto}
+  header{display:flex;flex-wrap:wrap;gap:10px}
+  header .bar{width:100%;justify-content:center}
   .app{padding-inline:12px;gap:8px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr auto auto auto}
   .main{display:contents}
   .centre{order:2;min-width:0;min-height:0}
@@ -312,8 +310,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   .rail-right .rail-title{display:none}
   .mats{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:64px;overflow-x:auto;overflow-y:hidden;height:72px}
   .thumb{padding:5px}
-  .bar{order:5}
-  .word img{--lh:clamp(40px,13vw,70px)}
+  .saisie{order:5}
+  .saisie-boite{width:100%}
   .chosen{display:none}
 }
 </style>
@@ -321,7 +319,15 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 <div class="app">
   <header>
     <h1 class="brand">TYPO <b>CAO</b></h1>
-    <input id="nameInput" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="VOTRE PRÉNOM OU MESSAGE" aria-label="Prénom ou message à composer">
+    <div class="bar">
+      <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
+      <button class="ghost" id="effetsBtn" type="button">Effets ✨<span class="n" id="effetsN" hidden></span></button>
+      <button class="ghost" id="replayBtn" type="button">Rejouer</button>
+      <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
+      <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
+      <button class="ghost" id="avisBtn" type="button">Avis ★</button>
+      <input id="videoInput" type="file" accept="video/*" hidden>
+    </div>
     <div class="chosen">Collection <b id="chosenLabel">Perles &amp; Or</b></div>
   </header>
 
@@ -337,9 +343,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <div class="word" id="word" hidden></div>
       <canvas id="sceneCanvas" class="scene-canvas" aria-label="Aperçu de votre création"></canvas>
       <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" title="Agrandir / réduire"></i><b>glissez pour déplacer · coin pour agrandir</b></div>
-      <button type="button" class="drop-hint" id="dropHint" aria-label="Importer ou glisser une vidéo">
-        <span class="ic">⤓</span><span>Glissez votre vidéo ici<small>ou cliquez pour la choisir — vous verrez votre création dessus</small></span>
-      </button>
+      <div class="stage-invite" id="stageInvite" aria-hidden="true"><b>Glissez votre vidéo ici</b><span>ou appuyez dans le cadre pour la choisir — votre création apparaîtra dessus</span></div>
       <div class="drop-veil" id="dropVeil" aria-hidden="true"><span>Déposez votre vidéo</span></div>
       <button type="button" class="retirer-video" id="retirerVideo" hidden title="Retirer la vidéo">✕ Retirer la vidéo</button>
     </div>
@@ -365,16 +369,16 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     </div>
   </div>
 
-  <div class="bar">
-    <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
-    <button class="ghost" id="effetsBtn" type="button">Effets ✨<span class="n" id="effetsN" hidden></span></button>
-    <button class="ghost" id="replayBtn" type="button">Rejouer</button>
-    <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
-    <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
-    <button class="ghost" id="avisBtn" type="button">Avis ★</button>
-    <a class="insta" id="instaLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
-    <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · Tous droits réservés · <a href="#" id="mentionsLink" style="color:inherit">mentions</a> · <a href="admin.html" style="color:inherit">atelier</a></span>
-    <input id="videoInput" type="file" accept="video/*" hidden>
+  <div class="saisie">
+    <div class="saisie-boite">
+      <span class="saisie-ic" aria-hidden="true">✎</span>
+      <input id="nameInput" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Écrivez votre prénom ou votre message…" aria-label="Prénom ou message à composer">
+      <span class="saisie-compteur" id="saisieCompteur">30</span>
+    </div>
+    <div class="pied">
+      <a class="insta" id="instaLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
+      <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · Tous droits réservés · <a href="#" id="mentionsLink" style="color:inherit">mentions</a> · <a href="admin.html" style="color:inherit">atelier</a></span>
+    </div>
   </div>
 </div>
 
@@ -971,7 +975,6 @@ function retirerVideo(){
   videoFile = null; videoFileName = null; videoInput.value = "";
   tl.bloc.hidden = true; motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
-  document.getElementById("dropHint").querySelector("span:last-child").firstChild.textContent = "Glissez votre vidéo ici";
   APERCU.cle = "";
   renderWord(true); updateRenderBtn();
 }
@@ -1044,7 +1047,11 @@ function dessinerSceneDirect(){
   blocScene = bloc ? { x: r.x + bloc.x, y: r.y + bloc.y, w: bloc.w, h: bloc.h } : null;
   // cadre de sélection (uniquement avec une vidéo : c'est là que le placement compte)
   if (avecVideo && blocScene){
-    Object.assign(motCadre.style, { left: (blocScene.x - 10) + "px", top: (blocScene.y - 10) + "px", width: (blocScene.w + 20) + "px", height: (blocScene.h + 20) + "px" });
+    // cadre autour du mot, toujours contenu dans la scène (la poignée reste atteignable)
+    const m = 12;
+    const x1 = Math.max(m, blocScene.x - 10), y1 = Math.max(m, blocScene.y - 10);
+    const x2 = Math.min(sw - m, blocScene.x + blocScene.w + 10), y2 = Math.min(sh - m, blocScene.y + blocScene.h + 10);
+    Object.assign(motCadre.style, { left: x1 + "px", top: y1 + "px", width: Math.max(40, x2 - x1) + "px", height: Math.max(30, y2 - y1) + "px" });
     motCadre.hidden = false;
   } else motCadre.hidden = true;
 }
@@ -1063,6 +1070,9 @@ requestAnimationFrame(boucleLecture);
 
 /* ---- déplacer / redimensionner le mot (avec vidéo) ; clic sur une lettre = lightbox ---- */
 let motSaisie = null, motDeplace = false;
+/* facteur entre pixels d'écran et pixels de la scène (mise à l'échelle CSS « zoom ») */
+function zoomScene(){ const sr = stage.getBoundingClientRect(); return (sr.width / (stage.clientWidth || 1)) || 1; }
+function pointScene(e){ const sr = stage.getBoundingClientRect(), z = zoomScene(); return { x: (e.clientX - sr.left) / z, y: (e.clientY - sr.top) / z }; }
 function lettreSous(x, y){
   // retrouve la lettre sous le pointeur (repère scène)
   if (!rectScene || !lettresScene.length) return null;
@@ -1075,22 +1085,21 @@ function lettreSous(x, y){
   return null;
 }
 sceneCanvas.addEventListener("pointerdown", e => {
-  const sr = stage.getBoundingClientRect();
-  const x = e.clientX - sr.left, y = e.clientY - sr.top;
+  const { x, y } = pointScene(e);
   const dans = blocScene && x >= blocScene.x - 10 && x <= blocScene.x + blocScene.w + 10 && y >= blocScene.y - 10 && y <= blocScene.y + blocScene.h + 10;
   if (!dans) return;
   e.preventDefault();
   motDeplace = false;
   if (!stage.classList.contains("has-video")){ motSaisie = { mode: "clic", x0: e.clientX, y0: e.clientY }; return; }
-  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, cx: MONTAGE.cx, by: MONTAGE.by, r: rectVideo() };
+  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, z: zoomScene(), cx: MONTAGE.cx, by: MONTAGE.by, r: rectVideo() };
   sceneCanvas.classList.add("saisi");
   sceneCanvas.setPointerCapture(e.pointerId);
 });
 document.getElementById("motPoignee").addEventListener("pointerdown", e => {
   e.preventDefault(); e.stopPropagation();
   if (!blocScene) return;
-  const sr = stage.getBoundingClientRect();
-  const ancre = { x: sr.left + blocScene.x + blocScene.w / 2, y: sr.top + blocScene.y + blocScene.h / 2 };
+  const sr = stage.getBoundingClientRect(), z = zoomScene();
+  const ancre = { x: sr.left + (blocScene.x + blocScene.w / 2) * z, y: sr.top + (blocScene.y + blocScene.h / 2) * z };
   motSaisie = { mode: "echelle", ancre, d0: Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1, e0: MONTAGE.echelle };
   e.target.setPointerCapture(e.pointerId);
   e.target.addEventListener("pointermove", deplacerMot);
@@ -1100,7 +1109,7 @@ function deplacerMot(e){
   if (!motSaisie) return;
   if (motSaisie.mode === "clic") return;
   if (motSaisie.mode === "deplacer"){
-    const dx = e.clientX - motSaisie.x0, dy = e.clientY - motSaisie.y0;
+    const dx = (e.clientX - motSaisie.x0) / motSaisie.z, dy = (e.clientY - motSaisie.y0) / motSaisie.z;
     if (Math.hypot(dx, dy) > 3) motDeplace = true;
     MONTAGE.cx = Math.max(0.08, Math.min(0.92, motSaisie.cx + dx / motSaisie.r.w));
     MONTAGE.by = Math.max(0.2, Math.min(0.98, motSaisie.by + dy / motSaisie.r.h));
@@ -1114,21 +1123,27 @@ function deplacerMot(e){
 }
 function lacherMot(e){
   if (motSaisie && !motDeplace && e && e.type === "pointerup"){
-    const sr = stage.getBoundingClientRect();
-    const l = lettreSous(e.clientX - sr.left, e.clientY - sr.top);
+    const pt = pointScene(e);
+    const l = lettreSous(pt.x, pt.y);
     if (l){ const ch = currentName.replace(/ /g, "")[l.i]; openLightbox(l.im.src, "Lettre " + ch + " — " + STYLES[currentStyle]); }
   }
   motSaisie = null; sceneCanvas.classList.remove("saisi");
 }
 sceneCanvas.addEventListener("pointermove", e => {
   if (motSaisie) return deplacerMot(e);
-  const sr = stage.getBoundingClientRect();
-  const x = e.clientX - sr.left, y = e.clientY - sr.top;
+  const { x, y } = pointScene(e);
   const dans = blocScene && x >= blocScene.x && x <= blocScene.x + blocScene.w && y >= blocScene.y && y <= blocScene.y + blocScene.h;
   sceneCanvas.style.cursor = dans ? (stage.classList.contains("has-video") ? "grab" : "zoom-in") : "default";
 });
 sceneCanvas.addEventListener("pointerup", lacherMot);
 sceneCanvas.addEventListener("pointercancel", lacherMot);
+sceneCanvas.addEventListener("click", e => {
+  if (stage.classList.contains("has-video") || motDeplace) return;
+  const pt = pointScene(e);
+  if (lettreSous(pt.x, pt.y)) return;   // une lettre : la lightbox s'en charge
+  videoInput.click();
+});
+sceneCanvas.addEventListener("pointermove", e => { if (!stage.classList.contains("has-video") && !motSaisie){ const pt = pointScene(e); if (!lettreSous(pt.x, pt.y)) sceneCanvas.style.cursor = "pointer"; } });
 
 /* ================== PANNEAU « EFFETS » ================== */
 const effetsModal = document.getElementById("effetsModal");
@@ -1238,6 +1253,7 @@ const nameInput = document.getElementById("nameInput");
 nameInput.addEventListener("input", () => {
   const clean = normalize(nameInput.value);
   if (clean !== nameInput.value) nameInput.value = clean;
+  document.getElementById("saisieCompteur").textContent = Math.max(0, 30 - clean.length);
   currentName = clean || "SARA";
   renderWord(true);
 });
@@ -1312,7 +1328,6 @@ videoInput.addEventListener("change", () => {
   if (!f || !f.type.startsWith("video/")) return;
   videoFile = f;
   videoFileName = f.name;
-  document.getElementById("dropHint").querySelector("span:last-child").firstChild.textContent = "Changer de vidéo";
   video.src = URL.createObjectURL(f);
   video.hidden = false;
   stage.classList.add("has-video");
@@ -1322,7 +1337,6 @@ videoInput.addEventListener("change", () => {
   updateRenderBtn();
   APERCU.cle = "";
 });
-document.getElementById("dropHint").addEventListener("click", () => videoInput.click());
 // glisser-déposer d'une vidéo dans le cadre (ou n'importe où sur la page)
 function recevoirFichier(f){
   if (!f || !f.type.startsWith("video/")) return false;
