@@ -166,7 +166,9 @@ header .bar{justify-self:center}
 .effets-panel .actions{margin-top:12px;flex-shrink:0}
 @media (max-width:760px){.modal.effets{align-items:flex-end;justify-content:center}.modal.effets .effets-panel{max-width:none;width:100%;align-self:flex-end;height:78%;max-height:78%;border-radius:14px 14px 0 0;border-width:1px 0 0}}
 .mot-cadre{position:absolute;border:1.5px dashed rgba(255,253,248,.85);border-radius:6px;pointer-events:none;z-index:3;box-shadow:0 0 0 1px rgba(43,34,24,.35)}
-.mot-cadre .poignee{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:#fdf9f1;border:2px solid var(--gold-deep);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:auto;cursor:nwse-resize;touch-action:none}
+.cadre-lettre{position:absolute;border:1.5px dashed rgba(255,214,120,.95);border-radius:4px;pointer-events:none;z-index:3;box-shadow:0 0 0 1px rgba(43,34,24,.35)}
+.cadre-lettre .poignee{width:14px;height:14px;right:-7px;bottom:-7px}
+.mot-cadre .poignee,.cadre-lettre .poignee{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:#fdf9f1;border:2px solid var(--gold-deep);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:auto;cursor:nwse-resize;touch-action:none}
 .mot-cadre b{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;font-weight:400;font-size:.68rem;letter-spacing:.06em;color:#fdf9f1;background:rgba(43,34,24,.72);padding:4px 10px;border-radius:999px;backdrop-filter:blur(3px)}
 .centre{display:flex;flex-direction:column;gap:8px;min-height:0;min-width:0}
 .centre .stage{flex:1;min-height:0}
@@ -378,6 +380,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <div class="word" id="word" hidden></div>
       <canvas id="sceneCanvas" class="scene-canvas" aria-label="Aperçu de votre création"></canvas>
       <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" title="Agrandir / réduire"></i><b>glissez pour déplacer · coin pour agrandir</b></div>
+      <div id="cadresLettres"></div>
       </div>
       <div class="zoom-barre" id="zoomBarre" title="Zoom de la zone de travail (Ctrl + molette)">
         <button type="button" id="zoomMoins" aria-label="Zoom arrière">−</button>
@@ -584,7 +587,7 @@ async function chargerConfig(){
   for (const c of CFG.collections) STYLES[c.id] = c.label;
 }
 
-const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.92, echelle: 1, cles: [] };
+const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.92, echelle: 1, cles: [], detaches: {} };
 /* ================== MOTEUR D'EFFETS TYPO CAO ==================
    Un seul moteur pour la scène en direct, l'image d'aperçu et la vidéo finale.
    Tout est fonction du temps t (secondes depuis le début du passage). */
@@ -700,14 +703,23 @@ function layoutLetters(imgs, W, H){
   // ---- placement choisi : ancre (cx, by) et échelle ----
   const ax = MONTAGE.cx * W, ay = MONTAGE.by * H;
   let sc = MONTAGE.echelle;
-  const minX = Math.min(...out.map(L => L.x)), maxX = Math.max(...out.map(L => L.x + L.w));
-  const minY = Math.min(...out.map(L => L.y - L.LH)), maxY = Math.max(...out.map(L => L.y));
+  const D = MONTAGE.detaches || {};
+  const groupe = out.filter(L => !D[L.i]);
+  const ref = groupe.length ? groupe : out;
+  const minX = Math.min(...ref.map(L => L.x)), maxX = Math.max(...ref.map(L => L.x + L.w));
+  const minY = Math.min(...ref.map(L => L.y - L.LH)), maxY = Math.max(...ref.map(L => L.y));
   if ((maxX - minX) * sc > W * 0.96) sc = (W * 0.96) / (maxX - minX);
   if ((maxY - minY) * sc > H * 0.92) sc = Math.min(sc, (H * 0.92) / (maxY - minY));
   for (const L of out){
     L.x = ax + (L.x - W / 2) * sc;
     L.y = ay + (L.y - H * 0.92) * sc;
     L.w *= sc; L.LH *= sc;
+  }
+  // lettres détachées : placées seules, par rapport à l'ancre du mot (elles suivent ses déplacements)
+  for (const L of out){
+    const d = D[L.i]; if (!d) continue;
+    const w = L.w * d.s, LH = L.LH * d.s;
+    L.x = ax + d.dx * W - w / 2; L.y = ay + d.dy * H + LH / 2; L.w = w; L.LH = LH; L.rot = 0; L.detache = true;
   }
   return out;
 }
@@ -875,13 +887,15 @@ function majCles(){
   }
 }
 let dernierLayout = null;       // disposition dessinée en dernier sur la scène (pour retrouver la lettre sous le pointeur)
+let dernierAncre = null;        // ancre effective (clés + suivi appliqués) au dernier dessin de la scène
 function dessinerSceneBrut(ctx, imgs, t, W, H, tFin){
   const L = layoutLetters(imgs, W, H);
-  if (ctx === sceneCtx) dernierLayout = L;
+  if (ctx === sceneCtx){ dernierLayout = L; dernierAncre = { cx: MONTAGE.cx, by: MONTAGE.by }; }
   if (!L) return null;
   const n = L.length;
   let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
-  for (const l of L){ minX = Math.min(minX, l.x); maxX = Math.max(maxX, l.x + l.w); minY = Math.min(minY, l.y - l.LH); maxY = Math.max(maxY, l.y); }
+  const groupe = L.filter(l => !l.detache), refBloc = groupe.length ? groupe : L;
+  for (const l of refBloc){ minX = Math.min(minX, l.x); maxX = Math.max(maxX, l.x + l.w); minY = Math.min(minY, l.y - l.LH); maxY = Math.max(maxY, l.y); }
   const bloc = { x: minX, y: minY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
   // visibilité globale (pour le voile et les paillettes)
   const premierT0 = MONTAGE.apparition;
@@ -1324,7 +1338,7 @@ function initMontage(){
   MONTAGE.debut = 0;
   MONTAGE.fin = Math.min(MONTAGE.duree, MAX_RENDER_S);
   MONTAGE.apparition = Math.min(0.35, Math.max(0, MONTAGE.fin - 1));
-  MONTAGE.cles = []; majCles(); reglerZoom(1);
+  MONTAGE.cles = []; MONTAGE.detaches = {}; majCles(); reglerZoom(1);
   tl.bloc.classList.remove("demo");
   document.getElementById("retirerVideo").hidden = false;
   majTimeline();
@@ -1335,7 +1349,7 @@ function retirerVideo(){
   video.pause(); video.removeAttribute("src"); video.load(); video.hidden = true;
   stage.classList.remove("has-video");
   videoFile = null; videoFileName = null; videoInput.value = "";
-  oublierSuivi(); MONTAGE.cles = []; majCles(); reglerZoom(1);
+  oublierSuivi(); MONTAGE.cles = []; MONTAGE.detaches = {}; majCles(); reglerZoom(1);
   tl.bloc.classList.add("demo"); motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
   APERCU.cle = "";
@@ -1435,6 +1449,7 @@ function dessinerSceneDirect(){
     Object.assign(motCadre.style, { left: x1 + "px", top: y1 + "px", width: Math.max(40, x2 - x1) + "px", height: Math.max(30, y2 - y1) + "px" });
     motCadre.hidden = false;
   } else motCadre.hidden = true;
+  majCadresLettres(video_ok ? r : null);
 }
 
 /* boucle : lecture bouclée dans le passage + dessin */
@@ -1480,6 +1495,15 @@ function lettreSous(x, y){
 sceneCanvas.addEventListener("pointerdown", e => {
   if (e.button !== 0) return;                      // clic droit = menu contextuel
   const { x, y } = pointScene(e);
+  const l = lettreSous(x, y);
+  if (avecVideo() && l && ((MONTAGE.detaches || {})[l.i] || e.altKey)){
+    e.preventDefault(); motDeplace = false;
+    if (!MONTAGE.detaches[l.i]) detacherLettre(l.i);
+    const d = MONTAGE.detaches[l.i];
+    motSaisie = { mode: "lettre", i: l.i, x0: e.clientX, y0: e.clientY, z: zoomScene(), dx: d.dx, dy: d.dy, r: rectVideo() };
+    sceneCanvas.classList.add("saisi"); sceneCanvas.setPointerCapture(e.pointerId);
+    return;
+  }
   const dans = blocScene && x >= blocScene.x - 10 && x <= blocScene.x + blocScene.w + 10 && y >= blocScene.y - 10 && y <= blocScene.y + blocScene.h + 10;
   if (!dans) return;
   e.preventDefault();
@@ -1505,6 +1529,19 @@ document.getElementById("motPoignee").addEventListener("pointerdown", e => {
 function deplacerMot(e){
   if (!motSaisie) return;
   if (motSaisie.mode === "clic") return;
+  if (motSaisie.mode === "lettre"){
+    const dx = (e.clientX - motSaisie.x0) / motSaisie.z, dy = (e.clientY - motSaisie.y0) / motSaisie.z;
+    if (Math.hypot(dx, dy) > 3) motDeplace = true;
+    const d = MONTAGE.detaches[motSaisie.i]; if (!d) return;
+    d.dx = Math.max(-1, Math.min(1, motSaisie.dx + dx / motSaisie.r.w));
+    d.dy = Math.max(-1, Math.min(1, motSaisie.dy + dy / motSaisie.r.h));
+    stage.classList.add("deja-deplace"); APERCU.cle = ""; return;
+  }
+  if (motSaisie.mode === "echelleLettre"){
+    const d = MONTAGE.detaches[motSaisie.i]; if (!d) return;
+    const dist = Math.hypot(e.clientX - motSaisie.ancre.x, e.clientY - motSaisie.ancre.y);
+    d.s = Math.max(0.3, Math.min(3, motSaisie.s0 * dist / motSaisie.d0)); motDeplace = true; APERCU.cle = ""; return;
+  }
   if (motSaisie.mode === "deplacer"){
     const dx = (e.clientX - motSaisie.x0) / motSaisie.z, dy = (e.clientY - motSaisie.y0) / motSaisie.z;
     if (Math.hypot(dx, dy) > 3) motDeplace = true;
@@ -1529,9 +1566,46 @@ function lacherMot(e){
 sceneCanvas.addEventListener("pointermove", e => {
   if (motSaisie) return deplacerMot(e);
   const { x, y } = pointScene(e);
-  const dans = blocScene && x >= blocScene.x && x <= blocScene.x + blocScene.w && y >= blocScene.y && y <= blocScene.y + blocScene.h;
+  const l = lettreSous(x, y);
+  const dans = (l && l.detache) || (blocScene && x >= blocScene.x && x <= blocScene.x + blocScene.w && y >= blocScene.y && y <= blocScene.y + blocScene.h);
   sceneCanvas.style.cursor = dans ? (stage.classList.contains("has-video") ? "grab" : "zoom-in") : "default";
 });
+
+/* ---- lettres détachables : chacune peut être placée et dimensionnée seule ---- */
+function lettreDuLayout(i){ return (dernierLayout || []).find(L => L.i === i) || null; }
+function detacherLettre(i){
+  const L = lettreDuLayout(i); if (!L || !rectScene || !dernierAncre) return;
+  MONTAGE.detaches = MONTAGE.detaches || {};
+  MONTAGE.detaches[i] = { dx: (L.x + L.w / 2) / rectScene.w - dernierAncre.cx, dy: (L.y - L.LH / 2) / rectScene.h - dernierAncre.by, s: 1 };
+  APERCU.cle = "";
+}
+function rattacherLettre(i){ if (MONTAGE.detaches) delete MONTAGE.detaches[i]; APERCU.cle = ""; }
+function nbDetachees(){ return Object.keys(MONTAGE.detaches || {}).length; }
+const cadresLettres = document.getElementById("cadresLettres");
+function majCadresLettres(r){
+  const L = (r && dernierLayout) ? dernierLayout.filter(l => l.detache) : [];
+  while (cadresLettres.children.length > L.length) cadresLettres.lastChild.remove();
+  while (cadresLettres.children.length < L.length){
+    const c = document.createElement("div"); c.className = "cadre-lettre";
+    const p = document.createElement("i"); p.className = "poignee"; p.title = "Agrandir / réduire la lettre";
+    p.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return;
+      e.preventDefault(); e.stopPropagation();
+      const i = +c.dataset.i, d = MONTAGE.detaches[i]; const l = lettreDuLayout(i); if (!d || !l) return;
+      const sr = sceneCanvas.getBoundingClientRect(), z = zoomScene();
+      const ancre = { x: sr.left + (rectScene.x + l.x + l.w / 2) * z, y: sr.top + (rectScene.y + l.y - l.LH / 2) * z };
+      motSaisie = { mode: "echelleLettre", i, ancre, d0: Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1, s0: d.s };
+      e.target.setPointerCapture(e.pointerId);
+      e.target.addEventListener("pointermove", deplacerMot);
+      e.target.addEventListener("pointerup", lacherMot, { once: true });
+    });
+    c.appendChild(p); cadresLettres.appendChild(c);
+  }
+  L.forEach((l, k) => {
+    const c = cadresLettres.children[k]; c.dataset.i = l.i;
+    Object.assign(c.style, { left: (r.x + l.x - 6) + "px", top: (r.y + l.y - l.LH - 6) + "px", width: (l.w + 12) + "px", height: (l.LH + 12) + "px" });
+  });
+}
 sceneCanvas.addEventListener("pointerup", lacherMot);
 sceneCanvas.addEventListener("pointercancel", lacherMot);
 sceneCanvas.addEventListener("click", e => {
@@ -1608,6 +1682,8 @@ stage.addEventListener("contextmenu", e => {
   e.preventDefault();
   const v = avecVideo();
   const tvc = video.currentTime, cle = v ? cleProche(tvc) : null;
+  const pt = pointScene(e), lettre = v ? lettreSous(pt.x, pt.y) : null;
+  const nomLettre = lettre ? currentName.replace(/ /g, "")[lettre.i] : "";
   const items = [
     { ico: v && !video.paused ? "❚❚" : "▶", label: v && !video.paused ? "Pause" : "Lire", kbd: "Espace", action: () => tl.play.click() },
     { ico: "↺", label: "Rejouer depuis le début", kbd: "R", action: () => { chargerLettresScene(); lancerLecture(1); } },
@@ -1617,6 +1693,11 @@ stage.addEventListener("contextmenu", e => {
     { ico: "◇", label: "Supprimer cette position clé", off: !cle, action: () => supprimerCle(cle) },
     { ico: "⌫", label: "Supprimer toutes les positions clés", off: !(MONTAGE.cles && MONTAGE.cles.length), action: () => { MONTAGE.cles = []; APERCU.cle = ""; majCles(); } },
     "-",
+    ...(lettre ? [lettre.detache
+      ? { ico: "⇤", label: "Rattacher la lettre " + nomLettre + " au mot", action: () => rattacherLettre(lettre.i) }
+      : { ico: "⇢", label: "Détacher la lettre " + nomLettre + " (la placer seule)", kbd: "Alt+glisser", action: () => detacherLettre(lettre.i) }] : []),
+    ...(nbDetachees() ? [{ ico: "⇤", label: "Rattacher toutes les lettres", action: () => { MONTAGE.detaches = {}; APERCU.cle = ""; } }] : []),
+    ...(lettre || nbDetachees() ? ["-"] : []),
     { ico: "⌖", label: "Centrer le mot", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.cx = 0.5; c.by = 0.78; APERCU.cle = ""; } },
     { ico: "↔", label: "Taille d'origine", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.echelle = 1; APERCU.cle = ""; } },
     { ico: "A", label: "Faire apparaître les lettres ici", off: !v, action: () => { MONTAGE.apparition = Math.max(0, Math.min(tvc - MONTAGE.debut, MONTAGE.fin - MONTAGE.debut - 0.5)); APERCU.cle = ""; SUIVI.cache = null; majTimeline(); } },
@@ -1882,7 +1963,7 @@ function buildMessage(){
     "DEMANDE TYPO — devis",
     "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
     "Collection : " + STYLES[currentStyle],
-    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : "") + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + MONTAGE.cles.length + " positions clés" : ""),
+    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : "") + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + MONTAGE.cles.length + " positions clés" : "") + (nbDetachees() ? " · " + nbDetachees() + (nbDetachees() > 1 ? " lettres placées" : " lettre placée") + " à la main" : ""),
     ...(formule ? ["Formule : " + formule.value] : []),
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
     ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
