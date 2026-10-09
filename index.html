@@ -592,17 +592,19 @@ const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.9
    Un seul moteur pour la scène en direct, l'image d'aperçu et la vidéo finale.
    Tout est fonction du temps t (secondes depuis le début du passage). */
 
+/* réglages de départ : les lettres vivent et brillent pendant tout le passage */
 const EFFETS = {
-  entree: "pop", pendant: "aucun", sortie: "aucune", forme: "ligne",
-  lueur: "aucune", ombre: true, reflet: false, paillettes: false, voile: false,
+  entree: "pop", pendant: "vivant", sortie: "aucune", forme: "ligne",
+  lueur: "or", ombre: true, reflet: false, paillettes: false, voile: false,
   rythme: "normal", ordre: "gauche"
 };
+const EFFETS_BASE = JSON.parse(JSON.stringify(EFFETS));
 const CATALOGUE = {
   entree: [
     ["pop", "Pop"], ["chute", "Chute"], ["fondu", "Fondu"], ["glisse", "Glissé"], ["zoom", "Zoom arrière"],
     ["rebond", "Rebond"], ["machine", "Machine à écrire"], ["eclat", "Éclat"], ["tourbillon", "Tourbillon"], ["vague", "Vague"]
   ],
-  pendant: [["aucun", "Immobile"], ["flottement", "Flottement"], ["respiration", "Respiration"], ["balancement", "Balancement"], ["scintillement", "Scintillement"], ["rebond", "Petit rebond"]],
+  pendant: [["vivant", "Vivant (flotte et brille)"], ["aucun", "Immobile"], ["flottement", "Flottement"], ["respiration", "Respiration"], ["balancement", "Balancement"], ["scintillement", "Scintillement"], ["rebond", "Petit rebond"]],
   sortie: [["aucune", "Reste affiché"], ["fondu", "Fondu"], ["chute", "Chute"], ["envol", "Envol"], ["dispersion", "Dispersion"]],
   forme: [["ligne", "Ligne"], ["arc", "Arc"], ["vague", "Vague"], ["escalier", "Escalier"], ["vertical", "Vertical"], ["inclinaison", "Inclinaison"], ["perspective", "Perspective"]],
   lueur: [["aucune", "Sans lueur"], ["or", "Lueur or"], ["blanc", "Lueur blanche"], ["rose", "Lueur rosée"], ["bleu", "Lueur bleutée"]],
@@ -759,6 +761,7 @@ function etatLettre(L, n, t, tFin, W, H, bloc){
   if (k > 0){
     switch (EFFETS.pendant){
       case "flottement": dy += Math.sin(t * 1.6 + L.i * 0.7) * LH * 0.06 * k; break;
+      case "vivant": dy += Math.sin(t * 1.4 + L.i * 0.7) * LH * 0.05 * k; s *= 1 + 0.02 * Math.sin(t * 2.0 + L.i * 0.4) * k; shine = ((t * 0.3 + L.i * 0.05) % 1.6) * 1.6 - 0.2; break;
       case "respiration": s *= 1 + 0.04 * Math.sin(t * 2.2) * k; break;
       case "balancement": rot += Math.sin(t * 1.8 + L.i * 0.3) * 0.07 * k; break;
       case "rebond": dy -= Math.abs(Math.sin(t * 3 + L.i * 0.5)) * LH * 0.12 * k; break;
@@ -947,11 +950,8 @@ function resumeEffets(){
   if (EFFETS.ordre !== "gauche") parts.push("ordre " + libelle("ordre", EFFETS.ordre).toLowerCase());
   return parts.join(" · ");
 }
-function nbEffetsActifs(){
-  let n = 0;
-  if (EFFETS.pendant !== "aucun") n++; if (EFFETS.sortie !== "aucune") n++; if (EFFETS.forme !== "ligne") n++;
-  if (EFFETS.lueur !== "aucune") n++; if (EFFETS.reflet) n++; if (EFFETS.paillettes) n++; if (EFFETS.voile) n++;
-  return n;
+function nbEffetsActifs(){ // nombre de choix différents des réglages de départ
+  return ["entree", "pendant", "sortie", "forme", "lueur", "ombre", "reflet", "paillettes", "voile", "rythme", "ordre"].filter(k => EFFETS[k] !== EFFETS_BASE[k]).length;
 }
 
 let currentStyle = "perles";
@@ -1806,7 +1806,7 @@ function dessinerTuiles(){
     const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#3a2d20"); g.addColorStop(1, "#1c1510");
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
     // réglages de la tuile : défauts + l'option illustrée (en gardant les autres choix neutres)
-    Object.assign(EFFETS, EFFETS_DEFAUT, { entree: "pop" });
+    Object.assign(EFFETS, EFFETS_DEFAUT, { entree: "pop", pendant: "aucun", lueur: "aucune" });
     if (cat === "bascules") EFFETS[val] = true; else EFFETS[cat] = val;
     if (cat !== "entree") EFFETS.entree = "fondu";
     if (cat === "sortie") { EFFETS.entree = "pop"; }
