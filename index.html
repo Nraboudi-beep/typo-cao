@@ -127,7 +127,7 @@ header input:focus{border-color:var(--gold)}
 .scene-canvas.saisi{cursor:grabbing!important}
 #effetsBtn .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:8px;border-radius:999px;background:var(--gold-deep);color:#fdf9f1;font-size:.66rem;font-weight:600;letter-spacing:0}
 .modal.effets{background:transparent;justify-content:flex-end;align-items:stretch;padding:0;pointer-events:none}
-.modal.effets .effets-panel{pointer-events:auto;max-width:440px;width:min(100%,440px);max-height:100vh;height:100vh;border-radius:0;border-width:0 0 0 1px;box-shadow:-30px 0 60px var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px}
+.modal.effets .effets-panel{pointer-events:auto;max-width:440px;width:min(100%,440px);height:auto;max-height:none;align-self:stretch;border-radius:0;border-width:0 0 0 1px;box-shadow:-30px 0 60px var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px;overflow:hidden}
 .effets-panel .close-row{justify-content:space-between;align-items:center}
 .effets-panel h2{margin:0}
 .effets-panel .hint-e{color:var(--muted);font-size:.78rem;margin:4px 0 12px}
@@ -144,7 +144,7 @@ header input:focus{border-color:var(--gold)}
 .tuile canvas{width:100%;height:auto;aspect-ratio:192/132;border-radius:5px;display:block}
 .effets-resume{font-size:.76rem;color:var(--gold-deep);margin:10px 0 0;line-height:1.45;flex-shrink:0}
 .effets-panel .actions{margin-top:12px;flex-shrink:0}
-@media (max-width:760px){.modal.effets{align-items:flex-end;justify-content:center}.modal.effets .effets-panel{max-width:none;width:100%;height:78vh;max-height:78vh;border-radius:14px 14px 0 0;border-width:1px 0 0}}
+@media (max-width:760px){.modal.effets{align-items:flex-end;justify-content:center}.modal.effets .effets-panel{max-width:none;width:100%;align-self:flex-end;height:78%;max-height:78%;border-radius:14px 14px 0 0;border-width:1px 0 0}}
 .mot-cadre{position:absolute;border:1.5px dashed rgba(255,253,248,.85);border-radius:6px;pointer-events:none;z-index:3;box-shadow:0 0 0 1px rgba(43,34,24,.35)}
 .mot-cadre .poignee{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:#fdf9f1;border:2px solid var(--gold-deep);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:auto;cursor:nwse-resize;touch-action:none}
 .mot-cadre b{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;font-weight:400;font-size:.68rem;letter-spacing:.06em;color:#fdf9f1;background:rgba(43,34,24,.72);padding:4px 10px;border-radius:999px;backdrop-filter:blur(3px)}
