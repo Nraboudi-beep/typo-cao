@@ -123,6 +123,28 @@ header input:focus{border-color:var(--gold)}
 .stage.has-video .word.saisi{cursor:grabbing}
 .stage.has-video .word img{position:absolute;height:auto;max-width:none;cursor:inherit;transform-origin:50% 100%}
 .stage.has-video .word .sp,.stage.has-video .word .empty{display:none}
+.scene-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;touch-action:none}
+.scene-canvas.saisi{cursor:grabbing!important}
+#effetsBtn .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:8px;border-radius:999px;background:var(--gold-deep);color:#fdf9f1;font-size:.66rem;font-weight:600;letter-spacing:0}
+.modal.effets{background:transparent;justify-content:flex-end;align-items:stretch;padding:0;pointer-events:none}
+.modal.effets .effets-panel{pointer-events:auto;max-width:440px;width:min(100%,440px);max-height:100vh;height:100vh;border-radius:0;border-width:0 0 0 1px;box-shadow:-30px 0 60px var(--shadow);display:flex;flex-direction:column;padding:22px 22px 18px}
+.effets-panel .close-row{justify-content:space-between;align-items:center}
+.effets-panel h2{margin:0}
+.effets-panel .hint-e{color:var(--muted);font-size:.78rem;margin:4px 0 12px}
+.effets-tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.effets-tabs button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:0;color:var(--muted);padding:10px 10px;font-size:.74rem;letter-spacing:.08em;box-shadow:none}
+.effets-tabs button:hover{transform:none;color:var(--fg)}
+.effets-tabs button.on{color:var(--gold-deep);border-bottom-color:var(--gold);font-weight:600}
+.effets-grille{flex:1;min-height:0;overflow-y:auto;padding:12px 2px 6px;scrollbar-width:thin}
+.effets-grille h3{font-family:var(--body);font-weight:500;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
+.tuiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tuile{display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;background:#fffdf8;border:1px solid var(--line);border-radius:8px;color:var(--fg);box-shadow:none;letter-spacing:.02em;font-size:.76rem;font-weight:400;text-transform:none;white-space:normal;text-align:center;transition:border-color .15s,box-shadow .15s}
+.tuile:hover{transform:none;border-color:var(--gold)}
+.tuile.on{border-color:var(--gold-deep);box-shadow:0 0 0 2px rgba(168,124,63,.25)}
+.tuile canvas{width:100%;height:auto;aspect-ratio:192/132;border-radius:5px;display:block}
+.effets-resume{font-size:.76rem;color:var(--gold-deep);margin:10px 0 0;line-height:1.45;flex-shrink:0}
+.effets-panel .actions{margin-top:12px;flex-shrink:0}
+@media (max-width:760px){.modal.effets{align-items:flex-end;justify-content:center}.modal.effets .effets-panel{max-width:none;width:100%;height:78vh;max-height:78vh;border-radius:14px 14px 0 0;border-width:1px 0 0}}
 .mot-cadre{position:absolute;border:1.5px dashed rgba(255,253,248,.85);border-radius:6px;pointer-events:none;z-index:3;box-shadow:0 0 0 1px rgba(43,34,24,.35)}
 .mot-cadre .poignee{position:absolute;right:-9px;bottom:-9px;width:18px;height:18px;border-radius:50%;background:#fdf9f1;border:2px solid var(--gold-deep);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:auto;cursor:nwse-resize;touch-action:none}
 .mot-cadre b{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);white-space:nowrap;font-weight:400;font-size:.68rem;letter-spacing:.06em;color:#fdf9f1;background:rgba(43,34,24,.72);padding:4px 10px;border-radius:999px;backdrop-filter:blur(3px)}
@@ -312,7 +334,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="stage" id="stage">
       <video id="video" muted loop playsinline hidden></video>
       <div class="scrim"></div>
-      <div class="word" id="word"></div>
+      <div class="word" id="word" hidden></div>
+      <canvas id="sceneCanvas" class="scene-canvas" aria-label="Aperçu de votre création"></canvas>
       <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" title="Agrandir / réduire"></i><b>glissez pour déplacer · coin pour agrandir</b></div>
       <button type="button" class="drop-hint" id="dropHint" aria-label="Importer ou glisser une vidéo">
         <span class="ic">⤓</span><span>Glissez votre vidéo ici<small>ou cliquez pour la choisir — vous verrez votre création dessus</small></span>
@@ -344,12 +367,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
   <div class="bar">
     <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
-    <div class="anim-seg" role="group" aria-label="Animation des lettres">
-      <span class="lbl">Animation</span>
-      <button type="button" data-anim="pop" class="on">Pop</button>
-      <button type="button" data-anim="chute">Chute</button>
-      <button type="button" data-anim="fondu">Fondu</button>
-    </div>
+    <button class="ghost" id="effetsBtn" type="button">Effets ✨<span class="n" id="effetsN" hidden></span></button>
     <button class="ghost" id="replayBtn" type="button">Rejouer</button>
     <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
     <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
@@ -433,6 +451,20 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   </div>
 </div>
 
+<!-- panneau des effets -->
+<div class="modal effets" id="effetsModal" hidden>
+  <div class="panel effets-panel">
+    <div class="close-row"><h2>Effets de votre création</h2><button type="button" class="x" id="effetsClose" aria-label="Fermer">✕</button></div>
+    <p class="hint-e">Chaque réglage s'applique aussitôt sur votre création, derrière ce panneau. Les effets se cumulent.</p>
+    <div class="effets-tabs" id="effetsTabs">
+      <button type="button" data-cat="entree" class="on">Entrée</button><button type="button" data-cat="pendant">Pendant</button><button type="button" data-cat="sortie">Sortie</button><button type="button" data-cat="forme">Forme</button><button type="button" data-cat="ambiance">Ambiance</button><button type="button" data-cat="rythme">Rythme</button>
+    </div>
+    <div class="effets-grille" id="effetsGrille"></div>
+    <p class="effets-resume" id="effetsResume"></p>
+    <div class="actions"><button type="button" id="effetsOk">C'est parfait</button><button type="button" class="ghost" id="effetsReset">Réinitialiser</button></div>
+  </div>
+</div>
+
 <!-- formulaire de demande -->
 <div class="modal" id="orderModal" hidden>
   <form class="panel" id="orderForm">
@@ -502,6 +534,316 @@ async function chargerConfig(){
 }
 
 const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.92, echelle: 1 };
+/* ================== MOTEUR D'EFFETS TYPO CAO ==================
+   Un seul moteur pour la scène en direct, l'image d'aperçu et la vidéo finale.
+   Tout est fonction du temps t (secondes depuis le début du passage). */
+
+const EFFETS = {
+  entree: "pop", pendant: "aucun", sortie: "aucune", forme: "ligne",
+  lueur: "aucune", ombre: true, reflet: false, paillettes: false, voile: false,
+  rythme: "normal", ordre: "gauche"
+};
+const CATALOGUE = {
+  entree: [
+    ["pop", "Pop"], ["chute", "Chute"], ["fondu", "Fondu"], ["glisse", "Glissé"], ["zoom", "Zoom arrière"],
+    ["rebond", "Rebond"], ["machine", "Machine à écrire"], ["eclat", "Éclat"], ["tourbillon", "Tourbillon"], ["vague", "Vague"]
+  ],
+  pendant: [["aucun", "Immobile"], ["flottement", "Flottement"], ["respiration", "Respiration"], ["balancement", "Balancement"], ["scintillement", "Scintillement"], ["rebond", "Petit rebond"]],
+  sortie: [["aucune", "Reste affiché"], ["fondu", "Fondu"], ["chute", "Chute"], ["envol", "Envol"], ["dispersion", "Dispersion"]],
+  forme: [["ligne", "Ligne"], ["arc", "Arc"], ["vague", "Vague"], ["escalier", "Escalier"], ["vertical", "Vertical"], ["inclinaison", "Inclinaison"], ["perspective", "Perspective"]],
+  lueur: [["aucune", "Sans lueur"], ["or", "Lueur or"], ["blanc", "Lueur blanche"], ["rose", "Lueur rosée"], ["bleu", "Lueur bleutée"]],
+  rythme: [["lent", "Lent"], ["normal", "Normal"], ["vif", "Vif"]],
+  ordre: [["gauche", "Gauche → droite"], ["droite", "Droite → gauche"], ["centre", "Du centre"], ["aleatoire", "Aléatoire"]]
+};
+const LUEURS = { or: "rgba(255,196,96,.95)", blanc: "rgba(255,255,255,.95)", rose: "rgba(255,150,190,.95)", bleu: "rgba(140,190,255,.95)" };
+const RYTHMES = { lent: 1.6, normal: 1, vif: 0.6 };
+
+const clamp01 = v => Math.max(0, Math.min(1, v));
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const elastic = p => p === 0 ? 0 : p === 1 ? 1 : Math.pow(2, -10 * p) * Math.sin((p * 10 - 0.75) * (2 * Math.PI / 3)) + 1;
+function graine(i, k){ const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); }
+
+/* ---- mise en page : lignes, position, échelle, forme ---- */
+function layoutLetters(imgs, W, H){
+  const words = [];
+  let cur = [];
+  for (const im of imgs){
+    if (im === null){ if (cur.length) words.push(cur); cur = []; }
+    else cur.push(im);
+  }
+  if (cur.length) words.push(cur);
+  if (!words.length) return null;
+  const vertical = EFFETS.forme === "vertical";
+  const maxW = W * 0.86;
+  const wordW = (w, LH) => w.reduce((s, im) => s + (im.width / im.height) * LH + LH * 0.12, -LH * 0.12);
+  let LH = H * 0.2;
+  const longest = Math.max(...words.map(w => wordW(w, 1)));
+  LH = Math.min(LH, maxW / longest);
+  function wrap(LH){
+    const lines = [[]];
+    for (const w of words){
+      const line = lines[lines.length - 1];
+      const trial = [...line, w];
+      const tw = trial.reduce((s, wd) => s + wordW(wd, LH) + LH * 0.5, -LH * 0.5);
+      if (line.length && tw > maxW) lines.push([w]); else line.push(w);
+    }
+    return lines;
+  }
+  let lines;
+  if (vertical){
+    // une lettre par ligne, hauteur limitée pour tenir en 3 lignes max... on garde 6 lettres visibles max en colonne
+    const lettres = words.flat();
+    const n = lettres.length;
+    LH = Math.min(H * 0.2, (H * 0.78) / (n * 1.05));
+    lines = lettres.map(im => [[im]]);
+  } else {
+    lines = wrap(LH);
+    while (lines.length > 3 && LH > H * 0.06){ LH *= 0.88; lines = wrap(LH); }
+  }
+  const out = [];
+  const lineH = vertical ? LH * 1.05 : LH * 1.16;
+  const baseY = H * 0.92 - (lines.length - 1) * lineH;
+  let i = 0;
+  lines.forEach((line, li) => {
+    const lw = line.reduce((s, wd) => s + wordW(wd, LH) + LH * 0.5, -LH * 0.5);
+    let x = (W - lw) / 2;
+    for (const wd of line){
+      for (const im of wd){
+        const w = (im.width / im.height) * LH;
+        out.push({ im, x, y: baseY + li * lineH, w, LH, i, rot: 0, s: 1 });
+        x += w + LH * 0.12; i++;
+      }
+      x += LH * 0.5 - LH * 0.12;
+    }
+  });
+  const n = out.length;
+  // ---- formes (sur une ligne : arc, vague, escalier, inclinaison, perspective) ----
+  if (lines.length === 1 && n > 1 && !vertical){
+    const cx = W / 2;
+    if (EFFETS.forme === "arc"){
+      // enseigne : les lettres suivent un arc, le centre plus haut que les extrémités
+      const base = out[0].y;
+      const R = Math.max(out[n - 1].x + out[n - 1].w - out[0].x, LH * 2) * 0.9;
+      for (const L of out){
+        const a = (L.x + L.w / 2 - cx) / R;        // angle depuis le sommet de l'arc
+        L.x = cx + Math.sin(a) * R - L.w / 2;
+        L.y = base + (1 - Math.cos(a)) * R;
+        L.rot = a;
+      }
+      const chute = Math.max(...out.map(L => L.y)) - base; // recentre le bloc sur la ligne de base
+      for (const L of out) L.y -= chute / 2;
+    } else if (EFFETS.forme === "vague"){
+      for (const L of out) L.y += Math.sin(L.i * 0.95) * LH * 0.18;
+    } else if (EFFETS.forme === "escalier"){
+      for (const L of out) L.y -= (L.i - (n - 1) / 2) * LH * 0.14;
+    } else if (EFFETS.forme === "inclinaison"){
+      for (const L of out){ L.rot = -0.16; L.y -= (L.i - (n - 1) / 2) * LH * 0.06; }
+    } else if (EFFETS.forme === "perspective"){
+      // lettres de plus en plus petites vers la droite, largeur recomposée
+      let x = 0;
+      for (const L of out){ L.s = 1 - 0.45 * (L.i / (n - 1)); L.w *= L.s; L.LH *= L.s; L.x = x; x += L.w + LH * 0.12 * L.s; }
+      const total = x - LH * 0.12 * out[n - 1].s;
+      for (const L of out){ L.x += (W - total) / 2; L.rot = -0.06; }
+    }
+  }
+  // ---- placement choisi : ancre (cx, by) et échelle ----
+  const ax = MONTAGE.cx * W, ay = MONTAGE.by * H;
+  let sc = MONTAGE.echelle;
+  const minX = Math.min(...out.map(L => L.x)), maxX = Math.max(...out.map(L => L.x + L.w));
+  const minY = Math.min(...out.map(L => L.y - L.LH)), maxY = Math.max(...out.map(L => L.y));
+  if ((maxX - minX) * sc > W * 0.96) sc = (W * 0.96) / (maxX - minX);
+  if ((maxY - minY) * sc > H * 0.92) sc = Math.min(sc, (H * 0.92) / (maxY - minY));
+  for (const L of out){
+    L.x = ax + (L.x - W / 2) * sc;
+    L.y = ay + (L.y - H * 0.92) * sc;
+    L.w *= sc; L.LH *= sc;
+  }
+  return out;
+}
+
+/* ---- état d'une lettre à l'instant t ---- */
+function ordreIndex(i, n){
+  if (EFFETS.ordre === "droite") return n - 1 - i;
+  if (EFFETS.ordre === "centre") return Math.abs(i - (n - 1) / 2);
+  if (EFFETS.ordre === "aleatoire") return Math.floor(graine(i, 7) * n);
+  return i;
+}
+function etatLettre(L, n, t, tFin, W, H, bloc){
+  const r = RYTHMES[EFFETS.rythme] || 1;
+  const E = EFFETS.entree;
+  const step = (E === "fondu" ? 0.14 : E === "machine" ? 0.16 : 0.12) * r;
+  const d = (E === "fondu" ? 0.9 : E === "machine" ? 0.08 : E === "rebond" || E === "tourbillon" ? 0.8 : 0.55) * r;
+  const t0 = MONTAGE.apparition + ordreIndex(L.i, n) * step;
+  const p = clamp01((t - t0) / d);
+  if (p <= 0) return null;
+  const e = easeOut(p);
+  let alpha = p, dx = 0, dy = 0, s = 1, rot = 0, shine = -1;
+  const { x, y, w, LH } = L;
+  switch (E){
+    case "pop": s = 0.8 + 0.2 * e + 0.08 * Math.sin(p * Math.PI); dy = (1 - e) * LH * 0.5; break;
+    case "chute": { alpha = Math.min(1, p * 4); const b = p < 0.75 ? 1 - Math.pow(1 - p / 0.75, 2) : 1 + Math.sin((p - 0.75) / 0.25 * Math.PI) * 0.06 * (1 - p); dy = -(1 - b) * (y + LH); break; }
+    case "fondu": s = 1.18 - 0.18 * e; break;
+    case "glisse": dx = (EFFETS.ordre === "droite" ? 1 : -1) * (1 - e) * W * 0.45; break;
+    case "zoom": s = 2.2 - 1.2 * e; break;
+    case "rebond": s = Math.max(0.01, elastic(p)); alpha = Math.min(1, p * 3); break;
+    case "machine": alpha = 1; s = 1.18 - 0.18 * e; break;
+    case "eclat": { const cxB = bloc.cx, cyB = bloc.cy; dx = (cxB - (x + w / 2)) * (1 - e); dy = (cyB - (y - LH / 2)) * (1 - e); s = 0.3 + 0.7 * e; break; }
+    case "tourbillon": rot = (1 - e) * Math.PI * 1.5; s = 0.4 + 0.6 * e; break;
+    case "vague": dy = (1 - e) * LH * 0.8 * (L.i % 2 ? -1 : 1); break;
+  }
+  // pendant : amplitude qui s'installe après l'entrée
+  const k = clamp01((t - t0 - d) / 0.6);
+  if (k > 0){
+    switch (EFFETS.pendant){
+      case "flottement": dy += Math.sin(t * 1.6 + L.i * 0.7) * LH * 0.06 * k; break;
+      case "respiration": s *= 1 + 0.04 * Math.sin(t * 2.2) * k; break;
+      case "balancement": rot += Math.sin(t * 1.8 + L.i * 0.3) * 0.07 * k; break;
+      case "rebond": dy -= Math.abs(Math.sin(t * 3 + L.i * 0.5)) * LH * 0.12 * k; break;
+      case "scintillement": shine = ((t * 0.35 + L.i * 0.045) % 1.4) * 1.4 - 0.2; break;
+    }
+  }
+  // sortie : sur les 0,7 dernières secondes du passage
+  if (EFFETS.sortie !== "aucune" && isFinite(tFin)){
+    const dOut = 0.7 * r;
+    const q = clamp01((t - (tFin - dOut - ordreIndex(L.i, n) * 0.04 * r)) / dOut);
+    if (q > 0){
+      switch (EFFETS.sortie){
+        case "fondu": alpha *= 1 - q; break;
+        case "chute": dy += q * q * (H - y + LH); alpha *= 1 - q * 0.3; break;
+        case "envol": dy -= q * q * (y + LH); alpha *= 1 - q; break;
+        case "dispersion": { const a = graine(L.i, 3) * Math.PI * 2; dx += Math.cos(a) * q * W * 0.4; dy += Math.sin(a) * q * H * 0.4; rot += (graine(L.i, 5) - 0.5) * q * 2; alpha *= 1 - q; break; }
+      }
+    }
+  }
+  return { alpha, dx, dy, s: s * L.s, rot: rot + L.rot, shine };
+}
+
+/* ---- dessin ---- */
+const _off = document.createElement("canvas");
+function dessinerLettre(ctx, L, st){
+  const { im, x, y, w, LH } = L;
+  const cx = x + w / 2 + st.dx, cy = y - LH / 2 + st.dy;
+  ctx.save();
+  ctx.globalAlpha = st.alpha;
+  ctx.translate(cx, cy);
+  ctx.rotate(st.rot);
+  ctx.scale(st.s, st.s);
+  if (EFFETS.lueur !== "aucune"){
+    ctx.save(); ctx.shadowColor = LUEURS[EFFETS.lueur]; ctx.shadowBlur = LH * 0.35; ctx.globalAlpha = st.alpha * 0.9;
+    ctx.drawImage(im, -w / 2, -LH / 2, w, LH); ctx.restore();
+  }
+  if (EFFETS.ombre){ ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = LH * 0.12; ctx.shadowOffsetY = LH * 0.08; }
+  if (st.shine >= 0 && st.shine <= 1.2){
+    // reflet lumineux balayant la lettre (sur sa seule silhouette)
+    const pw = Math.max(2, Math.round(w)), ph = Math.max(2, Math.round(LH));
+    _off.width = pw; _off.height = ph;
+    const o = _off.getContext("2d");
+    o.clearRect(0, 0, pw, ph);
+    o.drawImage(im, 0, 0, pw, ph);
+    o.globalCompositeOperation = "source-atop";
+    const sx = st.shine * (pw + ph) - ph;
+    const g = o.createLinearGradient(sx, 0, sx + ph * 0.7, ph * 0.7);
+    g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, "rgba(255,255,255,.5)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    o.fillStyle = g; o.fillRect(0, 0, pw, ph);
+    ctx.drawImage(_off, -w / 2, -LH / 2, w, LH);
+  } else {
+    ctx.drawImage(im, -w / 2, -LH / 2, w, LH);
+  }
+  ctx.restore();
+  if (EFFETS.reflet){
+    ctx.save();
+    ctx.globalAlpha = st.alpha * 0.28;
+    ctx.translate(cx, y + st.dy + LH * 0.06);
+    ctx.rotate(-st.rot);
+    ctx.scale(st.s, -st.s);
+    const pw = Math.max(2, Math.round(w)), ph = Math.max(2, Math.round(LH));
+    _off.width = pw; _off.height = ph;
+    const o = _off.getContext("2d");
+    o.clearRect(0, 0, pw, ph);
+    o.drawImage(im, 0, 0, pw, ph);
+    o.globalCompositeOperation = "destination-in";
+    const g = o.createLinearGradient(0, ph, 0, ph * 0.3);
+    g.addColorStop(0, "rgba(0,0,0,1)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    o.fillStyle = g; o.fillRect(0, 0, pw, ph);
+    ctx.drawImage(_off, -w / 2, -LH, w, LH);
+    ctx.restore();
+  }
+}
+
+function etoile(ctx, x, y, r){
+  ctx.beginPath();
+  for (let k = 0; k < 8; k++){
+    const a = k * Math.PI / 4, rr = k % 2 ? r * 0.35 : r;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath(); ctx.fill();
+}
+
+/** Dessine toute la composition à l'instant t. Renvoie la boîte englobante (pour les poignées). */
+function dessinerScene(ctx, imgs, t, W, H, tFin){
+  const L = layoutLetters(imgs, W, H);
+  if (!L) return null;
+  const n = L.length;
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  for (const l of L){ minX = Math.min(minX, l.x); maxX = Math.max(maxX, l.x + l.w); minY = Math.min(minY, l.y - l.LH); maxY = Math.max(maxY, l.y); }
+  const bloc = { x: minX, y: minY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+  // visibilité globale (pour le voile et les paillettes)
+  const premierT0 = MONTAGE.apparition;
+  const vis = clamp01((t - premierT0) / 0.6);
+  if (vis <= 0) return bloc;
+  if (EFFETS.voile){
+    ctx.save(); ctx.globalAlpha = 0.42 * vis;
+    const pad = bloc.h * 0.35, r = Math.min(24, pad);
+    const g = ctx.createRadialGradient(bloc.cx, bloc.cy, bloc.h * 0.2, bloc.cx, bloc.cy, Math.max(bloc.w, bloc.h) * 0.8);
+    g.addColorStop(0, "rgba(20,14,8,.9)"); g.addColorStop(1, "rgba(20,14,8,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.roundRect(bloc.x - pad * 1.6, bloc.y - pad * 1.2, bloc.w + pad * 3.2, bloc.h + pad * 2.4, r * 2); ctx.fill();
+    ctx.restore();
+  }
+  const etats = [];
+  for (const l of L){ const st = etatLettre(l, n, t, tFin, W, H, bloc); etats.push(st); if (st) dessinerLettre(ctx, l, st); }
+  if (EFFETS.paillettes){
+    ctx.save();
+    const nb = 26;
+    for (let k = 0; k < nb; k++){
+      const ph = (t * (0.6 + graine(k, 1) * 0.8) + graine(k, 2) * 7) % 1;
+      const a = Math.sin(ph * Math.PI) * vis * (0.5 + 0.5 * graine(k, 9));
+      if (a <= 0.02) continue;
+      const x = bloc.x - bloc.w * 0.1 + graine(k, 3) * bloc.w * 1.2;
+      const y = bloc.y - bloc.h * 0.3 + graine(k, 4) * bloc.h * 1.5 - ph * bloc.h * 0.25;
+      const r = (2 + graine(k, 5) * 4) * (bloc.h / 120);
+      ctx.globalAlpha = a; ctx.fillStyle = k % 3 ? "#ffe3a3" : "#ffffff";
+      ctx.shadowColor = "rgba(255,210,120,.9)"; ctx.shadowBlur = r * 3;
+      etoile(ctx, x, y, r);
+    }
+    ctx.restore();
+  }
+  return bloc;
+}
+
+/* résumé lisible des choix (devis + étiquette du bouton) */
+function libelle(cat, val){ const e = (CATALOGUE[cat] || []).find(([k]) => k === val); return e ? e[1] : val; }
+function resumeEffets(){
+  const parts = [libelle("entree", EFFETS.entree)];
+  if (EFFETS.pendant !== "aucun") parts.push(libelle("pendant", EFFETS.pendant));
+  if (EFFETS.sortie !== "aucune") parts.push("sortie " + libelle("sortie", EFFETS.sortie).toLowerCase());
+  if (EFFETS.forme !== "ligne") parts.push("forme " + libelle("forme", EFFETS.forme).toLowerCase());
+  if (EFFETS.lueur !== "aucune") parts.push(libelle("lueur", EFFETS.lueur).toLowerCase());
+  if (EFFETS.reflet) parts.push("reflet");
+  if (EFFETS.paillettes) parts.push("paillettes");
+  if (EFFETS.voile) parts.push("voile");
+  if (!EFFETS.ombre) parts.push("sans ombre");
+  if (EFFETS.rythme !== "normal") parts.push("rythme " + libelle("rythme", EFFETS.rythme).toLowerCase());
+  if (EFFETS.ordre !== "gauche") parts.push("ordre " + libelle("ordre", EFFETS.ordre).toLowerCase());
+  return parts.join(" · ");
+}
+function nbEffetsActifs(){
+  let n = 0;
+  if (EFFETS.pendant !== "aucun") n++; if (EFFETS.sortie !== "aucune") n++; if (EFFETS.forme !== "ligne") n++;
+  if (EFFETS.lueur !== "aucune") n++; if (EFFETS.reflet) n++; if (EFFETS.paillettes) n++; if (EFFETS.voile) n++;
+  return n;
+}
+
 let currentStyle = "perles";
 let currentName  = "SARA";
 let currentAnim  = "pop";
@@ -517,112 +859,7 @@ function normalize(raw){
             .toUpperCase().replace(/[^A-Z ]/g,"").replace(/\s+/g," ");
 }
 
-function sizeLetters(){
-  const n = Math.max(1, currentName.replace(/ /g,"").length);
-  const w = stage.clientWidth * 0.86;
-  const h = stage.clientHeight * (stage.classList.contains("has-video") ? 0.3 : 0.5);
-  const size = Math.max(36, Math.min(h, (w / n) * 1.15, 180));
-  word.style.setProperty("--lh", size + "px");
-}
-
-function renderWord(replay){
-  word.classList.remove("play");
-  word.dataset.anim = currentAnim;
-  word.innerHTML = "";
-  let i = 0;
-  for (const ch of currentName){
-    if (ch === " "){
-      const sp = document.createElement("span"); sp.className = "sp"; word.appendChild(sp); continue;
-    }
-    const img = document.createElement("img");
-    img.src = `assets/${currentStyle}_${ch}.webp`;
-    img.alt = "Lettre " + ch;
-    img.style.setProperty("--i", i++);
-    img.addEventListener("click", () => openLightbox(img.src, "Lettre " + ch + " — " + STYLES[currentStyle]));
-    word.appendChild(img);
-  }
-  if (!currentName.trim()){
-    const e = document.createElement("span"); e.className = "empty"; e.textContent = "· · ·"; word.appendChild(e);
-  }
-  sizeLetters();
-  if (stage.classList.contains("has-video")){ placerMot(); synchroniserLettres(true); return; }
-  if (replay){ void word.offsetWidth; word.classList.add("play"); }
-}
-
 /* ---- montage : scène fidèle au rendu, découpe, apparition, placement ---- */
-const motCadre = document.getElementById("motCadre");
-
-function rectVideo(){
-  // zone réellement couverte par la vidéo dans la scène (object-fit: cover)
-  const sw = stage.clientWidth, sh = stage.clientHeight;
-  const vw = video.videoWidth || 16, vh = video.videoHeight || 9;
-  const k = Math.max(sw / vw, sh / vh);
-  const rw = vw * k, rh = vh * k;
-  return { x: (sw - rw) / 2, y: (sh - rh) / 2, w: rw, h: rh };
-}
-
-function placerMot(){
-  if (!stage.classList.contains("has-video")) return;
-  const imgs = [...word.querySelectorAll("img")];
-  if (imgs.some(im => !im.complete || !im.naturalWidth)){
-    imgs.forEach(im => { if (!im.complete) im.addEventListener("load", placerMot, { once: true }); });
-    if (imgs.some(im => !im.complete)) return;
-  }
-  const r = rectVideo();
-  word.style.left = r.x + "px"; word.style.top = r.y + "px";
-  word.style.width = r.w + "px"; word.style.height = r.h + "px";
-  // mêmes proxies que le moteur (largeur/hauteur naturelles), espaces = null
-  const liste = [];
-  let k = 0;
-  for (const ch of currentName){
-    if (ch === " "){ liste.push(null); continue; }
-    const el = imgs[k++]; if (!el) break;
-    liste.push({ width: el.naturalWidth, height: el.naturalHeight, el });
-  }
-  const L = layoutLetters(liste, r.w, r.h);
-  if (!L){ motCadre.hidden = true; return; }
-  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
-  for (const {im, x, y, w, LH} of L){
-    Object.assign(im.el.style, { left: x + "px", top: (y - LH) + "px", width: w + "px", height: LH + "px" });
-    minX = Math.min(minX, x); minY = Math.min(minY, y - LH); maxX = Math.max(maxX, x + w); maxY = Math.max(maxY, y);
-  }
-  Object.assign(motCadre.style, { left: (r.x + minX - 10) + "px", top: (r.y + minY - 10) + "px", width: (maxX - minX + 20) + "px", height: (maxY - minY + 20) + "px" });
-  motCadre.hidden = false;
-}
-
-function synchroniserLettres(forcer){
-  // l'animation CSS suit le temps vidéo : décalage négatif = déjà commencée
-  if (!stage.classList.contains("has-video")) return;
-  const t = Math.max(0, (video.currentTime || 0) - MONTAGE.debut);
-  word.style.setProperty("--app", MONTAGE.apparition.toFixed(3) + "s");
-  word.style.setProperty("--t0", (-t).toFixed(3) + "s");
-  word.style.setProperty("--etat", video.paused ? "paused" : "running");
-  if (forcer || !word.classList.contains("play")){
-    word.classList.remove("play"); void word.offsetWidth; word.classList.add("play");
-  }
-}
-
-/* boucle de lecture : reste dans le passage choisi */
-let dernierSync = 0;
-function boucleLecture(){
-  if (stage.classList.contains("has-video") && video.videoWidth){
-    const t = video.currentTime;
-    if (!tlScrub && !video.paused && (t >= MONTAGE.fin - 0.02 || t < MONTAGE.debut - 0.2)){
-      video.currentTime = MONTAGE.debut;
-      synchroniserLettres(true);
-    } else if (video.paused && Math.abs(t - dernierSync) > 0.01){
-      synchroniserLettres(true);
-    }
-    dernierSync = video.currentTime;
-    majTimeline();
-  }
-  requestAnimationFrame(boucleLecture);
-}
-requestAnimationFrame(boucleLecture);
-video.addEventListener("play", () => synchroniserLettres(true));
-video.addEventListener("pause", () => synchroniserLettres(true));
-video.addEventListener("seeked", () => synchroniserLettres(true));
-
 /* ---- timeline ---- */
 const tl = {
   bloc: document.getElementById("timeline"), piste: document.getElementById("tlPiste"), film: document.getElementById("tlFilm"),
@@ -665,8 +902,6 @@ tl.piste.addEventListener("pointerdown", e => {
 tl.piste.addEventListener("pointermove", e => { if (tlScrub) deplacerTimeline(e); });
 ["pointerup", "pointercancel"].forEach(ev => tl.piste.addEventListener(ev, () => {
   tlScrub = false; tlCible = null;
-  // après un réglage, on relit depuis le début du passage
-  if (video.paused) synchroniserLettres(true);
 }));
 
 function deplacerTimeline(e){
@@ -688,7 +923,6 @@ function deplacerTimeline(e){
   } else {
     video.currentTime = Math.max(MONTAGE.debut, Math.min(MONTAGE.fin - 0.05, t));
   }
-  synchroniserLettres(true);
   majTimeline();
   APERCU.cle = ""; // l'aperçu devra être refabriqué
 }
@@ -729,8 +963,6 @@ function initMontage(){
   document.getElementById("retirerVideo").hidden = false;
   majTimeline();
   construireFilm();
-  placerMot();
-  synchroniserLettres(true);
 }
 
 function retirerVideo(){
@@ -740,36 +972,133 @@ function retirerVideo(){
   tl.bloc.hidden = true; motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
   document.getElementById("dropHint").querySelector("span:last-child").firstChild.textContent = "Glissez votre vidéo ici";
-  word.removeAttribute("style"); word.querySelectorAll("img").forEach(im => im.removeAttribute("style"));
   APERCU.cle = "";
   renderWord(true); updateRenderBtn();
 }
 document.getElementById("retirerVideo").addEventListener("click", retirerVideo);
 
-/* ---- déplacer / redimensionner le mot sur la scène ---- */
-let motSaisie = null, motDeplace = false;
-word.addEventListener("pointerdown", e => {
-  if (!stage.classList.contains("has-video")) return;
-  e.preventDefault();
+/* ================== SCÈNE EN DIRECT (canvas, même moteur que la vidéo finale) ================== */
+const sceneCanvas = document.getElementById("sceneCanvas");
+const sceneCtx = sceneCanvas.getContext("2d");
+const motCadre = document.getElementById("motCadre");
+let lettresScene = [];          // images chargées pour le mot courant (null = espace)
+let lettresCle = "";
+let blocScene = null;           // boîte englobante du mot dans la scène (px CSS, repère scène)
+let rectScene = null;           // zone de la vidéo (ou de la scène en démo)
+let demoDepart = performance.now();
+const DEMO_DUREE = 7;           // boucle de démonstration sans vidéo
+
+function chargerLettresScene(){
+  const cle = currentStyle + "|" + currentName;
+  if (cle === lettresCle) return;
+  lettresCle = cle;
+  const attendu = cle;
+  loadLetterImages().then(imgs => { if (lettresCle === attendu) lettresScene = imgs; });
+}
+
+/* compat : l'ancien point d'entrée relance simplement la démo */
+function renderWord(){ chargerLettresScene(); demoDepart = performance.now(); }
+function sizeLetters(){}
+
+function rectVideo(){
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  if (!stage.classList.contains("has-video") || !video.videoWidth) return { x: 0, y: 0, w: sw, h: sh };
+  const k = Math.max(sw / video.videoWidth, sh / video.videoHeight);
+  const rw = video.videoWidth * k, rh = video.videoHeight * k;
+  return { x: (sw - rw) / 2, y: (sh - rh) / 2, w: rw, h: rh };
+}
+
+function tempsScene(){
+  if (stage.classList.contains("has-video") && video.videoWidth) return Math.max(0, video.currentTime - MONTAGE.debut);
+  return ((performance.now() - demoDepart) / 1000) % DEMO_DUREE;
+}
+
+function dessinerSceneDirect(){
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  if (!sw || !sh) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (sceneCanvas.width !== Math.round(sw * dpr) || sceneCanvas.height !== Math.round(sh * dpr)){
+    sceneCanvas.width = Math.round(sw * dpr); sceneCanvas.height = Math.round(sh * dpr);
+  }
+  sceneCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sceneCtx.clearRect(0, 0, sw, sh);
+  if (!lettresScene.length || lettresScene.every(l => l === null)){ motCadre.hidden = true; return; }
   const r = rectVideo();
-  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, cx: MONTAGE.cx, by: MONTAGE.by, r };
+  rectScene = r;
+  const avecVideo = stage.classList.contains("has-video") && video.videoWidth;
+  const t = tempsScene();
+  const tFin = avecVideo ? (MONTAGE.fin - MONTAGE.debut) : DEMO_DUREE - 0.6;
+  sceneCtx.save();
+  sceneCtx.translate(r.x, r.y);
+  let bloc;
+  if (avecVideo){
+    bloc = dessinerScene(sceneCtx, lettresScene, t, r.w, r.h, tFin);
+  } else {
+    // démonstration sans vidéo : grandes lettres centrées (mêmes réglages de forme/effets)
+    const sauve = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle, apparition: MONTAGE.apparition };
+    Object.assign(MONTAGE, { cx: 0.5, by: 0.78, echelle: 2.3, apparition: 0.4 });
+    bloc = dessinerScene(sceneCtx, lettresScene, t, r.w, r.h, tFin);
+    Object.assign(MONTAGE, sauve);
+  }
+  sceneCtx.restore();
+  blocScene = bloc ? { x: r.x + bloc.x, y: r.y + bloc.y, w: bloc.w, h: bloc.h } : null;
+  // cadre de sélection (uniquement avec une vidéo : c'est là que le placement compte)
+  if (avecVideo && blocScene){
+    Object.assign(motCadre.style, { left: (blocScene.x - 10) + "px", top: (blocScene.y - 10) + "px", width: (blocScene.w + 20) + "px", height: (blocScene.h + 20) + "px" });
+    motCadre.hidden = false;
+  } else motCadre.hidden = true;
+}
+
+/* boucle : lecture bouclée dans le passage + dessin */
+function boucleLecture(){
+  if (stage.classList.contains("has-video") && video.videoWidth){
+    const t = video.currentTime;
+    if (!tlScrub && !video.paused && (t >= MONTAGE.fin - 0.02 || t < MONTAGE.debut - 0.2)) video.currentTime = MONTAGE.debut;
+    majTimeline();
+  }
+  dessinerSceneDirect();
+  requestAnimationFrame(boucleLecture);
+}
+requestAnimationFrame(boucleLecture);
+
+/* ---- déplacer / redimensionner le mot (avec vidéo) ; clic sur une lettre = lightbox ---- */
+let motSaisie = null, motDeplace = false;
+function lettreSous(x, y){
+  // retrouve la lettre sous le pointeur (repère scène)
+  if (!rectScene || !lettresScene.length) return null;
+  const L = layoutLetters(lettresScene, rectScene.w, rectScene.h);
+  if (!L) return null;
+  for (const l of L){
+    const lx = rectScene.x + l.x, ly = rectScene.y + l.y - l.LH;
+    if (x >= lx && x <= lx + l.w && y >= ly && y <= ly + l.LH) return l;
+  }
+  return null;
+}
+sceneCanvas.addEventListener("pointerdown", e => {
+  const sr = stage.getBoundingClientRect();
+  const x = e.clientX - sr.left, y = e.clientY - sr.top;
+  const dans = blocScene && x >= blocScene.x - 10 && x <= blocScene.x + blocScene.w + 10 && y >= blocScene.y - 10 && y <= blocScene.y + blocScene.h + 10;
+  if (!dans) return;
+  e.preventDefault();
   motDeplace = false;
-  word.classList.add("saisi");
-  word.setPointerCapture(e.pointerId);
+  if (!stage.classList.contains("has-video")){ motSaisie = { mode: "clic", x0: e.clientX, y0: e.clientY }; return; }
+  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, cx: MONTAGE.cx, by: MONTAGE.by, r: rectVideo() };
+  sceneCanvas.classList.add("saisi");
+  sceneCanvas.setPointerCapture(e.pointerId);
 });
 document.getElementById("motPoignee").addEventListener("pointerdown", e => {
   e.preventDefault(); e.stopPropagation();
-  const r = rectVideo();
+  if (!blocScene) return;
   const sr = stage.getBoundingClientRect();
-  const ancre = { x: sr.left + r.x + MONTAGE.cx * r.w, y: sr.top + r.y + MONTAGE.by * r.h - r.h * 0.1 * MONTAGE.echelle };
-  const d0 = Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1;
-  motSaisie = { mode: "echelle", ancre, d0, e0: MONTAGE.echelle };
+  const ancre = { x: sr.left + blocScene.x + blocScene.w / 2, y: sr.top + blocScene.y + blocScene.h / 2 };
+  motSaisie = { mode: "echelle", ancre, d0: Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1, e0: MONTAGE.echelle };
   e.target.setPointerCapture(e.pointerId);
   e.target.addEventListener("pointermove", deplacerMot);
   e.target.addEventListener("pointerup", lacherMot, { once: true });
 });
 function deplacerMot(e){
   if (!motSaisie) return;
+  if (motSaisie.mode === "clic") return;
   if (motSaisie.mode === "deplacer"){
     const dx = e.clientX - motSaisie.x0, dy = e.clientY - motSaisie.y0;
     if (Math.hypot(dx, dy) > 3) motDeplace = true;
@@ -780,17 +1109,129 @@ function deplacerMot(e){
     MONTAGE.echelle = Math.max(0.4, Math.min(2.4, motSaisie.e0 * d / motSaisie.d0));
     motDeplace = true;
   }
-  placerMot();
   stage.classList.add("deja-deplace");
   APERCU.cle = "";
 }
-function lacherMot(){ motSaisie = null; word.classList.remove("saisi"); }
-word.addEventListener("pointermove", deplacerMot);
-word.addEventListener("pointerup", lacherMot);
-word.addEventListener("pointercancel", lacherMot);
-// en mode vidéo, un clic sur une lettre n'ouvre la lightbox que sans déplacement
-word.addEventListener("click", e => { if (stage.classList.contains("has-video") && motDeplace){ e.stopPropagation(); e.preventDefault(); } }, true);
-window.addEventListener("resize", () => { placerMot(); });
+function lacherMot(e){
+  if (motSaisie && !motDeplace && e && e.type === "pointerup"){
+    const sr = stage.getBoundingClientRect();
+    const l = lettreSous(e.clientX - sr.left, e.clientY - sr.top);
+    if (l){ const ch = currentName.replace(/ /g, "")[l.i]; openLightbox(l.im.src, "Lettre " + ch + " — " + STYLES[currentStyle]); }
+  }
+  motSaisie = null; sceneCanvas.classList.remove("saisi");
+}
+sceneCanvas.addEventListener("pointermove", e => {
+  if (motSaisie) return deplacerMot(e);
+  const sr = stage.getBoundingClientRect();
+  const x = e.clientX - sr.left, y = e.clientY - sr.top;
+  const dans = blocScene && x >= blocScene.x && x <= blocScene.x + blocScene.w && y >= blocScene.y && y <= blocScene.y + blocScene.h;
+  sceneCanvas.style.cursor = dans ? (stage.classList.contains("has-video") ? "grab" : "zoom-in") : "default";
+});
+sceneCanvas.addEventListener("pointerup", lacherMot);
+sceneCanvas.addEventListener("pointercancel", lacherMot);
+
+/* ================== PANNEAU « EFFETS » ================== */
+const effetsModal = document.getElementById("effetsModal");
+const effetsGrille = document.getElementById("effetsGrille");
+let effetsCat = "entree";
+let tuilesAnim = [];       // [{canvas, cat, val}]
+let tuilesDepart = performance.now();
+const EFFETS_DEFAUT = JSON.parse(JSON.stringify(EFFETS));
+
+const GROUPES = {
+  entree: [{ cat: "entree", titre: "Comment les lettres arrivent" }],
+  pendant: [{ cat: "pendant", titre: "Pendant que le mot est affiché" }],
+  sortie: [{ cat: "sortie", titre: "À la fin du passage" }],
+  forme: [{ cat: "forme", titre: "Disposition du mot" }],
+  ambiance: [{ cat: "lueur", titre: "Lueur" }, { cat: "bascules", titre: "Habillage" }],
+  rythme: [{ cat: "rythme", titre: "Vitesse" }, { cat: "ordre", titre: "Ordre d'apparition" }]
+};
+const BASCULES = [["ombre", "Ombre portée"], ["reflet", "Reflet au sol"], ["paillettes", "Paillettes"], ["voile", "Voile derrière le mot"]];
+
+function majBadgeEffets(){
+  const n = nbEffetsActifs();
+  const b = document.getElementById("effetsN");
+  b.hidden = !n; b.textContent = n;
+  document.getElementById("effetsResume").textContent = resumeEffets();
+}
+
+function construireGrille(){
+  effetsGrille.innerHTML = ""; tuilesAnim = [];
+  for (const g of GROUPES[effetsCat]){
+    const h = document.createElement("h3"); h.textContent = g.titre; effetsGrille.appendChild(h);
+    const wrap = document.createElement("div"); wrap.className = "tuiles"; effetsGrille.appendChild(wrap);
+    const options = g.cat === "bascules" ? BASCULES : CATALOGUE[g.cat];
+    for (const [val, label] of options){
+      const b = document.createElement("button"); b.type = "button"; b.className = "tuile";
+      const c = document.createElement("canvas"); c.width = 192; c.height = 132;
+      const sp = document.createElement("span"); sp.textContent = label;
+      b.append(c, sp);
+      const actif = () => g.cat === "bascules" ? !!EFFETS[val] : EFFETS[g.cat] === val;
+      b.classList.toggle("on", actif());
+      b.onclick = () => {
+        if (g.cat === "bascules") EFFETS[val] = !EFFETS[val]; else EFFETS[g.cat] = val;
+        if (g.cat === "entree") currentAnim = val;
+        wrap.querySelectorAll(".tuile").forEach(t => t.classList.toggle("on", t === b ? (g.cat === "bascules" ? EFFETS[val] : true) : (g.cat === "bascules" ? !!EFFETS[t.dataset.val] : false)));
+        APERCU.cle = ""; demoDepart = performance.now(); tuilesDepart = performance.now();
+        majBadgeEffets();
+      };
+      b.dataset.val = val;
+      wrap.appendChild(b);
+      tuilesAnim.push({ canvas: c, cat: g.cat, val });
+    }
+  }
+}
+
+/* mini-prévisualisation animée de chaque tuile, avec le vrai moteur */
+function dessinerTuiles(){
+  if (effetsModal.hidden || !lettresScene.length){ requestAnimationFrame(dessinerTuiles); return; }
+  const t = ((performance.now() - tuilesDepart) / 1000) % 3.2;
+  const lettres = lettresScene.filter(Boolean);
+  const sauveE = JSON.parse(JSON.stringify(EFFETS));
+  const sauveM = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle, apparition: MONTAGE.apparition };
+  for (const { canvas, cat, val } of tuilesAnim){
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    // fond : dégradé sombre pour faire ressortir les lettres
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#3a2d20"); g.addColorStop(1, "#1c1510");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    // réglages de la tuile : défauts + l'option illustrée (en gardant les autres choix neutres)
+    Object.assign(EFFETS, EFFETS_DEFAUT, { entree: "pop" });
+    if (cat === "bascules") EFFETS[val] = true; else EFFETS[cat] = val;
+    if (cat !== "entree") EFFETS.entree = "fondu";
+    if (cat === "sortie") { EFFETS.entree = "pop"; }
+    const multi = cat === "forme" || cat === "ordre" || cat === "bascules" && val === "voile";
+    const imgs = multi ? lettres.slice(0, Math.max(3, Math.min(5, lettres.length))) : [lettres[0]];
+    Object.assign(MONTAGE, { cx: 0.5, by: multi ? 0.74 : 0.8, echelle: multi ? 1.9 : 2.6, apparition: 0.25 });
+    const tFin = cat === "sortie" ? 2.6 : Infinity;
+    ctx.save(); dessinerScene(ctx, imgs, cat === "sortie" ? t : Math.min(t, 2.9), W, H, tFin); ctx.restore();
+  }
+  Object.assign(EFFETS, sauveE); Object.assign(MONTAGE, sauveM);
+  requestAnimationFrame(dessinerTuiles);
+}
+requestAnimationFrame(dessinerTuiles);
+
+document.getElementById("effetsTabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-cat]"); if (!b) return;
+  effetsCat = b.dataset.cat;
+  document.querySelectorAll("#effetsTabs button").forEach(x => x.classList.toggle("on", x === b));
+  construireGrille(); tuilesDepart = performance.now();
+});
+document.getElementById("effetsBtn").addEventListener("click", () => {
+  chargerLettresScene();
+  construireGrille(); majBadgeEffets();
+  effetsModal.hidden = false; tuilesDepart = performance.now(); demoDepart = performance.now();
+  if (stage.classList.contains("has-video") && video.videoWidth){ video.currentTime = MONTAGE.debut; video.play().catch(()=>{}); }
+});
+document.getElementById("effetsClose").addEventListener("click", () => { effetsModal.hidden = true; });
+document.getElementById("effetsOk").addEventListener("click", () => { effetsModal.hidden = true; });
+document.getElementById("effetsReset").addEventListener("click", () => {
+  Object.assign(EFFETS, JSON.parse(JSON.stringify(EFFETS_DEFAUT))); currentAnim = EFFETS.entree;
+  construireGrille(); majBadgeEffets(); APERCU.cle = ""; demoDepart = performance.now();
+});
+effetsModal.addEventListener("click", e => { if (e.target === effetsModal) effetsModal.hidden = true; });
+majBadgeEffets();
 
 /* saisie */
 const nameInput = document.getElementById("nameInput");
@@ -800,15 +1241,6 @@ nameInput.addEventListener("input", () => {
   currentName = clean || "SARA";
   renderWord(true);
 });
-
-/* choix d'animation */
-for (const b of document.querySelectorAll(".anim-seg button")){
-  b.addEventListener("click", () => {
-    currentAnim = b.dataset.anim;
-    for (const o of document.querySelectorAll(".anim-seg button")) o.classList.toggle("on", o === b);
-    renderWord(true);
-  });
-}
 
 /* collections : construites depuis la config */
 function construireCollections(){
@@ -927,7 +1359,8 @@ function buildMessage(){
   const lines = [
     "DEMANDE TYPO — devis",
     "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
-    "Collection : " + STYLES[currentStyle] + " · animation " + ANIMS[currentAnim],
+    "Collection : " + STYLES[currentStyle],
+    "Effets : " + resumeEffets(),
     ...(formule ? ["Formule : " + formule.value] : []),
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
     ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
@@ -1031,10 +1464,13 @@ async function fabriquerImageApercu(){
     ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
   }
   if (imgs.length){
-    if (v) drawLetters(ctx, imgs, 99, W, H); // même placement que dans la vidéo
+    const tImg = MONTAGE.apparition + 1.4; // lettres en place, pendant « vivant », avant toute sortie
+    if (v) dessinerScene(ctx, imgs, tImg, W, H, Infinity);
     else { // sans vidéo : lettres plus grandes, centrées
-      const HH = H * 2.2;
-      ctx.save(); ctx.translate(0, H * 0.78 - HH * 0.92); drawLetters(ctx, imgs, 99, W, HH); ctx.restore();
+      const sauve = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle };
+      Object.assign(MONTAGE, { cx: 0.5, by: 0.78, echelle: 2.3 });
+      dessinerScene(ctx, imgs, tImg, W, H, Infinity);
+      Object.assign(MONTAGE, sauve);
     }
   }
   // filigrane
@@ -1055,7 +1491,7 @@ function afficherEtatApercu(html, src){
 }
 
 async function publierApercu(){
-  const cle = [document.getElementById("nameInput").value.trim(), currentStyle, currentAnim, videoFileName || "", lastRenderBlob ? lastRenderBlob.size : 0].join("|");
+  const cle = [document.getElementById("nameInput").value.trim(), currentStyle, JSON.stringify(EFFETS), videoFileName || "", lastRenderBlob ? lastRenderBlob.size : 0].join("|");
   if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu(APERCU.video ? "<b>Aperçu vidéo joint au message</b>Yuan verra votre création animée en ouvrant votre demande — rien à joindre." : "<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", document.getElementById("apercuImg").src); refreshWa(); return; }
   if (APERCU.enCours) return;
   APERCU.enCours = true;
@@ -1218,92 +1654,6 @@ async function loadLetterImages(){
   return Promise.all(jobs);
 }
 
-function layoutLetters(imgs, W, H){
-  // mots -> lignes, hauteur de lettre adaptée pour tenir en largeur (3 lignes max)
-  const words = [];
-  let cur = [];
-  for (const im of imgs){
-    if (im === null){ if (cur.length) words.push(cur); cur = []; }
-    else cur.push(im);
-  }
-  if (cur.length) words.push(cur);
-  if (!words.length) return null;
-
-  const maxW = W * 0.86;
-  const wordW = (w, LH) => w.reduce((s, im) => s + (im.width/im.height)*LH + LH*0.12, -LH*0.12);
-  let LH = H * 0.2;
-  const longest = Math.max(...words.map(w => wordW(w, 1)));
-  LH = Math.min(LH, maxW / longest);
-
-  function wrap(LH){
-    const lines = [[]];
-    for (const w of words){
-      const line = lines[lines.length-1];
-      const trial = [...line, w];
-      const tw = trial.reduce((s, wd) => s + wordW(wd, LH) + LH*0.5, -LH*0.5);
-      if (line.length && tw > maxW) lines.push([w]); else line.push(w);
-    }
-    return lines;
-  }
-  let lines = wrap(LH);
-  while (lines.length > 3 && LH > H*0.06){ LH *= 0.88; lines = wrap(LH); }
-  // aplatir en liste de lettres avec positions
-  const out = [];
-  const lineH = LH * 1.16;
-  const baseY = H * 0.92 - (lines.length - 1) * lineH;
-  let i = 0;
-  lines.forEach((line, li) => {
-    const lw = line.reduce((s, wd) => s + wordW(wd, LH) + LH*0.5, -LH*0.5);
-    let x = (W - lw) / 2;
-    for (const wd of line){
-      for (const im of wd){
-        const w = (im.width/im.height)*LH;
-        out.push({im, x, y: baseY + li*lineH, w, LH, i});
-        x += w + LH*0.12; i++;
-      }
-      x += LH*0.5 - LH*0.12;
-    }
-  });
-  // placement choisi par le client : ancre (cx, by) et échelle, autour de la position par défaut
-  const ax = MONTAGE.cx * W, ay = MONTAGE.by * H, sc = MONTAGE.echelle;
-  for (const L of out){
-    L.x = ax + (L.x - W / 2) * sc;
-    L.y = ay + (L.y - H * 0.92) * sc;
-    L.w *= sc; L.LH *= sc;
-  }
-  return out;
-}
-
-function drawLetters(ctx, imgs, t, W, H){
-  const L = layoutLetters(imgs, W, H);
-  if (!L) return;
-  for (const {im, x, y, w, LH, i} of L){
-    const t0 = MONTAGE.apparition + i * (currentAnim === "fondu" ? 0.14 : 0.12);
-    const d = currentAnim === "fondu" ? 0.9 : 0.55;
-    const p = Math.max(0, Math.min(1, (t - t0) / d));
-    if (p <= 0) continue;
-    const e = 1 - Math.pow(1 - p, 3);
-    let alpha = p, dy = 0, s = 1;
-    if (currentAnim === "pop"){
-      s = 0.8 + 0.2*e + 0.08*Math.sin(p*Math.PI);
-      dy = (1 - e) * LH * 0.5;
-    } else if (currentAnim === "chute"){
-      alpha = Math.min(1, p*4);
-      const bounce = p < 0.75 ? 1 - Math.pow(1 - p/0.75, 2) : 1 + Math.sin((p-0.75)/0.25*Math.PI) * 0.06 * (1-p);
-      dy = -(1 - bounce) * (y + LH);
-    } else { // fondu
-      s = 1.18 - 0.18*e;
-    }
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(x + w/2, y - LH/2 + dy);
-    ctx.scale(s, s);
-    ctx.shadowColor = "rgba(0,0,0,.5)"; ctx.shadowBlur = LH*0.12; ctx.shadowOffsetY = LH*0.08;
-    ctx.drawImage(im, -w/2, -LH/2, w, LH);
-    ctx.restore();
-  }
-}
-
 async function startRender(){
   const file = videoFile || videoInput.files[0];
   if (!file) return;
@@ -1362,7 +1712,7 @@ async function startRender(){
     function frame(){
       if (stopped) return res();
       ctx.drawImage(v, 0, 0, W, H);
-      drawLetters(ctx, imgs, v.currentTime - debut, W, H);
+      dessinerScene(ctx, imgs, v.currentTime - debut, W, H, dur);
       renderBar.style.width = Math.min(100, (v.currentTime - debut) / dur * 100) + "%";
       if (v.ended || v.currentTime >= fin){ return res(); }
       requestAnimationFrame(frame);
