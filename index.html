@@ -123,6 +123,27 @@ header .bar{justify-self:center}
 .stage.has-video .word img{position:absolute;height:auto;max-width:none;cursor:inherit;transform-origin:50% 100%}
 .stage.has-video .word .sp,.stage.has-video .word .empty{display:none}
 .scene-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:2;touch-action:none}
+.monde{position:absolute;inset:0;transform-origin:0 0;will-change:transform}
+.stage.zoome .monde{cursor:grab}.stage.zoome .monde.pan{cursor:grabbing}
+/* barre de zoom de la zone de travail (comme un logiciel de montage : seule la scène change d'échelle) */
+.zoom-barre{position:absolute;right:12px;bottom:10px;z-index:5;display:none;align-items:center;gap:6px;background:rgba(43,34,24,.62);backdrop-filter:blur(6px);border:1px solid rgba(255,253,248,.25);border-radius:999px;padding:4px 8px;color:#fdf9f1}
+.stage.has-video .zoom-barre{display:flex}
+.zoom-barre button{padding:0;width:1.6rem;height:1.6rem;border-radius:50%;background:transparent;border-color:transparent;color:#fdf9f1;box-shadow:none;font-size:1rem;letter-spacing:0;display:grid;place-items:center}
+.zoom-barre button:hover{transform:none;background:rgba(255,253,248,.15)}
+.zoom-barre .zoom-pct{width:auto;border-radius:999px;padding:0 .6em;font-size:.68rem;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+.zoom-barre input[type=range]{width:clamp(70px,7vw,120px);accent-color:#fdf9f1;cursor:pointer}
+/* menu contextuel */
+.menu-ctx{position:fixed;z-index:60;min-width:240px;background:#fffdf8;border:1px solid var(--line);border-radius:10px;box-shadow:0 14px 40px rgba(43,34,24,.25);padding:6px;font-size:.82rem}
+.menu-ctx button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:0;color:var(--fg);padding:.5em .7em;border-radius:6px;font-size:inherit;letter-spacing:0;font-weight:500;box-shadow:none}
+.menu-ctx button:hover{background:rgba(163,120,60,.12);transform:none}
+.menu-ctx button[disabled]{opacity:.4;cursor:default}
+.menu-ctx button i{width:1.3em;text-align:center;font-style:normal;color:var(--gold-deep)}
+.menu-ctx button kbd{margin-left:auto;font-family:var(--body);font-size:.7em;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.menu-ctx hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+/* positions clés sur la pellicule */
+.tl-cles{position:absolute;inset:0;pointer-events:none}
+.tl-cle{position:absolute;top:50%;width:14px;height:14px;transform:translate(-50%,-50%) rotate(45deg);background:#fdf9f1;border:2px solid var(--gold-deep);border-radius:2px;box-shadow:0 1px 6px rgba(0,0,0,.45);pointer-events:auto;cursor:ew-resize;z-index:3}
+.tl-cle.on{background:var(--gold-deep);border-color:#fdf9f1}
 .scene-canvas.saisi{cursor:grabbing!important}
 #effetsBtn .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;margin-left:8px;border-radius:999px;background:var(--gold-deep);color:#fdf9f1;font-size:.66rem;font-weight:600;letter-spacing:0}
 .modal.effets{background:transparent;justify-content:flex-end;align-items:stretch;padding:0;pointer-events:none}
@@ -351,11 +372,19 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
     <div class="centre">
     <div class="stage" id="stage">
+      <div class="monde" id="monde">
       <video id="video" muted loop playsinline hidden></video>
       <div class="scrim"></div>
       <div class="word" id="word" hidden></div>
       <canvas id="sceneCanvas" class="scene-canvas" aria-label="Aperçu de votre création"></canvas>
       <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" title="Agrandir / réduire"></i><b>glissez pour déplacer · coin pour agrandir</b></div>
+      </div>
+      <div class="zoom-barre" id="zoomBarre" title="Zoom de la zone de travail (Ctrl + molette)">
+        <button type="button" id="zoomMoins" aria-label="Zoom arrière">−</button>
+        <input type="range" id="zoomCurseur" min="100" max="400" step="5" value="100" aria-label="Zoom">
+        <button type="button" id="zoomPlus" aria-label="Zoom avant">+</button>
+        <button type="button" id="zoomPct" class="zoom-pct" title="Revenir à 100 %">100 %</button>
+      </div>
       <div class="stage-invite" id="stageInvite" aria-hidden="true"><b>Glissez votre vidéo ici</b><span>ou appuyez dans le cadre pour la choisir — votre création apparaîtra dessus</span></div>
       <div class="drop-veil" id="dropVeil" aria-hidden="true"><span>Déposez votre vidéo</span></div>
       <button type="button" class="retirer-video" id="retirerVideo" hidden title="Retirer la vidéo">✕ Retirer la vidéo</button>
@@ -373,6 +402,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
         <div class="tl-poignee" id="tlFin" role="slider" aria-label="Fin du passage" title="Fin du passage"></div>
         <div class="tl-lettres" id="tlLettres" role="slider" aria-label="Moment d'apparition des lettres" title="Apparition des lettres — glissez"><span>A</span></div>
         <div class="tl-tete" id="tlTete"></div>
+        <div class="tl-cles" id="tlCles"></div>
       </div>
       <span class="tl-info" id="tlInfo"></span>
       <button type="button" class="tl-suivi" id="tlSuivi" aria-pressed="false" title="Les lettres suivent le mouvement de la caméra ou de l'objet"><i></i><span>Suivre le mouvement</span></button>
@@ -525,6 +555,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   </form>
 </div>
 
+<div class="menu-ctx" id="menuCtx" hidden role="menu"></div>
 <script>
 /* Toute la personnalisation (WhatsApp, Instagram, tarifs, collections, matières) vit dans config.json — voir GUIDE.md */
 const DEFAUTS = {
@@ -553,7 +584,7 @@ async function chargerConfig(){
   for (const c of CFG.collections) STYLES[c.id] = c.label;
 }
 
-const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.92, echelle: 1 };
+const MONTAGE = { debut: 0, fin: 0, duree: 0, apparition: 0.35, cx: 0.5, by: 0.92, echelle: 1, cles: [] };
 /* ================== MOTEUR D'EFFETS TYPO CAO ==================
    Un seul moteur pour la scène en direct, l'image d'aperçu et la vidéo finale.
    Tout est fonction du temps t (secondes depuis le début du passage). */
@@ -803,15 +834,50 @@ function etoile(ctx, x, y, r){
 function dessinerScene(ctx, imgs, t, W, H, tFin, suivre){
   // suivi de mouvement : le point d'ancrage et l'échelle suivent la trajectoire mesurée
   const m = suivre === false ? null : suiviA(t);
-  if (m){
-    const sauve = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle };
-    MONTAGE.cx += m.dx; MONTAGE.by += m.dy; MONTAGE.echelle *= m.s;
-    try { return dessinerSceneBrut(ctx, imgs, t, W, H, tFin); } finally { Object.assign(MONTAGE, sauve); }
-  }
-  return dessinerSceneBrut(ctx, imgs, t, W, H, tFin);
+  // positions clés : le mot change de place et de taille au fil du passage
+  const P = suivre === false ? null : positionA(t);
+  if (!m && !P) return dessinerSceneBrut(ctx, imgs, t, W, H, tFin);
+  const sauve = { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle };
+  if (P) Object.assign(MONTAGE, P);
+  if (m){ MONTAGE.cx += m.dx; MONTAGE.by += m.dy; MONTAGE.echelle *= m.s; }
+  try { return dessinerSceneBrut(ctx, imgs, t, W, H, tFin); } finally { Object.assign(MONTAGE, sauve); }
 }
+/* ---- positions clés : {tv (temps vidéo absolu), cx, by, echelle}, triées ; interpolation douce entre deux clés ---- */
+function positionA(t){
+  const C = MONTAGE.cles;
+  if (!C || !C.length || !avecVideo()) return null;
+  const tv = MONTAGE.debut + t;
+  if (tv <= C[0].tv) return { cx: C[0].cx, by: C[0].by, echelle: C[0].echelle };
+  const d = C[C.length - 1];
+  if (tv >= d.tv) return { cx: d.cx, by: d.by, echelle: d.echelle };
+  let i = 0; while (i < C.length - 2 && C[i + 1].tv <= tv) i++;
+  const a = C[i], b = C[i + 1];
+  const f = (tv - a.tv) / Math.max(1e-6, b.tv - a.tv), e = f * f * (3 - 2 * f);
+  return { cx: a.cx + (b.cx - a.cx) * e, by: a.by + (b.by - a.by) * e, echelle: a.echelle + (b.echelle - a.echelle) * e };
+}
+function cleProche(tv, tol){ const C = MONTAGE.cles || []; let best = null; for (const c of C) if (Math.abs(c.tv - tv) <= (tol ?? 0.12) && (!best || Math.abs(c.tv - tv) < Math.abs(best.tv - tv))) best = c; return best; }
+function poserCle(){
+  if (!avecVideo()) return null;
+  MONTAGE.cles = MONTAGE.cles || [];
+  const tv = Math.max(MONTAGE.debut, Math.min(MONTAGE.fin, video.currentTime));
+  let c = cleProche(tv);
+  const P = positionA(tv - MONTAGE.debut) || { cx: MONTAGE.cx, by: MONTAGE.by, echelle: MONTAGE.echelle };
+  if (!c){ c = { tv, ...P }; MONTAGE.cles.push(c); MONTAGE.cles.sort((u, v) => u.tv - v.tv); }
+  APERCU.cle = ""; majCles();
+  return c;
+}
+function supprimerCle(c){ MONTAGE.cles = (MONTAGE.cles || []).filter(x => x !== c); APERCU.cle = ""; majCles(); }
+function majCles(){
+  const bloc = document.getElementById("tlCles"); bloc.innerHTML = "";
+  for (const c of (MONTAGE.cles || [])){
+    const d = document.createElement("i"); d.className = "tl-cle"; d.title = "Position clé à " + fmtF(c.tv - MONTAGE.debut) + " — glisser pour déplacer, clic pour y aller";
+    d.style.left = pct(c.tv); d.dataset.tv = c.tv; bloc.appendChild(d);
+  }
+}
+let dernierLayout = null;       // disposition dessinée en dernier sur la scène (pour retrouver la lettre sous le pointeur)
 function dessinerSceneBrut(ctx, imgs, t, W, H, tFin){
   const L = layoutLetters(imgs, W, H);
+  if (ctx === sceneCtx) dernierLayout = L;
   if (!L) return null;
   const n = L.length;
   let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
@@ -899,6 +965,7 @@ const tl = {
 };
 let tlScrub = false;
 const fmt = s => { s = Math.max(0, s || 0); const m = Math.floor(s / 60), r = Math.floor(s % 60); return m + ":" + String(r).padStart(2, "0"); };
+const fmtF = s => { s = Math.max(0, s || 0); return fmt(s) + "," + Math.floor((s % 1) * 10); };
 const pct = t => (MONTAGE.duree ? (t / MONTAGE.duree * 100) : 0) + "%";
 
 function majTimeline(){
@@ -909,7 +976,8 @@ function majTimeline(){
   tl.fin.style.left = pct(MONTAGE.fin);
   tl.lettres.style.left = pct(MONTAGE.debut + MONTAGE.apparition);
   tl.tete.style.left = pct(Math.min(Math.max(video.currentTime, MONTAGE.debut), MONTAGE.fin));
-  tl.temps.textContent = fmt(video.currentTime - MONTAGE.debut) + " / " + fmt(MONTAGE.fin - MONTAGE.debut);
+  tl.temps.textContent = fmtF(video.currentTime - MONTAGE.debut) + " / " + fmt(MONTAGE.fin - MONTAGE.debut);
+  const tvc = video.currentTime; for (const d of document.querySelectorAll(".tl-cle")) d.classList.toggle("on", Math.abs(+d.dataset.tv - tvc) <= 0.12);
   tl.info.innerHTML = "<b></b>lettres à <span></span>";
   tl.info.querySelector("b").textContent = "Passage " + fmt(MONTAGE.debut) + " → " + fmt(MONTAGE.fin);
   tl.info.querySelector("span").textContent = MONTAGE.apparition.toFixed(1).replace(".", ",") + " s";
@@ -921,17 +989,19 @@ function tempsDepuisPointeur(e){
   return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * MONTAGE.duree;
 }
 
-let tlCible = null;
+let tlCible = null, tlCle = null;
 tl.piste.addEventListener("pointerdown", e => {
   e.preventDefault();
   tl.piste.setPointerCapture(e.pointerId);
-  tlCible = e.target.closest("#tlDebut") ? "debut" : e.target.closest("#tlFin") ? "fin" : e.target.closest("#tlLettres") ? "lettres" : "tete";
+  const losange = e.target.closest(".tl-cle");
+  tlCle = losange ? cleProche(+losange.dataset.tv, 0.001) : null;
+  tlCible = losange ? "cle" : e.target.closest("#tlDebut") ? "debut" : e.target.closest("#tlFin") ? "fin" : e.target.closest("#tlLettres") ? "lettres" : "tete";
   tlScrub = true;
   deplacerTimeline(e);
 });
 tl.piste.addEventListener("pointermove", e => { if (tlScrub) deplacerTimeline(e); });
 ["pointerup", "pointercancel"].forEach(ev => tl.piste.addEventListener(ev, () => {
-  tlScrub = false; tlCible = null;
+  tlScrub = false; tlCible = null; tlCle = null;
 }));
 
 function deplacerTimeline(e){
@@ -947,6 +1017,10 @@ function deplacerTimeline(e){
     if (MONTAGE.fin - MONTAGE.debut > MAX) MONTAGE.debut = MONTAGE.fin - MAX;
     MONTAGE.apparition = Math.min(MONTAGE.apparition, MONTAGE.fin - MONTAGE.debut - 0.5);
     video.currentTime = Math.max(MONTAGE.debut, MONTAGE.fin - 1.5);
+  } else if (tlCible === "cle" && tlCle){
+    tlCle.tv = Math.max(MONTAGE.debut, Math.min(MONTAGE.fin, t));
+    MONTAGE.cles.sort((u, v) => u.tv - v.tv); majCles();
+    video.currentTime = tlCle.tv;
   } else if (tlCible === "lettres"){
     MONTAGE.apparition = Math.max(0, Math.min(t - MONTAGE.debut, MONTAGE.fin - MONTAGE.debut - 0.5));
     video.currentTime = Math.min(MONTAGE.fin - 0.05, MONTAGE.debut + MONTAGE.apparition + 0.6);
@@ -966,7 +1040,7 @@ tl.play.addEventListener("click", () => {
     majTimeline(); return;
   }
   if (!video.paused){ video.pause(); return; }
-  if (video.currentTime >= MONTAGE.fin - 0.1 || LECTURE.restantes === 0) lancerLecture(1); else { LECTURE.restantes = Math.max(1, LECTURE.restantes); video.play().catch(()=>{}); }
+  if (video.currentTime >= MONTAGE.fin - 0.1) lancerLecture(1); else { LECTURE.restantes = Math.max(1, LECTURE.restantes); video.play().catch(()=>{}); }
 });
 document.getElementById("tlRejouer").addEventListener("click", () => { chargerLettresScene(); lancerLecture(1); });
 document.getElementById("tlBoucle").addEventListener("click", () => {
@@ -1250,6 +1324,7 @@ function initMontage(){
   MONTAGE.debut = 0;
   MONTAGE.fin = Math.min(MONTAGE.duree, MAX_RENDER_S);
   MONTAGE.apparition = Math.min(0.35, Math.max(0, MONTAGE.fin - 1));
+  MONTAGE.cles = []; majCles(); reglerZoom(1);
   tl.bloc.classList.remove("demo");
   document.getElementById("retirerVideo").hidden = false;
   majTimeline();
@@ -1260,7 +1335,7 @@ function retirerVideo(){
   video.pause(); video.removeAttribute("src"); video.load(); video.hidden = true;
   stage.classList.remove("has-video");
   videoFile = null; videoFileName = null; videoInput.value = "";
-  oublierSuivi();
+  oublierSuivi(); MONTAGE.cles = []; majCles(); reglerZoom(1);
   tl.bloc.classList.add("demo"); motCadre.hidden = true;
   document.getElementById("retirerVideo").hidden = true;
   APERCU.cle = "";
@@ -1325,7 +1400,7 @@ function tempsScene(){
 function dessinerSceneDirect(){
   const sw = stage.clientWidth, sh = stage.clientHeight;
   if (!sw || !sh) return;
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(3, (window.devicePixelRatio || 1) * Math.min(2, VUE.z));
   if (sceneCanvas.width !== Math.round(sw * dpr) || sceneCanvas.height !== Math.round(sh * dpr)){
     sceneCanvas.width = Math.round(sw * dpr); sceneCanvas.height = Math.round(sh * dpr);
   }
@@ -1389,12 +1464,12 @@ requestAnimationFrame(boucleLecture);
 /* ---- déplacer / redimensionner le mot (avec vidéo) ; clic sur une lettre = lightbox ---- */
 let motSaisie = null, motDeplace = false;
 /* facteur entre pixels d'écran et pixels de la scène (mise à l'échelle CSS « zoom ») */
-function zoomScene(){ const sr = stage.getBoundingClientRect(); return (sr.width / (stage.clientWidth || 1)) || 1; }
-function pointScene(e){ const sr = stage.getBoundingClientRect(), z = zoomScene(); return { x: (e.clientX - sr.left) / z, y: (e.clientY - sr.top) / z }; }
+function zoomScene(){ const sr = sceneCanvas.getBoundingClientRect(); return (sr.width / (sceneCanvas.clientWidth || 1)) || 1; }
+function pointScene(e){ const sr = sceneCanvas.getBoundingClientRect(), z = zoomScene(); return { x: (e.clientX - sr.left) / z, y: (e.clientY - sr.top) / z }; }
 function lettreSous(x, y){
   // retrouve la lettre sous le pointeur (repère scène)
   if (!rectScene || !lettresScene.length) return null;
-  const L = layoutLetters(lettresScene, rectScene.w, rectScene.h);
+  const L = dernierLayout;
   if (!L) return null;
   for (const l of L){
     const lx = rectScene.x + l.x, ly = rectScene.y + l.y - l.LH;
@@ -1403,22 +1478,26 @@ function lettreSous(x, y){
   return null;
 }
 sceneCanvas.addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;                      // clic droit = menu contextuel
   const { x, y } = pointScene(e);
   const dans = blocScene && x >= blocScene.x - 10 && x <= blocScene.x + blocScene.w + 10 && y >= blocScene.y - 10 && y <= blocScene.y + blocScene.h + 10;
   if (!dans) return;
   e.preventDefault();
   motDeplace = false;
   if (!stage.classList.contains("has-video")){ motSaisie = { mode: "clic", x0: e.clientX, y0: e.clientY }; return; }
-  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, z: zoomScene(), cx: MONTAGE.cx, by: MONTAGE.by, r: rectVideo() };
+  const cible = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE;
+  motSaisie = { mode: "deplacer", x0: e.clientX, y0: e.clientY, z: zoomScene(), cx: cible.cx, by: cible.by, r: rectVideo(), cible };
   sceneCanvas.classList.add("saisi");
   sceneCanvas.setPointerCapture(e.pointerId);
 });
 document.getElementById("motPoignee").addEventListener("pointerdown", e => {
+  if (e.button !== 0) return;
   e.preventDefault(); e.stopPropagation();
   if (!blocScene) return;
-  const sr = stage.getBoundingClientRect(), z = zoomScene();
+  const sr = sceneCanvas.getBoundingClientRect(), z = zoomScene();
   const ancre = { x: sr.left + (blocScene.x + blocScene.w / 2) * z, y: sr.top + (blocScene.y + blocScene.h / 2) * z };
-  motSaisie = { mode: "echelle", ancre, d0: Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1, e0: MONTAGE.echelle };
+  const cible = (MONTAGE.cles && MONTAGE.cles.length && avecVideo()) ? poserCle() : MONTAGE;
+  motSaisie = { mode: "echelle", ancre, d0: Math.hypot(e.clientX - ancre.x, e.clientY - ancre.y) || 1, e0: cible.echelle, cible };
   e.target.setPointerCapture(e.pointerId);
   e.target.addEventListener("pointermove", deplacerMot);
   e.target.addEventListener("pointerup", lacherMot, { once: true });
@@ -1429,18 +1508,18 @@ function deplacerMot(e){
   if (motSaisie.mode === "deplacer"){
     const dx = (e.clientX - motSaisie.x0) / motSaisie.z, dy = (e.clientY - motSaisie.y0) / motSaisie.z;
     if (Math.hypot(dx, dy) > 3) motDeplace = true;
-    MONTAGE.cx = Math.max(0.08, Math.min(0.92, motSaisie.cx + dx / motSaisie.r.w));
-    MONTAGE.by = Math.max(0.2, Math.min(0.98, motSaisie.by + dy / motSaisie.r.h));
+    motSaisie.cible.cx = Math.max(0.08, Math.min(0.92, motSaisie.cx + dx / motSaisie.r.w));
+    motSaisie.cible.by = Math.max(0.2, Math.min(0.98, motSaisie.by + dy / motSaisie.r.h));
   } else {
     const d = Math.hypot(e.clientX - motSaisie.ancre.x, e.clientY - motSaisie.ancre.y);
-    MONTAGE.echelle = Math.max(0.4, Math.min(2.4, motSaisie.e0 * d / motSaisie.d0));
+    motSaisie.cible.echelle = Math.max(0.4, Math.min(2.4, motSaisie.e0 * d / motSaisie.d0));
     motDeplace = true;
   }
   stage.classList.add("deja-deplace");
   APERCU.cle = "";
 }
 function lacherMot(e){
-  if (motSaisie && !motDeplace && e && e.type === "pointerup"){
+  if (motSaisie && !motDeplace && e && e.type === "pointerup" && e.button === 0){
     const pt = pointScene(e);
     const l = lettreSous(pt.x, pt.y);
     if (l){ const ch = currentName.replace(/ /g, "")[l.i]; openLightbox(l.im.src, "Lettre " + ch + " — " + STYLES[currentStyle]); }
@@ -1462,6 +1541,121 @@ sceneCanvas.addEventListener("click", e => {
   videoInput.click();
 });
 sceneCanvas.addEventListener("pointermove", e => { if (!stage.classList.contains("has-video") && !motSaisie){ const pt = pointScene(e); if (!lettreSous(pt.x, pt.y)) sceneCanvas.style.cursor = "pointer"; } });
+
+/* ================== ZOOM DE LA ZONE DE TRAVAIL ================== */
+const VUE = { z: 1, x: 0, y: 0 };
+const monde = document.getElementById("monde");
+function appliquerVue(){
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  VUE.z = Math.max(1, Math.min(4, VUE.z));
+  VUE.x = Math.min(0, Math.max(sw - sw * VUE.z, VUE.x));
+  VUE.y = Math.min(0, Math.max(sh - sh * VUE.z, VUE.y));
+  monde.style.transform = VUE.z === 1 ? "" : `translate(${VUE.x}px, ${VUE.y}px) scale(${VUE.z})`;
+  stage.classList.toggle("zoome", VUE.z > 1.001);
+  document.getElementById("zoomCurseur").value = Math.round(VUE.z * 100);
+  document.getElementById("zoomPct").textContent = Math.round(VUE.z * 100) + " %";
+}
+/* zoom autour d'un point de la scène (repère stage, px) */
+function reglerZoom(z, px, py){
+  const sw = stage.clientWidth, sh = stage.clientHeight;
+  if (px === undefined){ px = sw / 2; py = sh / 2; }
+  const z0 = VUE.z, z1 = Math.max(1, Math.min(4, z));
+  VUE.x = px - (px - VUE.x) * (z1 / z0); VUE.y = py - (py - VUE.y) * (z1 / z0); VUE.z = z1;
+  appliquerVue();
+}
+document.getElementById("zoomMoins").addEventListener("click", () => reglerZoom(VUE.z / 1.25));
+document.getElementById("zoomPlus").addEventListener("click", () => reglerZoom(VUE.z * 1.25));
+document.getElementById("zoomPct").addEventListener("click", () => reglerZoom(1));
+document.getElementById("zoomCurseur").addEventListener("input", e => reglerZoom(+e.target.value / 100));
+stage.addEventListener("wheel", e => {
+  if (!avecVideo()) return;
+  const sr = stage.getBoundingClientRect();
+  if (e.ctrlKey || e.metaKey){ e.preventDefault(); reglerZoom(VUE.z * (e.deltaY < 0 ? 1.12 : 1 / 1.12), e.clientX - sr.left, e.clientY - sr.top); }
+  else if (VUE.z > 1){ e.preventDefault(); VUE.x -= e.deltaX; VUE.y -= e.deltaY; appliquerVue(); }
+}, { passive: false });
+/* panoramique : glisser hors du mot quand la scène est zoomée */
+let panSaisie = null;
+sceneCanvas.addEventListener("pointerdown", e => {
+  if (motSaisie || VUE.z <= 1 || e.button !== 0) return;
+  e.preventDefault();
+  panSaisie = { x0: e.clientX, y0: e.clientY, vx: VUE.x, vy: VUE.y };
+  monde.classList.add("pan"); sceneCanvas.setPointerCapture(e.pointerId);
+});
+sceneCanvas.addEventListener("pointermove", e => { if (panSaisie){ VUE.x = panSaisie.vx + (e.clientX - panSaisie.x0); VUE.y = panSaisie.vy + (e.clientY - panSaisie.y0); appliquerVue(); } });
+["pointerup", "pointercancel"].forEach(ev => sceneCanvas.addEventListener(ev, () => { panSaisie = null; monde.classList.remove("pan"); }));
+window.addEventListener("resize", appliquerVue);
+
+/* ================== MENU CONTEXTUEL (clic droit sur la scène) ================== */
+const menuCtx = document.getElementById("menuCtx");
+function fermerMenu(){ menuCtx.hidden = true; }
+function ouvrirMenu(x, y, items){
+  menuCtx.innerHTML = "";
+  for (const it of items){
+    if (it === "-"){ menuCtx.appendChild(document.createElement("hr")); continue; }
+    const b = document.createElement("button"); b.type = "button"; b.setAttribute("role", "menuitem");
+    b.innerHTML = `<i>${it.ico || ""}</i><span></span>${it.kbd ? `<kbd>${it.kbd}</kbd>` : ""}`;
+    b.querySelector("span").textContent = it.label;
+    if (it.off) b.disabled = true;
+    b.addEventListener("click", () => { fermerMenu(); it.action(); });
+    menuCtx.appendChild(b);
+  }
+  menuCtx.hidden = false;
+  const r = menuCtx.getBoundingClientRect();
+  menuCtx.style.left = Math.min(x, window.innerWidth - r.width - 8) + "px";
+  menuCtx.style.top = Math.min(y, window.innerHeight - r.height - 8) + "px";
+}
+stage.addEventListener("contextmenu", e => {
+  e.preventDefault();
+  const v = avecVideo();
+  const tvc = video.currentTime, cle = v ? cleProche(tvc) : null;
+  const items = [
+    { ico: v && !video.paused ? "❚❚" : "▶", label: v && !video.paused ? "Pause" : "Lire", kbd: "Espace", action: () => tl.play.click() },
+    { ico: "↺", label: "Rejouer depuis le début", kbd: "R", action: () => { chargerLettresScene(); lancerLecture(1); } },
+    { ico: "↻", label: LECTURE.boucle ? "Arrêter la boucle" : "Lire en boucle", action: () => document.getElementById("tlBoucle").click() },
+    "-",
+    { ico: "◆", label: cle ? "Mettre à jour la position clé ici" : "Ajouter une position clé ici", kbd: "K", off: !v, action: () => { poserCle(); } },
+    { ico: "◇", label: "Supprimer cette position clé", off: !cle, action: () => supprimerCle(cle) },
+    { ico: "⌫", label: "Supprimer toutes les positions clés", off: !(MONTAGE.cles && MONTAGE.cles.length), action: () => { MONTAGE.cles = []; APERCU.cle = ""; majCles(); } },
+    "-",
+    { ico: "⌖", label: "Centrer le mot", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.cx = 0.5; c.by = 0.78; APERCU.cle = ""; } },
+    { ico: "↔", label: "Taille d'origine", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.echelle = 1; APERCU.cle = ""; } },
+    { ico: "A", label: "Faire apparaître les lettres ici", off: !v, action: () => { MONTAGE.apparition = Math.max(0, Math.min(tvc - MONTAGE.debut, MONTAGE.fin - MONTAGE.debut - 0.5)); APERCU.cle = ""; SUIVI.cache = null; majTimeline(); } },
+    { ico: "[", label: "Début du passage ici", off: !v, action: () => { MONTAGE.debut = Math.min(tvc, MONTAGE.fin - 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.fin = MONTAGE.debut + MAX_RENDER_S; MONTAGE.apparition = Math.min(MONTAGE.apparition, MONTAGE.fin - MONTAGE.debut - 0.5); APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
+    { ico: "]", label: "Fin du passage ici", off: !v, action: () => { MONTAGE.fin = Math.max(tvc, MONTAGE.debut + 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.debut = MONTAGE.fin - MAX_RENDER_S; APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
+    "-",
+    { ico: "◉", label: SUIVI.actif ? "Ne plus suivre le mouvement" : "Suivre le mouvement", off: !v, action: () => btnSuivi.click() },
+    { ico: "✨", label: "Effets…", action: () => document.getElementById("effetsBtn").click() },
+    { ico: "⤢", label: VUE.z > 1 ? "Zoom 100 %" : "Zoom 200 %", off: !v, action: () => reglerZoom(VUE.z > 1 ? 1 : 2) },
+    "-",
+    { ico: "📂", label: v ? "Changer de vidéo…" : "Importer une vidéo…", action: () => videoInput.click() },
+    { ico: "✕", label: "Retirer la vidéo", off: !v, action: retirerVideo }
+  ];
+  ouvrirMenu(e.clientX, e.clientY, items);
+});
+document.addEventListener("pointerdown", e => { if (!menuCtx.hidden && !menuCtx.contains(e.target)) fermerMenu(); });
+window.addEventListener("blur", fermerMenu);
+
+/* ================== CLAVIER (comme un logiciel de montage) ================== */
+function pasImage(d){ if (!avecVideo()) return; video.pause(); video.currentTime = Math.max(MONTAGE.debut, Math.min(MONTAGE.fin - 0.01, video.currentTime + d)); LECTURE.restantes = 0; majTimeline(); }
+document.addEventListener("keydown", e => {
+  const t = e.target;
+  if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+  if (t && (t.tagName === "BUTTON" || t.tagName === "A" || t.tagName === "SELECT") && (e.key === " " || e.key === "Enter")) return;
+  if (!menuCtx.hidden){ if (e.key === "Escape") fermerMenu(); return; }
+  if (document.querySelector(".modal:not([hidden])") || document.querySelector(".lightbox")) return;
+  switch (e.key){
+    case " ": e.preventDefault(); tl.play.click(); break;
+    case "ArrowLeft": e.preventDefault(); pasImage(e.shiftKey ? -1 : -1 / 30); break;
+    case "ArrowRight": e.preventDefault(); pasImage(e.shiftKey ? 1 : 1 / 30); break;
+    case "Home": e.preventDefault(); pasImage(-1e9); break;
+    case "End": e.preventDefault(); pasImage(1e9); break;
+    case "r": case "R": chargerLettresScene(); lancerLecture(1); break;
+    case "k": case "K": if (avecVideo()) poserCle(); break;
+    case "+": case "=": if (avecVideo()) reglerZoom(VUE.z * 1.25); break;
+    case "-": if (avecVideo()) reglerZoom(VUE.z / 1.25); break;
+    case "0": if (avecVideo()) reglerZoom(1); break;
+  }
+});
 
 /* ================== PANNEAU « EFFETS » ================== */
 const effetsModal = document.getElementById("effetsModal");
@@ -1688,7 +1882,7 @@ function buildMessage(){
     "DEMANDE TYPO — devis",
     "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
     "Collection : " + STYLES[currentStyle],
-    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : ""),
+    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : "") + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + MONTAGE.cles.length + " positions clés" : ""),
     ...(formule ? ["Formule : " + formule.value] : []),
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
     ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
@@ -2201,3 +2395,4 @@ window.addEventListener("resize", sizeLetters);
   renderWord(true);
 })();
 </script>
+
