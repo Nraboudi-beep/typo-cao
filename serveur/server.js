@@ -197,7 +197,7 @@ function pageApercu(id, meta) {
 <meta property="og:image" content="${img}"><meta property="og:image:secure_url" content="${img}"><meta property="og:image:type" content="image/jpeg">
 <meta property="og:description" content="Aperçu filigrané d'une création Typo Cao${video ? " (vidéo animée sur la page)" : ""}. La version finale est réalisée par l'atelier.">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="${img}">
-<!-- pas de balise og:video : WhatsApp n'affiche alors plus la vignette ; la vidéo se lit sur la page -->
+<!-- pas de balise vidéo Open Graph : WhatsApp cache alors la vignette ; la vidéo se lit sur la page -->
 <meta name="robots" content="noindex">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>body{margin:0;background:#ece5d8;background-image:radial-gradient(1200px 600px at 50% -200px,#f6f0e4 0%,#ece5d8 70%);color:#2b2218;font:300 17px/1.6 Outfit,system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
