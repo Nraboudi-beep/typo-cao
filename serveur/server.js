@@ -404,7 +404,7 @@ const lireJson = (nom, defaut) => { try { return JSON.parse(fs.readFileSync(path
 const ecrireJson = (nom, v) => fs.writeFileSync(path.join(CFG.DATA_DIR, nom), JSON.stringify(v, null, 1));
 const mediaPath = (...p) => path.join(MEDIA_DIR, ...p);
 const texteCourt = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
-const revuePublique = r => ({ id: r.id, titre: r.titre, description: r.description, prix: r.prix, montant: r.montant, pages: r.pages, apercus: r.apercus || 0, taille: r.taille || 0, date: r.date, pret: !!r.taille });
+const revuePublique = r => ({ id: r.id, titre: r.titre, description: r.description, prix: r.prix, montant: r.montant, yuan: r.yuan || 0, pages: r.pages, apercus: r.apercus || 0, taille: r.taille || 0, date: r.date, pret: !!r.taille });
 const videoPublique = v => ({ id: v.id, titre: v.titre, description: v.description, lien: v.lien || "", ext: v.ext || "", poster: !!v.poster, date: v.date, pret: !!(v.ext || v.lien) });
 function supprimerFichiers(prefixe) {
   try { for (const f of fs.readdirSync(MEDIA_DIR)) if (f.startsWith(prefixe)) { try { fs.unlinkSync(mediaPath(f)); } catch {} } } catch {}
@@ -415,7 +415,33 @@ function pageLienExpire(titre) {
 <body><main><h1>${echapperHtml(titre)}</h1><p>Ce lien de téléchargement n'est plus valable (7 jours ou 3 téléchargements). Écrivez à l'atelier sur WhatsApp pour en recevoir un nouveau.</p></main></body></html>`;
 }
 
+const QR_TYPES = ["wechat", "wechatpay", "alipay"];
+const QR_MAX_OCTETS = 800 * 1024;
+
 async function routerMedia(req, chemin, ip, url) {
+  // ---- codes QR (contact WeChat, WeChat Pay, Alipay) : images PNG déposées par l'atelier
+  if (req.method === "GET" && chemin === "/api/typo-cao/qr")
+    return { types: QR_TYPES.filter(t => { try { return fs.statSync(mediaPath(`qr-${t}.png`)).size > 0; } catch { return false; } }) };
+  {
+    const m = req.method === "GET" && chemin.match(/^\/q\/(wechat|wechatpay|alipay)\.png$/);
+    if (m) {
+      let img; try { img = fs.readFileSync(mediaPath(`qr-${m[1]}.png`)); } catch { throw new ErreurApp(404, "QR_INTROUVABLE", "Code QR introuvable"); }
+      return { __brut: true, statut: 200, entetes: { "Content-Type": "image/png", "Cache-Control": "public, max-age=3600" }, corps: img };
+    }
+  }
+  {
+    const m = chemin.match(/^\/api\/typo-cao\/qr\/(wechat|wechatpay|alipay)$/);
+    if (m && (req.method === "PUT" || req.method === "DELETE")) {
+      if (!configure()) throw new ErreurApp(503, "TYPO_CAO_NOT_CONFIGURED", "L'espace atelier n'est pas configuré");
+      verifierSession(req.headers.authorization);
+      if (!mediaPersistant) throw new ErreurApp(503, "MEDIA_INDISPONIBLE", "Médiathèque indisponible (dossier de données)");
+      if (req.method === "DELETE") { try { fs.unlinkSync(mediaPath(`qr-${m[1]}.png`)); } catch {} return { supprime: true }; }
+      const data = await lireBrut(req, QR_MAX_OCTETS);
+      if (data.length < 100 || data.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a") throw new ErreurApp(400, "IMAGE_INVALIDE", "Image PNG attendue");
+      fs.writeFileSync(mediaPath(`qr-${m[1]}.png`), data);
+      return { type: m[1], url: `${CFG.PUBLIC_URL}/q/${m[1]}.png` };
+    }
+  }
   // ---- lectures publiques
   if (req.method === "GET" && chemin === "/api/typo-cao/revues")
     return { revues: lireJson("revues.json", []).filter(r => r.taille).map(revuePublique) };
@@ -473,6 +499,7 @@ async function routerMedia(req, chemin, ip, url) {
     if (!r) { r = { id: nouvelId(), date: new Date().toISOString(), pages: 0, apercus: 0, taille: 0 }; revues.unshift(r); }
     r.titre = texteCourt(c.titre, 80) || "Sans titre"; r.description = texteCourt(c.description, 600);
     r.prix = texteCourt(c.prix, 30); r.montant = Math.max(0, Math.min(5000, Number(c.montant) || 0));
+    r.yuan = Math.max(0, Math.min(99999, Number(c.yuan) || 0));
     if (Number.isFinite(Number(c.pages))) r.pages = Math.max(0, Math.min(2000, Math.round(Number(c.pages))));
     ecrireJson("revues.json", revues);
     return { revue: revuePublique(r) };
