@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Atelier Typo Cao</title>
+<title data-i18n="doc.titre">Atelier Typo Cao</title>
+<script src="i18n-atelier.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
 :root{
@@ -118,6 +119,13 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .topbar{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .topbar h1{font-size:1.7rem}
 .topbar .right{margin-left:auto}
+.langues{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);flex:none}
+.langues button{background:transparent;border:0;border-radius:0;color:var(--muted);padding:.42em .8em;font-size:.8rem;font-weight:500;box-shadow:none;white-space:nowrap}
+.langues button:hover{color:var(--gold-deep)}
+.langues button.on{background:var(--gold-deep);color:#fdf9f1}
+html[lang="zh-Hans"] label.f{letter-spacing:.02em;text-transform:none;font-size:.85rem}
+html[lang="zh-Hans"] button,html[lang="zh-Hans"] .onglets button{letter-spacing:.02em}
+html[lang="zh-Hans"] .sub{letter-spacing:.08em}
 .progress{font-size:.9rem;color:var(--gold-deep)}
 /* ---- tableau de bord à onglets, écran fixe ---- */
 body.dash{height:100vh;overflow:hidden}
@@ -158,7 +166,7 @@ body.dash .wrap{max-width:1480px}
   <!-- connexion : l'entrée de l'atelier -->
   <div id="loginView" class="porte">
     <h1>TYPO <b>CAO</b></h1>
-    <div class="sub">L'atelier de Yuan</div>
+    <div class="sub" data-i18n="porte.sous">L'atelier de Yuan</div>
     <div class="lettres" aria-hidden="true">
       <img src="assets/mix_A.webp" alt="" style="--i:0">
       <img src="assets/mix_T.webp" alt="" style="--i:1">
@@ -169,50 +177,51 @@ body.dash .wrap{max-width:1480px}
       <img src="assets/mix_R.webp" alt="" style="--i:6">
     </div>
     <div class="porte-carte">
-      <h2 id="salut">Bienvenue</h2>
+      <h2 id="salut" data-i18n="porte.bienvenue">Bienvenue</h2>
       <div id="authFields" hidden>
-        <p class="hint">Entre ton numéro WhatsApp : tu recevras un code de connexion à 6 chiffres.</p>
-        <label class="f" for="numtel">Ton numéro WhatsApp</label>
-        <input type="tel" id="numtel" autocomplete="tel" placeholder="06 12 34 56 78">
+        <p class="hint" data-i18n="porte.numeroAide"></p>
+        <label class="f" for="numtel" data-i18n="porte.numero">Ton numéro WhatsApp</label>
+        <input type="tel" id="numtel" autocomplete="tel" data-i18n-ph="porte.telPh" placeholder="06 12 34 56 78">
       </div>
       <div id="codeFields" hidden>
-        <p class="hint">Si ce numéro est bien celui de l'atelier, un code à 6 chiffres vient d'arriver sur WhatsApp (valable 5 minutes).</p>
-        <label class="f" for="otp">Code reçu sur WhatsApp</label>
+        <p class="hint" data-i18n="porte.codeAide"></p>
+        <label class="f" for="otp" data-i18n="porte.code">Code reçu sur WhatsApp</label>
         <input type="text" id="otp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000">
-        <p class="hint" id="codeAide" hidden style="margin-top:14px">Pas de code après 30 secondes ? Depuis ton WhatsApp, envoie n'importe quel message (par exemple « code ») au numéro de l'atelier <b>+33 7 58 88 29 33</b>, puis <a href="#" id="renvoyerCode">renvoie le code</a> : il arrivera en message texte.</p>
+        <p class="hint" id="codeAide" hidden style="margin-top:14px"><span data-i18n="porte.aide1"></span> <b>+33 7 58 88 29 33</b><span data-i18n="porte.aide2"></span> <a href="#" id="renvoyerCode" data-i18n="porte.aideLien"></a><span data-i18n="porte.aide3"></span></p>
       </div>
       <div id="tokenFields" hidden>
-        <p class="hint">Entre ta clé d'accès personnelle. Elle reste enregistrée sur cet appareil.</p>
-        <label class="f" for="tok">Clé d'accès</label>
+        <p class="hint" data-i18n="porte.cleAide"></p>
+        <label class="f" for="tok" data-i18n="porte.cle">Clé d'accès</label>
         <input type="password" id="tok" autocomplete="current-password" placeholder="github_pat_…">
       </div>
       <div style="margin-top:20px">
-        <button id="loginBtn">Se connecter</button>
+        <button id="loginBtn" data-i18n="porte.connecter">Se connecter</button>
         <div class="progress" id="loginMsg" style="text-align:center;margin-top:10px"></div>
       </div>
     </div>
-    <p class="bienvenue">Chaque lettre est une pièce unique — entre, c'est chez toi.</p>
+    <p class="bienvenue" data-i18n="porte.mot"></p>
   </div>
 
   <!-- tableau de bord -->
   <div id="dashView" hidden>
     <div class="topbar">
       <h1>TYPO <b>CAO</b></h1>
-      <div class="sub">Atelier de Yuan</div>
+      <div class="sub" data-i18n="dash.titre">Atelier de Yuan</div>
       <div class="right row">
-        <a class="ghost" href="./" style="color:var(--gold-deep);font-size:.8rem">Voir le site →</a>
-        <button class="ghost small" id="logoutBtn">Se déconnecter</button>
+        <div class="langues" id="langues" role="group" aria-label="Langue · 语言"><button type="button" data-lang="fr">FR</button><button type="button" data-lang="zh">中文</button></div>
+        <a class="ghost" href="./" style="color:var(--gold-deep);font-size:.8rem" data-i18n="dash.voirSite">Voir le site →</a>
+        <button class="ghost small" id="logoutBtn" data-i18n="dash.deconnexion">Se déconnecter</button>
       </div>
     </div>
 
-    <nav class="onglets" aria-label="Pages de l'atelier">
-      <button type="button" data-page="accueil" class="actif">Accueil</button>
-      <button type="button" data-page="boutique">Contacts &amp; tarifs</button>
-      <button type="button" data-page="collections">Collections<span class="n" id="nColl"></span></button>
-      <button type="button" data-page="matieres">Matières<span class="n" id="nMat"></span></button>
-      <button type="button" data-page="revues">Revues<span class="n" id="nRevues"></span></button>
-      <button type="button" data-page="videos">Vidéos<span class="n" id="nVideos"></span></button>
-      <button type="button" data-page="avis">Avis clients<span class="n" id="nAvis" hidden></span></button>
+    <nav class="onglets" data-i18n-aria="ong.aria" aria-label="Pages de l'atelier">
+      <button type="button" data-page="accueil" class="actif" data-i18n="ong.accueil">Accueil</button>
+      <button type="button" data-page="boutique" data-i18n="ong.boutique">Contacts &amp; tarifs</button>
+      <button type="button" data-page="collections"><span data-i18n="ong.collections">Collections</span><span class="n" id="nColl"></span></button>
+      <button type="button" data-page="matieres"><span data-i18n="ong.matieres">Matières</span><span class="n" id="nMat"></span></button>
+      <button type="button" data-page="revues"><span data-i18n="ong.revues">Revues</span><span class="n" id="nRevues"></span></button>
+      <button type="button" data-page="videos"><span data-i18n="ong.videos">Vidéos</span><span class="n" id="nVideos"></span></button>
+      <button type="button" data-page="avis"><span data-i18n="ong.avis">Avis clients</span><span class="n" id="nAvis" hidden></span></button>
     </nav>
 
     <div class="pages">
@@ -220,17 +229,17 @@ body.dash .wrap{max-width:1480px}
     <div class="accueil-mot">
       <img class="lettre" src="assets/perles_Y.webp" alt="">
       <div>
-        <h2 id="accueilSalut">Bienvenue chez toi, Yuan</h2>
-        <p>Tout ce qui est ici t'appartient : tes lettres, tes tarifs, les avis de tes clients — et ce journal, qui veille sur ta porte pendant que tu crées.</p>
+        <h2 id="accueilSalut"></h2>
+        <p data-i18n="acc.mot"></p>
       </div>
     </div>
 
     <section id="journalSection" hidden>
-      <h2>Le journal de l'atelier</h2>
-      <p class="hint">Ta vitrine vue de l'intérieur : qui passe devant, et qui frappe à ta porte. Les passants sont comptés sans jamais être identifiés — ici on compte les pas, pas les visages.</p>
+      <h2 data-i18n="jr.titre"></h2>
+      <p class="hint" data-i18n="jr.sous"></p>
       <div class="j-cols">
         <div class="j-gauche">
-          <b style="font-weight:500;display:block">Devant ta vitrine</b>
+          <b style="font-weight:500;display:block" data-i18n="jr.vitrine"></b>
           <div class="chips" id="journalChips"></div>
           <div id="journalGraphBox" hidden>
             <div class="graph" id="journalGraph"></div>
@@ -238,8 +247,8 @@ body.dash .wrap{max-width:1480px}
           </div>
         </div>
         <div class="j-droite">
-          <b style="font-weight:500;display:block">À ta porte</b>
-          <p class="hint" style="margin-top:4px">Chaque fois que quelqu'un tente d'entrer ici, dans ton atelier, c'est noté — que la porte se soit ouverte ou non.</p>
+          <b style="font-weight:500;display:block" data-i18n="jr.porte"></b>
+          <p class="hint" style="margin-top:4px" data-i18n="jr.porteSous"></p>
           <div class="conn-liste" id="journalConnexions"></div>
           <p class="hint" id="journalNote" style="margin-top:12px"></p>
         </div>
@@ -249,43 +258,43 @@ body.dash .wrap{max-width:1480px}
 
     <div class="page" data-page="boutique" hidden>
     <section>
-      <h2>Contacts</h2>
-      <label class="f">Numéro WhatsApp (commandes) — format international sans +</label>
+      <h2 data-i18n="ct.titre"></h2>
+      <label class="f" data-i18n="ct.whatsapp"></label>
       <input type="text" id="fWhatsapp" placeholder="33612345678">
-      <label class="f">Pseudo Instagram (sans @, vide = pas de lien)</label>
+      <label class="f" data-i18n="ct.instagram"></label>
       <input type="text" id="fInstagram" placeholder="mon.pseudo">
-      <label class="f">Pseudo PayPal.Me (pour le paiement des forfaits)</label>
+      <label class="f" data-i18n="ct.paypal"></label>
       <input type="text" id="fPaypal" placeholder="ex. YuanCao — ton lien est paypal.me/YuanCao">
-      <label class="f">Identifiant WeChat 微信号 (vide = pas de WeChat sur le site)</label>
+      <label class="f" data-i18n="ct.wechat"></label>
       <input type="text" id="fWechat" placeholder="ex. yuan_cao_88">
-      <p class="hint" style="margin-top:8px">Si tu renseignes WeChat, le site propose aux clients d'envoyer leur demande par <b>WeChat</b> aussi bien que par WhatsApp : le message est copié et ils le collent dans ta conversation.</p>
-      <label class="f">Codes QR (images PNG) — dépose-les une fois, ils s'affichent sur le site</label>
+      <p class="hint" style="margin-top:8px" data-i18n-html="ct.wechatAide"></p>
+      <label class="f" data-i18n="ct.qr"></label>
       <div class="qr-grille" id="qrGrille"></div>
-      <p class="hint" style="margin-top:10px">Depuis WeChat : <b>Moi → Code QR</b> (pour que les clients t'ajoutent) et <b>Moi → Service → Argent → Recevoir</b> (收款码, pour être payée). Enregistre l'image, puis dépose-la ici. Même principe pour Alipay. Ces codes seront <b>publics</b> sur ton site : n'y mets que des codes destinés à tes clients.</p>
-      <p class="hint" style="margin-top:8px">Avec le pseudo PayPal, chaque formule à montant fixe affiche un bouton « Payer … € sur PayPal » sur le site : l'argent arrive directement sur ton compte PayPal, sans intermédiaire. Pas encore de lien ? Crée-le en une minute sur <a href="https://www.paypal.me" target="_blank" rel="noopener">paypal.me</a>. Les formules sans montant restent « sur devis » : tu envoies toi-même ton lien avec le prix convenu (paypal.me/TonPseudo/40).</p>
+      <p class="hint" style="margin-top:10px" data-i18n-html="ct.qrAide"></p>
+      <p class="hint" style="margin-top:8px" data-i18n-html="ct.paypalAide"></p>
     </section>
 
     <section>
-      <h2>Tarifs</h2>
-      <p class="hint">Tes formules apparaissent dans le formulaire de demande. Aucune formule = la section est masquée sur le site.<br><b>Forfait</b> : indique un montant en euros → le client peut payer directement sur PayPal. <b>Sur devis</b> : laisse le montant vide (et écris « sur devis » dans le prix affiché).</p>
+      <h2 data-i18n="tf.titre"></h2>
+      <p class="hint" data-i18n-html="tf.aide"></p>
       <div id="tarifList"></div>
-      <button class="ghost small" id="addTarif">+ Ajouter une formule</button>
+      <button class="ghost small" id="addTarif" data-i18n="tf.ajouter"></button>
     </section>
     </div>
 
     <div class="page" data-page="collections" hidden>
     <section>
-      <h2>Collections de lettres</h2>
-      <p class="hint">Chaque collection est un alphabet complet. Les images sont automatiquement recadrées, réduites et <b>filigranées « TYPO CAO »</b> avant mise en ligne — tes originaux ne quittent jamais ton ordinateur en pleine qualité.</p>
+      <h2 data-i18n="co.titre"></h2>
+      <p class="hint" data-i18n-html="co.aide"></p>
       <div id="collList"></div>
       <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
-        <b style="font-weight:500">Nouvelle collection</b>
-        <label class="f">Nom affiché (ex. Roses)</label>
-        <input type="text" id="newCollLabel" placeholder="Roses">
-        <label class="f">Les 26 images — chaque fichier doit commencer par sa lettre : A.png, B.png… (PNG/WebP fond transparent)</label>
+        <b style="font-weight:500" data-i18n="co.nouvelle"></b>
+        <label class="f" data-i18n="co.nom"></label>
+        <input type="text" id="newCollLabel" data-i18n-ph="co.nomPh" placeholder="Roses">
+        <label class="f" data-i18n="co.images"></label>
         <input type="file" id="newCollFiles" multiple accept="image/png,image/webp,image/jpeg">
         <div class="row" style="margin-top:12px">
-          <button id="addCollBtn">Traiter et mettre en ligne</button>
+          <button id="addCollBtn" data-i18n="co.envoyer"></button>
           <span class="progress" id="collMsg"></span>
         </div>
       </div>
@@ -294,14 +303,14 @@ body.dash .wrap{max-width:1480px}
 
     <div class="page" data-page="matieres" hidden>
     <section>
-      <h2>Matières (galerie)</h2>
+      <h2 data-i18n="ma.titre"></h2>
       <div class="mat-grid" id="matGrid"></div>
       <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
-        <b style="font-weight:500">Nouvelle matière</b>
+        <b style="font-weight:500" data-i18n="ma.nouvelle"></b>
         <div class="row" style="margin-top:8px">
-          <input type="text" id="newMatNom" placeholder="Nom (ex. Velours bleu nuit)" style="flex:1;min-width:160px">
+          <input type="text" id="newMatNom" data-i18n-ph="ma.nom" placeholder="Nom (ex. Velours bleu nuit)" style="flex:1;min-width:160px">
           <input type="file" id="newMatFile" accept="image/png,image/webp,image/jpeg">
-          <button class="small" id="addMatBtn">Ajouter</button>
+          <button class="small" id="addMatBtn" data-i18n="ma.ajouter"></button>
         </div>
         <span class="progress" id="matMsg"></span>
       </div>
@@ -310,21 +319,21 @@ body.dash .wrap{max-width:1480px}
 
     <div class="page" data-page="revues" hidden>
     <section>
-      <h2>Revues (PDF, téléchargement payant)</h2>
-      <p class="hint">Chaque revue est un PDF. Sur le site, les clients voient la couverture, quelques pages d'aperçu <b>filigranées</b> et le prix, puis te passent commande sur WhatsApp. Une fois le règlement reçu, tu génères ici un <b>lien de téléchargement</b> (valable 7 jours, 3 téléchargements) et tu le lui envoies. Le PDF original n'est jamais accessible autrement.</p>
+      <h2 data-i18n="rv.titre"></h2>
+      <p class="hint" data-i18n-html="rv.aide"></p>
       <div id="revuesListe" class="media-liste"></div>
       <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
-        <b style="font-weight:500">Nouvelle revue</b>
+        <b style="font-weight:500" data-i18n="rv.nouvelle"></b>
         <div class="media-form">
-          <div><label class="f">Titre</label><input type="text" id="revTitre" placeholder="Revue n°1 — Perles & Or"></div>
-          <div><label class="f">Prix affiché</label><input type="text" id="revPrix" placeholder="9 €"></div>
-          <div><label class="f">Montant PayPal (€)</label><input type="number" id="revMontant" min="0" step="0.5" placeholder="9"></div>
-          <div><label class="f">Montant WeChat (¥)</label><input type="number" id="revYuan" min="0" step="1" placeholder="70"></div>
-          <div class="large"><label class="f">Description (facultatif)</label><input type="text" id="revDesc" placeholder="20 pages de créations, idées de prénoms et de messages…"></div>
-          <div class="large"><label class="f">Fichier PDF (≤ 40 Mo) — la couverture et 3 pages d'aperçu sont fabriquées automatiquement</label><input type="file" id="revFichier" accept="application/pdf"></div>
+          <div><label class="f" data-i18n="rv.titreCh"></label><input type="text" id="revTitre" data-i18n-ph="rv.titrePh" placeholder="Revue n°1 — Perles & Or"></div>
+          <div><label class="f" data-i18n="rv.prix"></label><input type="text" id="revPrix" data-i18n-ph="rv.prixPh" placeholder="9 €"></div>
+          <div><label class="f" data-i18n="rv.montant"></label><input type="number" id="revMontant" min="0" step="0.5" placeholder="9"></div>
+          <div><label class="f" data-i18n="rv.yuan"></label><input type="number" id="revYuan" min="0" step="1" placeholder="70"></div>
+          <div class="large"><label class="f" data-i18n="rv.desc"></label><input type="text" id="revDesc" data-i18n-ph="rv.descPh" placeholder="20 pages de créations, idées de prénoms et de messages…"></div>
+          <div class="large"><label class="f" data-i18n="rv.pdf"></label><input type="file" id="revFichier" accept="application/pdf"></div>
         </div>
         <div class="row" style="margin-top:12px">
-          <button id="addRevBtn">Envoyer la revue</button>
+          <button id="addRevBtn" data-i18n="rv.envoyer"></button>
           <span class="progress" id="revMsg"></span>
         </div>
       </div>
@@ -333,19 +342,19 @@ body.dash .wrap{max-width:1480px}
 
     <div class="page" data-page="videos" hidden>
     <section>
-      <h2>Vidéos d'exemple</h2>
-      <p class="hint">Pour montrer aux clients ce que tu sais faire. Soit un <b>fichier vidéo</b> (MP4 ou WebM, ≤ 60 Mo, lu avec le lecteur Typo Cao), soit un <b>lien</b> YouTube, Vimeo, Instagram ou TikTok.</p>
+      <h2 data-i18n="vd.titre"></h2>
+      <p class="hint" data-i18n-html="vd.aide"></p>
       <div id="videosListe" class="media-liste"></div>
       <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
-        <b style="font-weight:500">Nouvelle vidéo</b>
+        <b style="font-weight:500" data-i18n="vd.nouvelle"></b>
         <div class="media-form">
-          <div><label class="f">Titre</label><input type="text" id="vidTitre" placeholder="Prénom sur une vidéo de mariage"></div>
-          <div class="large"><label class="f">Description (facultatif)</label><input type="text" id="vidDesc" placeholder="Collection Perles & Or, effet Éclat"></div>
-          <div><label class="f">Fichier vidéo (MP4 / WebM)</label><input type="file" id="vidFichier" accept="video/mp4,video/webm"></div>
-          <div><label class="f">… ou lien (YouTube, Vimeo, Instagram, TikTok)</label><input type="url" id="vidLien" placeholder="https://www.youtube.com/watch?v=…"></div>
+          <div><label class="f" data-i18n="vd.titreCh"></label><input type="text" id="vidTitre" data-i18n-ph="vd.titrePh" placeholder="Prénom sur une vidéo de mariage"></div>
+          <div class="large"><label class="f" data-i18n="vd.desc"></label><input type="text" id="vidDesc" data-i18n-ph="vd.descPh" placeholder="Collection Perles & Or, effet Éclat"></div>
+          <div><label class="f" data-i18n="vd.fichier"></label><input type="file" id="vidFichier" accept="video/mp4,video/webm"></div>
+          <div><label class="f" data-i18n="vd.lien"></label><input type="url" id="vidLien" data-i18n-ph="vd.lienPh" placeholder="https://www.youtube.com/watch?v=…"></div>
         </div>
         <div class="row" style="margin-top:12px">
-          <button id="addVidBtn">Mettre en ligne</button>
+          <button id="addVidBtn" data-i18n="vd.envoyer"></button>
           <span class="progress" id="vidMsg"></span>
         </div>
       </div>
@@ -354,25 +363,62 @@ body.dash .wrap{max-width:1480px}
 
     <div class="page" data-page="avis" hidden>
     <section>
-      <h2>Avis clients</h2>
-      <p class="hint">Les avis envoyés par tes clients arrivent ici. Publie ceux que tu veux afficher sur le site, supprime les autres. N'oublie pas d'enregistrer.</p>
+      <h2 data-i18n="av.titre"></h2>
+      <p class="hint" data-i18n="av.aide"></p>
       <div id="avisAdminListe" class="avis-admin"></div>
       <div class="row" style="margin-top:14px">
-        <button class="ghost small" id="avisSave">Enregistrer les avis</button>
+        <button class="ghost small" id="avisSave" data-i18n="av.enregistrer"></button>
         <span class="progress" id="avisAdminMsg"></span>
       </div>
     </section>
     </div>
 
     <div class="savebar" id="savebar" hidden>
-      <button id="saveBtn">Enregistrer les modifications</button>
-      <span class="note">Le site public se met à jour 1 à 2 minutes après l'enregistrement.</span>
+      <button id="saveBtn" data-i18n="sv.enregistrer"></button>
+      <span class="note" data-i18n="sv.note"></span>
     </div>
     </div><!-- /.pages -->
   </div>
 </div>
 
 <script>
+/* ---------- langues : français et 中文 (textes dans i18n-atelier.js) ---------- */
+const LANGUES = ["fr", "zh"];
+let LANG = (() => {
+  try { const m = localStorage.getItem("tc_lang_atelier"); if (LANGUES.includes(m)) return m; } catch {}
+  return /\bzh/i.test((navigator.languages || [navigator.language || "fr"]).join(",")) ? "zh" : "fr";
+})();
+function t(cle, vars){
+  const d = window.I18N_ATELIER || {};
+  const v = (d[LANG] && d[LANG][cle]) || (d.fr && d.fr[cle]) || cle;
+  return vars ? v.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m)) : v;
+}
+function appliquerLangue(complet){
+  document.documentElement.lang = LANG === "zh" ? "zh-Hans" : "fr";
+  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll("[data-i18n-html]")) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of document.querySelectorAll("[data-i18n-ph]")) el.placeholder = t(el.dataset.i18nPh);
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  for (const b of document.querySelectorAll("#langues button")) b.classList.toggle("on", b.dataset.lang === LANG);
+  if (!complet) return;
+  for (const f of [
+    () => { const h = new Date().getHours(); $("accueilSalut").textContent = t(h >= 5 && h < 18 ? "dash.salutJour" : "dash.salutSoir"); },
+    () => chargerJournal(),
+    () => { const v = lireFormulaire(); $("tarifList").innerHTML = ""; (v.tarifs || []).forEach(tarifRow); },
+    () => { $("matGrid").innerHTML = ""; (CFG.matieres || []).forEach(matCard); },
+    () => { $("collList").innerHTML = ""; (CFG.collections || []).forEach(collRow); },
+    () => rendreAvisAdmin(),
+    () => { rendreRevues(); rendreVideos(); construireQr(); },
+    () => compteurs()
+  ]) { try { f(); } catch {} }
+}
+function choisirLangue(l){
+  if (!LANGUES.includes(l)) return;
+  LANG = l;
+  try { localStorage.setItem("tc_lang_atelier", l); } catch {}
+  appliquerLangue(!$("dashView").hidden);
+}
+
 const REPO = "Nraboudi-beep/typo-cao";
 const BRANCHES = ["typo-cao", "main"];
 const API = "https://api.github.com";
@@ -394,7 +440,7 @@ async function apiAtelier(path, options = {}){
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok){
-    const err = new Error((data.error && data.error.message) || data.message || ("Erreur serveur (" + r.status + ")"));
+    const err = new Error((data.error && data.error.message) || data.message || t("err.serveur", { s: r.status }));
     err.code = (data.error && data.error.code) || data.code || "";
     throw err;
   }
@@ -407,7 +453,7 @@ function hdr(){ return { "Authorization": "Bearer " + TOKEN, "Accept": "applicat
 async function ghGetFile(path, branch){
   const r = await fetch(`${API}/repos/${REPO}/contents/${path}?ref=${branch}`, { headers: hdr() });
   if (r.status === 404) return null;
-  if (!r.ok) throw new Error("Lecture impossible (" + r.status + ")");
+  if (!r.ok) throw new Error(t("err.lecture", { s: r.status }));
   return r.json();
 }
 
@@ -418,7 +464,7 @@ async function readConfig(){
     return JSON.parse(decodeURIComponent(escape(atob(f.contentB64))));
   }
   const f = await ghGetFile("config.json", BRANCHES[0]);
-  if (!f) throw new Error("config.json introuvable");
+  if (!f) throw new Error(t("err.config"));
   return JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g, "")))));
 }
 
@@ -437,7 +483,7 @@ async function putFile(path, base64, message){
     });
     if (!r.ok){
       const e = await r.json().catch(() => ({}));
-      throw new Error("Enregistrement refusé (" + r.status + ") " + (e.message || ""));
+      throw new Error(t("err.enregistrement", { s: r.status }) + " " + (e.message || ""));
     }
   }
 }
@@ -506,20 +552,19 @@ function statusMsg(txt, cls = "ok"){
   setTimeout(() => s.remove(), 5000);
 }
 
-function tarifRow(t = {}){
+function tarifRow(tf = {}){
   const row = document.createElement("div");
   row.className = "tarif-row";
-  row.innerHTML = `<input type="text" placeholder="Nom (ex. Prénom simple)" class="t-nom">
-    <input type="text" placeholder="Prix affiché (ex. 15 € / sur devis)" class="t-prix">
-    <input type="text" inputmode="decimal" placeholder="Montant €" class="t-montant" title="Montant payable sur PayPal. Vide = sur devis.">
-    <input type="text" inputmode="decimal" placeholder="Montant ¥" class="t-yuan" title="Montant en yuans, affiché avec le code QR WeChat Pay. Facultatif.">
-    <input type="text" placeholder="Détail (ex. jusqu'à 8 lettres)" class="t-det">
-    <button class="danger small" type="button">✕</button>`;
-  row.querySelector(".t-nom").value = t.nom || "";
-  row.querySelector(".t-prix").value = t.prix || "";
-  row.querySelector(".t-montant").value = t.montant ? String(t.montant) : "";
-  row.querySelector(".t-yuan").value = t.yuan ? String(t.yuan) : "";
-  row.querySelector(".t-det").value = t.detail || "";
+  row.innerHTML = `<input type="text" class="t-nom"><input type="text" class="t-prix">
+    <input type="text" inputmode="decimal" class="t-montant"><input type="text" inputmode="decimal" class="t-yuan">
+    <input type="text" class="t-det"><button class="danger small" type="button">✕</button>`;
+  for (const [sel, cle] of [[".t-nom", "tf.nom"], [".t-prix", "tf.prix"], [".t-montant", "tf.montant"], [".t-yuan", "tf.yuan"], [".t-det", "tf.detail"]]) row.querySelector(sel).placeholder = t(cle);
+  row.querySelector(".t-yuan").title = t("tf.yuanT");
+  row.querySelector(".t-nom").value = tf.nom || "";
+  row.querySelector(".t-prix").value = tf.prix || "";
+  row.querySelector(".t-montant").value = tf.montant ? String(tf.montant) : "";
+  row.querySelector(".t-yuan").value = tf.yuan ? String(tf.yuan) : "";
+  row.querySelector(".t-det").value = tf.detail || "";
   // si l'on saisit un montant et que le prix affiché est vide, on le propose
   row.querySelector(".t-montant").addEventListener("change", () => {
     const m = Number(row.querySelector(".t-montant").value.replace(",", "."));
@@ -532,7 +577,8 @@ function tarifRow(t = {}){
 function matCard(m){
   const el = document.createElement("div");
   el.className = "mat";
-  el.innerHTML = `<img alt=""><input type="text" class="m-nom"><button class="danger small" type="button">Retirer</button>`;
+  el.innerHTML = `<img alt=""><input type="text" class="m-nom"><button class="danger small" type="button"></button>`;
+  el.querySelector("button").textContent = t("ma.retirer");
   el.querySelector("img").src = "assets/" + m.fichier;
   el.querySelector(".m-nom").value = m.nom || "";
   el.dataset.fichier = m.fichier;
@@ -543,13 +589,14 @@ function matCard(m){
 function collRow(c){
   const el = document.createElement("div");
   el.className = "coll-row";
-  el.innerHTML = `<img alt=""><b style="font-weight:500"></b><span style="color:var(--muted);font-size:.9rem"></span><button class="danger small" style="margin-left:auto" type="button">Retirer du site</button>`;
+  el.innerHTML = `<img alt=""><b style="font-weight:500"></b><span style="color:var(--muted);font-size:.9rem"></span><button class="danger small" style="margin-left:auto" type="button" data-r="co.retirerSite"></button>`;
   el.querySelector("img").src = `assets/${c.id}_A.webp`;
+  el.querySelector("[data-r]").textContent = t("co.retirerSite");
   el.querySelector("b").textContent = c.label;
   el.querySelector("span").textContent = "(" + c.id + ")";
   el.dataset.id = c.id; el.dataset.label = c.label;
   el.querySelector("button").onclick = () => {
-    if (document.querySelectorAll(".coll-row").length <= 1){ statusMsg("Il faut garder au moins une collection.", "err"); return; }
+    if (document.querySelectorAll(".coll-row").length <= 1){ statusMsg(t("co.garder"), "err"); return; }
     el.remove();
   };
   $("collList").appendChild(el);
@@ -607,7 +654,7 @@ function rendreAvisAdmin(){
   const box = $("avisAdminListe");
   box.innerHTML = "";
   if (!AVIS.length){
-    box.innerHTML = '<p class="hint">Aucun avis reçu pour l\'instant.</p>';
+    box.innerHTML = `<p class="hint">${t("av.aucunRecu")}</p>`;
     return;
   }
   AVIS.slice().reverse().forEach(a => {
@@ -616,13 +663,14 @@ function rendreAvisAdmin(){
     el.innerHTML = `<div class="tete"><span class="nom"></span><span class="note"></span><span class="quand"></span><span class="etat"></span></div>
       <p class="texte"></p>
       <div class="row"><button class="small" type="button" data-act="toggle"></button>
-      <button class="danger small" type="button" data-act="suppr">Supprimer</button></div>`;
-    el.querySelector(".nom").textContent = a.nom || "Client";
+      <button class="danger small" type="button" data-act="suppr"></button></div>`;
+    el.querySelector('[data-act="suppr"]').textContent = t("av.supprimer");
+    el.querySelector(".nom").textContent = a.nom || t("av.client");
     el.querySelector(".note").textContent = "★".repeat(Math.max(1, Math.min(5, a.note || 5)));
-    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleString("fr-FR") : "";
-    el.querySelector(".etat").textContent = a.approuve ? "Publié" : "En attente";
+    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleString(t("gen.locale")) : "";
+    el.querySelector(".etat").textContent = t(a.approuve ? "av.publie" : "av.attente");
     el.querySelector(".texte").textContent = a.message || "";
-    el.querySelector('[data-act="toggle"]').textContent = a.approuve ? "Masquer" : "Publier";
+    el.querySelector('[data-act="toggle"]').textContent = t(a.approuve ? "av.masquer" : "av.publier");
     el.querySelector('[data-act="toggle"]').onclick = () => { a.approuve = !a.approuve; rendreAvisAdmin(); };
     el.querySelector('[data-act="suppr"]').onclick = () => { AVIS = AVIS.filter(x => x !== a); rendreAvisAdmin(); };
     box.appendChild(el);
@@ -634,25 +682,18 @@ $("avisSave").onclick = async () => {
   $("avisSave").disabled = true;
   $("avisAdminMsg").textContent = "Enregistrement…";
   try {
-    await putFile("avis.json", toB64(JSON.stringify(AVIS, null, 2)), "Modération des avis clients");
+    await putFile("avis.json", toB64(JSON.stringify(AVIS, null, 2)), t("av.message"));
     $("avisAdminMsg").textContent = "";
-    statusMsg("Avis enregistrés — le site se met à jour dans 1 à 2 minutes.");
+    statusMsg(t("av.enregistres"));
   } catch (e) {
     $("avisAdminMsg").textContent = "";
-    statusMsg("Échec : " + e.message, "err");
+    statusMsg(t("err.echec", { e: e.message }), "err");
   }
   $("avisSave").disabled = false;
 };
 
 /* ---- journal des visites & des tentatives d'entrée (mode serveur) ---- */
-const CONN_LIBELLES = {
-  connexion_reussie: ["La porte s'est ouverte — connexion réussie", "ok"],
-  code_envoye:       ["Code de connexion envoyé", "ok"],
-  numero_inconnu:    ["Refusé — numéro inconnu", "alerte"],
-  code_errone:       ["Refusé — code erroné", "alerte"],
-  code_expire:       ["Code expiré sans être utilisé", ""],
-  trop_essais:       ["Bloqué — trop d'essais", "alerte"]
-};
+const CONN_CLASSES = { connexion_reussie: "ok", code_envoye: "ok", numero_inconnu: "alerte", code_errone: "alerte", code_expire: "", trop_essais: "alerte" };
 
 async function chargerJournal(){
   if (MODE !== "serveur") return;
@@ -675,10 +716,10 @@ async function chargerJournal(){
   const chips = $("journalChips");
   chips.innerHTML = "";
   const chip = (html, alerte) => { const s = document.createElement("span"); s.className = "chip" + (alerte ? " alerte" : ""); s.innerHTML = html; chips.appendChild(s); };
-  chip("Aujourd'hui : <b>" + (auj ? auj.visites : 0) + "</b> passage(s) · <b>" + (auj ? auj.visiteurs : 0) + "</b> visiteur(s)");
-  chip("7 derniers jours : <b>" + visites7 + "</b> passages");
-  if (atelier7) chip("dont <b>" + atelier7 + "</b> ouverture(s) de cette page atelier");
-  if (refus) chip("<b>" + refus + "</b> tentative(s) d'entrée refusée(s)", true);
+  chip(t("jr.aujourdhui", { v: auj ? auj.visites : 0, u: auj ? auj.visiteurs : 0 }));
+  chip(t("jr.sept", { v: visites7 }));
+  if (atelier7) chip(t("jr.atelier", { v: atelier7 }));
+  if (refus) chip(t("jr.refus", { v: refus }), true);
 
   const max = Math.max(1, ...serie.map(s => s.data ? s.data.visites : 0));
   const g = $("journalGraph"), leg = $("journalGraphLegende");
@@ -689,7 +730,7 @@ async function chargerJournal(){
     b.className = "barre" + (v ? "" : " vide");
     b.style.height = Math.max(2, Math.round(v / max * 100)) + "%";
     if (v) b.innerHTML = "<span>" + v + "</span>";
-    b.title = s.date.toLocaleDateString("fr-FR") + " — " + v + " passage(s)" + (s.data ? ", " + s.data.visiteurs + " visiteur(s)" : "");
+    b.title = t("jr.barre", { d: s.date.toLocaleDateString(t("gen.locale")), v }) + (s.data ? t("jr.barreVisiteurs", { u: s.data.visiteurs }) : "");
     g.appendChild(b);
     const i = document.createElement("i");
     i.textContent = s.date.getDate();
@@ -701,15 +742,14 @@ async function chargerJournal(){
   box.innerHTML = "";
   const conns = (j.connexions || []).slice(0, 40);
   if (!conns.length){
-    box.innerHTML = '<p class="hint" style="padding-top:10px">Personne n\'a encore frappé — tout est calme dans l\'atelier. 🌙</p>';
+    box.innerHTML = `<p class="hint" style="padding-top:10px">${t("jr.calme")}</p>`;
   }
   conns.forEach(c => {
-    const lib = CONN_LIBELLES[c.type] || [c.type, ""];
     const el = document.createElement("div");
-    el.className = "conn " + lib[1];
+    el.className = "conn " + (CONN_CLASSES[c.type] || "");
     el.innerHTML = '<span class="quand"></span><span class="quoi"></span><span class="detail"></span>';
-    el.querySelector(".quand").textContent = new Date(c.date).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-    el.querySelector(".quoi").textContent = lib[0];
+    el.querySelector(".quand").textContent = new Date(c.date).toLocaleString(t("gen.locale"), { dateStyle: "short", timeStyle: "short" });
+    el.querySelector(".quoi").textContent = t("jr." + c.type);
     el.querySelector(".detail").textContent = (c.numero ? "numéro " + c.numero + " · " : "") + "ip " + (c.ip || "?");
     box.appendChild(el);
   });
@@ -730,6 +770,8 @@ function allerPage(nom){
   try { localStorage.setItem("tc_page", nom); } catch {}
 }
 document.querySelectorAll(".onglets button").forEach(b => b.onclick = () => allerPage(b.dataset.page));
+document.getElementById("langues").addEventListener("click", e => { const b = e.target.closest("button[data-lang]"); if (b) choisirLangue(b.dataset.lang); });
+appliquerLangue(false);
 
 function compteurs(){
   $("nColl").textContent = $("collList").children.length || "";
@@ -745,10 +787,11 @@ new MutationObserver(compteurs).observe($("matGrid"), { childList: true });
 
 async function ouvrirDash(){
   CFG = await readConfig();
+  appliquerLangue(false);
   $("loginView").hidden = true; $("dashView").hidden = false;
   document.body.classList.add("dash");
   const h = new Date().getHours();
-  $("accueilSalut").textContent = (h >= 5 && h < 18 ? "Bonjour" : "Bonsoir") + " Yuan — bienvenue chez toi";
+  $("accueilSalut").textContent = t(h >= 5 && h < 18 ? "dash.salutJour" : "dash.salutSoir");
   let derniere = "accueil";
   try { derniere = localStorage.getItem("tc_page") || "accueil"; } catch {}
   allerPage(derniere);
@@ -777,7 +820,7 @@ function envoyerBinaire(path, blob, type, onProgress){
     if (SESSION) x.setRequestHeader("Authorization", "Bearer " + SESSION);
     x.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
     x.onload = () => { let j = {}; try { j = JSON.parse(x.responseText); } catch {} if (x.status >= 200 && x.status < 300) resolve(j); else reject(new Error((j.error && j.error.message) || ("Erreur " + x.status))); };
-    x.onerror = () => reject(new Error("Envoi impossible (réseau)"));
+    x.onerror = () => reject(new Error(t("err.reseau")));
     x.send(blob);
   });
 }
@@ -800,7 +843,7 @@ function chargerPdfjs(){
     const s = document.createElement("script");
     s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
     s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; resolve(window.pdfjsLib); } catch (e) { reject(e); } };
-    s.onerror = () => reject(new Error("pdf.js indisponible"));
+    s.onerror = () => reject(new Error(t("err.pdfjs")));
     document.head.appendChild(s);
   });
   return pdfjsPromesse;
@@ -824,25 +867,26 @@ async function apercusPdf(file, nb = 4){
 }
 
 /* ---- codes QR (contact WeChat, WeChat Pay, Alipay) ---- */
-const QR_LIBELLES = { wechat: ["Mon QR WeChat", "pour que les clients m'ajoutent"], wechatpay: ["WeChat Pay 收款码", "pour recevoir les paiements"], alipay: ["Alipay 支付宝", "facultatif"] };
+const QR_TYPES_ATELIER = ["wechat", "wechatpay", "alipay"];
 let QR_PRESENTS = [];
 function construireQr(){
   const g = $("qrGrille"); g.innerHTML = "";
-  for (const [type, [titre, sous]] of Object.entries(QR_LIBELLES)){
+  for (const type of QR_TYPES_ATELIER){
+    const titre = t("qr." + type), sous = t("qr." + type + "Sous");
     const present = QR_PRESENTS.includes(type);
     const c = document.createElement("div"); c.className = "qr-case";
-    c.innerHTML = `<b>${titre}</b><div class="cadre">${present ? `<img alt="" src="${MEDIA_URL}/q/${type}.png?${Date.now()}">` : `<span>aucun code</span>`}</div>
+    c.innerHTML = `<b>${titre}</b><div class="cadre">${present ? `<img alt="" src="${MEDIA_URL}/q/${type}.png?${Date.now()}">` : `<span>${t("qr.aucun")}</span>`}</div>
       <div class="det" style="color:var(--muted);font-size:.82rem">${sous}</div>
       <input type="file" accept="image/png,image/jpeg,image/webp">
-      <div class="row"><span class="progress"></span>${present ? `<button class="small danger" type="button">Retirer</button>` : ""}</div>`;
+      <div class="row"><span class="progress"></span>${present ? `<button class="small danger" type="button">${t("qr.retirer")}</button>` : ""}</div>`;
     c.querySelector("input").onchange = async (e) => {
       const f = e.target.files[0]; if (!f) return;
       const msg = c.querySelector(".progress"); msg.textContent = "Envoi…";
-      try { await envoyerBinaire("/qr/" + type, await qrEnPng(f), "image/png"); msg.textContent = ""; statusMsg("Code QR enregistré.", "ok"); await chargerQr(); }
+      try { await envoyerBinaire("/qr/" + type, await qrEnPng(f), "image/png"); msg.textContent = ""; statusMsg(t("qr.enregistre"), "ok"); await chargerQr(); }
       catch (err) { msg.textContent = ""; statusMsg(err.message, "err"); }
     };
     const sup = c.querySelector("button");
-    if (sup) sup.onclick = async () => { if (!confirm("Retirer ce code QR du site ?")) return; try { await apiAtelier("/qr/" + type, { method: "DELETE" }); await chargerQr(); statusMsg("Code retiré.", "ok"); } catch (e) { statusMsg(e.message, "err"); } };
+    if (sup) sup.onclick = async () => { if (!confirm(t("qr.retirerConf"))) return; try { await apiAtelier("/qr/" + type, { method: "DELETE" }); await chargerQr(); statusMsg(t("qr.retire"), "ok"); } catch (e) { statusMsg(e.message, "err"); } };
     g.appendChild(c);
   }
 }
@@ -860,54 +904,54 @@ async function chargerQr(){
 }
 
 async function chargerMedia(){
-  if (!SESSION){ $("revuesListe").innerHTML = "<p class='hint'>Les revues et vidéos se gèrent avec la connexion par WhatsApp.</p>"; $("videosListe").innerHTML = ""; return; }
+  if (!SESSION){ $("revuesListe").innerHTML = `<p class="hint">${t("err.media")}</p>`; $("videosListe").innerHTML = ""; return; }
   try {
     const r = await apiAtelier("/revues/tous"); REVUES = r.revues || []; LIENS = r.liens || [];
     const v = await apiAtelier("/videos/tous"); VIDEOS = v.videos || [];
-  } catch (e) { statusMsg("Médiathèque : " + e.message, "err"); }
+  } catch (e) { statusMsg(t("err.mediathe", { e: e.message }), "err"); }
   rendreRevues(); rendreVideos(); compteurs();
   chargerQr();
 }
 
 function rendreRevues(){
   const bloc = $("revuesListe"); bloc.innerHTML = "";
-  if (!REVUES.length){ bloc.innerHTML = "<p class='hint' style='margin:0'>Aucune revue pour l'instant.</p>"; return; }
+  if (!REVUES.length){ bloc.innerHTML = `<p class="hint" style="margin:0">${t("rv.aucune")}</p>`; return; }
   for (const r of REVUES){
     const liens = LIENS.filter(l => l.revue === r.id);
     const card = document.createElement("div"); card.className = "media-card";
     card.innerHTML = `<img class="vignette" alt="" src="${r.apercus ? MEDIA_URL + "/r/" + r.id + "/0.jpg?" + Date.now() : ""}">
-      <div><div class="titre">${echap(r.titre)}</div><div class="det">${echap(r.prix || "prix non indiqué")}${r.montant ? " · PayPal " + r.montant + " €" : ""}${r.yuan ? " · WeChat ¥" + r.yuan : ""} · ${r.pages ? r.pages + " pages · " : ""}${r.taille ? ko(r.taille) : "<b style='color:var(--err)'>PDF manquant</b>"} · ${quand(r.date)}</div>${r.description ? `<div class="det">${echap(r.description)}</div>` : ""}</div>
-      <div class="actions"><button class="small" type="button" data-act="lien">Générer un lien de téléchargement</button><button class="small danger" type="button" data-act="suppr">Supprimer</button></div>
-      <div class="liens">${liens.map(l => `<div><code>${MEDIA_URL}/t/${l.code}</code><span class="det">valable jusqu'au ${quand(new Date(l.expire).toISOString())} · ${l.restants} téléchargement${l.restants > 1 ? "s" : ""} restant${l.restants > 1 ? "s" : ""}</span><button class="small ghost" type="button" data-copie="${MEDIA_URL}/t/${l.code}">Copier</button></div>`).join("")}</div>`;
+      <div><div class="titre">${echap(r.titre)}</div><div class="det">${echap(r.prix || t("rv.prixNon"))}${r.montant ? " · PayPal " + r.montant + " €" : ""}${r.yuan ? " · WeChat ¥" + r.yuan : ""} · ${r.pages ? t("rv.pages", { n: r.pages }) + " · " : ""}${r.taille ? ko(r.taille) : `<b style="color:var(--err)">${t("rv.pdfManquant")}</b>`} · ${quand(r.date)}</div>${r.description ? `<div class="det">${echap(r.description)}</div>` : ""}</div>
+      <div class="actions"><button class="small" type="button" data-act="lien">${t("rv.lien")}</button><button class="small danger" type="button" data-act="suppr">${t("rv.supprimer")}</button></div>
+      <div class="liens">${liens.map(l => `<div><code>${MEDIA_URL}/t/${l.code}</code><span class="det">${t("rv.valide", { d: quand(new Date(l.expire).toISOString()), n: l.restants })}</span><button class="small ghost" type="button" data-copie="${MEDIA_URL}/t/${l.code}">${t("rv.copier")}</button></div>`).join("")}</div>`;
     card.querySelector("[data-act=lien]").onclick = async (ev) => {
       ev.target.disabled = true;
-      try { const j = await apiAtelier("/revue/" + r.id + "/lien", { method: "POST", body: "{}" }); LIENS.unshift(j.lien); rendreRevues(); try { await navigator.clipboard.writeText(j.lien.url); statusMsg("Lien copié — colle-le dans WhatsApp au client.", "ok"); } catch { statusMsg("Lien généré : " + j.lien.url, "ok"); } }
+      try { const j = await apiAtelier("/revue/" + r.id + "/lien", { method: "POST", body: "{}" }); LIENS.unshift(j.lien); rendreRevues(); try { await navigator.clipboard.writeText(j.lien.url); statusMsg(t("rv.lienCopie"), "ok"); } catch { statusMsg(t("rv.lienGenere", { u: j.lien.url }), "ok"); } }
       catch (e) { statusMsg(e.message, "err"); ev.target.disabled = false; }
     };
     card.querySelector("[data-act=suppr]").onclick = async () => {
-      if (!confirm("Supprimer « " + r.titre + " » ? Les liens déjà envoyés cesseront de fonctionner.")) return;
-      try { await apiAtelier("/revue/" + r.id, { method: "DELETE" }); REVUES = REVUES.filter(x => x !== r); rendreRevues(); compteurs(); statusMsg("Revue supprimée.", "ok"); } catch (e) { statusMsg(e.message, "err"); }
+      if (!confirm(t("rv.supprimerConf", { t: r.titre }))) return;
+      try { await apiAtelier("/revue/" + r.id, { method: "DELETE" }); REVUES = REVUES.filter(x => x !== r); rendreRevues(); compteurs(); statusMsg(t("rv.supprimee"), "ok"); } catch (e) { statusMsg(e.message, "err"); }
     };
-    card.querySelectorAll("[data-copie]").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copie); statusMsg("Lien copié.", "ok"); } catch { prompt("Copie ce lien :", b.dataset.copie); } });
+    card.querySelectorAll("[data-copie]").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copie); statusMsg(t("rv.copieOk"), "ok"); } catch { prompt(t("rv.copieManuel"), b.dataset.copie); } });
     bloc.appendChild(card);
   }
 }
 
 $("addRevBtn").onclick = async () => {
   const file = $("revFichier").files[0], titre = $("revTitre").value.trim();
-  if (!titre){ statusMsg("Donne un titre à la revue.", "err"); return; }
-  if (!file || file.type !== "application/pdf"){ statusMsg("Choisis le fichier PDF.", "err"); return; }
-  if (file.size > 40 * 1024 * 1024){ statusMsg("PDF trop lourd (40 Mo maximum).", "err"); return; }
+  if (!titre){ statusMsg(t("rv.manqueTitre"), "err"); return; }
+  if (!file || file.type !== "application/pdf"){ statusMsg(t("rv.manquePdf"), "err"); return; }
+  if (file.size > 40 * 1024 * 1024){ statusMsg(t("rv.tropLourd"), "err"); return; }
   const btn = $("addRevBtn"), msg = $("revMsg"); btn.disabled = true;
   try {
-    msg.textContent = "Lecture du PDF et fabrication des aperçus…";
+    msg.textContent = t("rv.lecture");
     let ap = { images: [], pages: 0 };
-    try { ap = await apercusPdf(file); } catch (e) { console.warn(e); msg.textContent = "Aperçus impossibles (" + e.message + ") — envoi du PDF seul…"; }
+    try { ap = await apercusPdf(file); } catch (e) { console.warn(e); msg.textContent = t("rv.apercusKo", { e: e.message }); }
     const j = await apiAtelier("/revue", { method: "POST", body: JSON.stringify({ titre, description: $("revDesc").value.trim(), prix: $("revPrix").value.trim(), montant: Number($("revMontant").value || 0), yuan: Number($("revYuan").value || 0), pages: ap.pages }) });
     const id = j.revue.id;
-    await envoyerBinaire("/revue/" + id + "/pdf", file, "application/pdf", p => { msg.textContent = "Envoi du PDF… " + Math.round(p * 100) + " %"; });
-    for (let k = 0; k < ap.images.length; k++){ msg.textContent = "Envoi des aperçus… " + (k + 1) + "/" + ap.images.length; await envoyerBinaire("/revue/" + id + "/image/" + k, ap.images[k], "image/jpeg"); }
-    msg.textContent = ""; statusMsg("Revue en ligne.", "ok");
+    await envoyerBinaire("/revue/" + id + "/pdf", file, "application/pdf", p => { msg.textContent = t("rv.envoiPdf", { p: Math.round(p * 100) }); });
+    for (let k = 0; k < ap.images.length; k++){ msg.textContent = t("rv.envoiApercus", { k: k + 1, n: ap.images.length }); await envoyerBinaire("/revue/" + id + "/image/" + k, ap.images[k], "image/jpeg"); }
+    msg.textContent = ""; statusMsg(t("rv.enLigne"), "ok");
     $("revTitre").value = ""; $("revDesc").value = ""; $("revPrix").value = ""; $("revMontant").value = ""; $("revYuan").value = ""; $("revFichier").value = "";
     await chargerMedia();
   } catch (e) { msg.textContent = ""; statusMsg(e.message, "err"); }
@@ -916,15 +960,15 @@ $("addRevBtn").onclick = async () => {
 
 function rendreVideos(){
   const bloc = $("videosListe"); bloc.innerHTML = "";
-  if (!VIDEOS.length){ bloc.innerHTML = "<p class='hint' style='margin:0'>Aucune vidéo pour l'instant.</p>"; return; }
+  if (!VIDEOS.length){ bloc.innerHTML = `<p class="hint" style="margin:0">${t("vd.aucune")}</p>`; return; }
   for (const v of VIDEOS){
     const card = document.createElement("div"); card.className = "media-card";
     card.innerHTML = `<img class="vignette" alt="" src="${v.poster ? MEDIA_URL + "/v/" + v.id + ".jpg?" + Date.now() : ""}">
-      <div><div class="titre">${echap(v.titre)}</div><div class="det">${v.lien ? "lien : " + echap(v.lien) : v.ext ? "fichier " + v.ext.toUpperCase() : "<b style='color:var(--err)'>sans vidéo</b>"} · ${quand(v.date)}</div>${v.description ? `<div class="det">${echap(v.description)}</div>` : ""}</div>
-      <div class="actions"><button class="small danger" type="button" data-act="suppr">Supprimer</button></div>`;
+      <div><div class="titre">${echap(v.titre)}</div><div class="det">${v.lien ? t("vd.lienEtiquette", { u: echap(v.lien) }) : v.ext ? t("vd.fichierEtiquette", { e: v.ext.toUpperCase() }) : `<b style="color:var(--err)">${t("vd.sansVideo")}</b>`} · ${quand(v.date)}</div>${v.description ? `<div class="det">${echap(v.description)}</div>` : ""}</div>
+      <div class="actions"><button class="small danger" type="button" data-act="suppr">${t("vd.supprimer")}</button></div>`;
     card.querySelector("[data-act=suppr]").onclick = async () => {
-      if (!confirm("Supprimer « " + v.titre + " » ?")) return;
-      try { await apiAtelier("/video/" + v.id, { method: "DELETE" }); VIDEOS = VIDEOS.filter(x => x !== v); rendreVideos(); compteurs(); statusMsg("Vidéo supprimée.", "ok"); } catch (e) { statusMsg(e.message, "err"); }
+      if (!confirm(t("vd.supprimerConf", { t: v.titre }))) return;
+      try { await apiAtelier("/video/" + v.id, { method: "DELETE" }); VIDEOS = VIDEOS.filter(x => x !== v); rendreVideos(); compteurs(); statusMsg(t("vd.supprimee"), "ok"); } catch (e) { statusMsg(e.message, "err"); }
     };
     bloc.appendChild(card);
   }
@@ -943,22 +987,22 @@ function posterVideo(file){
 
 $("addVidBtn").onclick = async () => {
   const file = $("vidFichier").files[0], lien = $("vidLien").value.trim(), titre = $("vidTitre").value.trim();
-  if (!titre){ statusMsg("Donne un titre à la vidéo.", "err"); return; }
-  if (!file && !lien){ statusMsg("Choisis un fichier vidéo ou colle un lien.", "err"); return; }
-  if (file && !/^video\/(mp4|webm)$/.test(file.type)){ statusMsg("Format accepté : MP4 ou WebM.", "err"); return; }
-  if (file && file.size > 60 * 1024 * 1024){ statusMsg("Vidéo trop lourde (60 Mo maximum).", "err"); return; }
+  if (!titre){ statusMsg(t("vd.manqueTitre"), "err"); return; }
+  if (!file && !lien){ statusMsg(t("vd.manqueSource"), "err"); return; }
+  if (file && !/^video\/(mp4|webm)$/.test(file.type)){ statusMsg(t("vd.format"), "err"); return; }
+  if (file && file.size > 60 * 1024 * 1024){ statusMsg(t("vd.tropLourd"), "err"); return; }
   const btn = $("addVidBtn"), msg = $("vidMsg"); btn.disabled = true;
   try {
     const j = await apiAtelier("/video", { method: "POST", body: JSON.stringify({ titre, description: $("vidDesc").value.trim(), lien: file ? "" : lien }) });
     const id = j.video.id;
-    if (!file && !j.video.lien) throw new Error("Lien non reconnu (YouTube, Vimeo, Instagram ou TikTok uniquement).");
+    if (!file && !j.video.lien) throw new Error(t("vd.lienKo"));
     if (file){
-      msg.textContent = "Image de couverture…";
+      msg.textContent = t("vd.poster");
       const poster = await posterVideo(file);
-      await envoyerBinaire("/video/" + id + "/fichier", file, file.type, p => { msg.textContent = "Envoi de la vidéo… " + Math.round(p * 100) + " %"; });
+      await envoyerBinaire("/video/" + id + "/fichier", file, file.type, p => { msg.textContent = t("vd.envoiVideo", { p: Math.round(p * 100) }); });
       if (poster) await envoyerBinaire("/video/" + id + "/poster", poster, "image/jpeg");
     }
-    msg.textContent = ""; statusMsg("Vidéo en ligne.", "ok");
+    msg.textContent = ""; statusMsg(t("vd.enLigne"), "ok");
     $("vidTitre").value = ""; $("vidDesc").value = ""; $("vidLien").value = ""; $("vidFichier").value = "";
     await chargerMedia();
   } catch (e) { msg.textContent = ""; statusMsg(e.message, "err"); }
@@ -980,15 +1024,15 @@ function montrerAideCode(){
 
 $("renvoyerCode").onclick = async (ev) => {
   ev.preventDefault();
-  $("loginMsg").textContent = "Nouvel envoi du code…";
+  $("loginMsg").textContent = t("porte.renvoi");
   try {
     await demanderCode();
     $("loginMsg").textContent = "";
-    statusMsg("Code renvoyé — regarde ton WhatsApp.");
+    statusMsg(t("porte.renvoye"));
     montrerAideCode();
   } catch (e) {
     $("loginMsg").textContent = "";
-    statusMsg(e.message || "Renvoi impossible.", "err");
+    statusMsg(e.message || t("porte.renvoiKo"), "err");
   }
 };
 
@@ -997,11 +1041,11 @@ $("loginBtn").onclick = async () => {
   try {
     if (MODE === "serveur"){
       if (etape === "identifiants"){
-        $("loginMsg").textContent = "Envoi du code…";
+        $("loginMsg").textContent = t("porte.envoiCode");
         await demanderCode();
         etape = "code";
         $("authFields").hidden = true; $("codeFields").hidden = false;
-        $("loginBtn").textContent = "Valider le code";
+        $("loginBtn").textContent = t("porte.valider");
         $("loginMsg").textContent = "";
         $("otp").focus();
         montrerAideCode();
@@ -1027,13 +1071,13 @@ $("loginBtn").onclick = async () => {
     }
   } catch (e) {
     $("loginMsg").textContent = "";
-    statusMsg(e.message || "Connexion impossible.", "err");
+    statusMsg(e.message || t("porte.connexionKo"), "err");
     if (MODE === "serveur" && etape === "code" &&
         (e.code === "TYPO_CAO_CODE_EXPIRED" || e.code === "TYPO_CAO_TOO_MANY_ATTEMPTS")){
       etape = "identifiants";
       clearTimeout(aideTimer); $("codeAide").hidden = true;
       $("codeFields").hidden = true; $("authFields").hidden = false;
-      $("loginBtn").textContent = "Se connecter";
+      $("loginBtn").textContent = t("porte.connecter");
     }
   }
   $("loginBtn").disabled = false;
@@ -1054,36 +1098,36 @@ $("saveBtn").onclick = async () => {
   $("saveBtn").disabled = true;
   try {
     CFG = Object.assign({}, CFG, lireFormulaire());
-    await putFile("config.json", toB64(JSON.stringify(CFG, null, 2)), "Mise à jour de la configuration (espace atelier)");
-    statusMsg("Enregistré ! Le site se met à jour dans 1 à 2 minutes.");
-  } catch (e) { statusMsg("Échec : " + e.message, "err"); }
+    await putFile("config.json", toB64(JSON.stringify(CFG, null, 2)), t("sv.message"));
+    statusMsg(t("sv.enregistre"));
+  } catch (e) { statusMsg(t("err.echec", { e: e.message }), "err"); }
   $("saveBtn").disabled = false;
 };
 
 $("addMatBtn").onclick = async () => {
   const file = $("newMatFile").files[0];
   const nom = $("newMatNom").value.trim();
-  if (!file || !nom){ statusMsg("Choisis une image et donne-lui un nom.", "err"); return; }
-  $("addMatBtn").disabled = true; $("matMsg").textContent = "Traitement de l'image…";
+  if (!file || !nom){ statusMsg(t("ma.manque"), "err"); return; }
+  $("addMatBtn").disabled = true; $("matMsg").textContent = t("ma.traitement");
   try {
     const blob = await traiterImage(file);
     const fname = "matiere_" + nom.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + ".webp";
-    $("matMsg").textContent = "Mise en ligne…";
+    $("matMsg").textContent = t("ma.enLigne");
     await putFile("assets/" + fname, await blobToB64(blob), "Nouvelle matière : " + nom);
     matCard({ fichier: fname, nom });
     $("newMatNom").value = ""; $("newMatFile").value = "";
     $("matMsg").textContent = "";
-    statusMsg("Matière ajoutée — pense à cliquer « Enregistrer les modifications ».");
-  } catch (e) { $("matMsg").textContent = ""; statusMsg("Échec : " + e.message, "err"); }
+    statusMsg(t("ma.ajoutee"));
+  } catch (e) { $("matMsg").textContent = ""; statusMsg(t("err.echec", { e: e.message }), "err"); }
   $("addMatBtn").disabled = false;
 };
 
 $("addCollBtn").onclick = async () => {
   const label = $("newCollLabel").value.trim();
   const files = [...$("newCollFiles").files];
-  if (!label || !files.length){ statusMsg("Donne un nom et choisis les images.", "err"); return; }
+  if (!label || !files.length){ statusMsg(t("co.manqueNom"), "err"); return; }
   const id = label.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  if (!id){ statusMsg("Nom de collection invalide.", "err"); return; }
+  if (!id){ statusMsg(t("co.nomInvalide"), "err"); return; }
   // associer chaque fichier à sa lettre (1re lettre du nom de fichier)
   const parLettre = {};
   for (const f of files){
@@ -1091,11 +1135,11 @@ $("addCollBtn").onclick = async () => {
     if (L >= "A" && L <= "Z" && !parLettre[L]) parLettre[L] = f;
   }
   const lettres = Object.keys(parLettre).sort();
-  if (!lettres.length){ statusMsg("Aucun fichier reconnu : chaque fichier doit commencer par sa lettre (A.png, B.png…).", "err"); return; }
+  if (!lettres.length){ statusMsg(t("co.aucunFichier"), "err"); return; }
   const manquantes = [..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"].filter(L => !parLettre[L]);
   if (manquantes.length && !window.__collConfirm){
     window.__collConfirm = true;
-    statusMsg("Lettres manquantes : " + manquantes.join(" ") + ". Clique à nouveau pour mettre en ligne quand même.", "err");
+    statusMsg(t("co.manquantes", { l: manquantes.join(" ") }), "err");
     return;
   }
   window.__collConfirm = false;
@@ -1110,8 +1154,8 @@ $("addCollBtn").onclick = async () => {
     collRow({ id, label });
     $("newCollLabel").value = ""; $("newCollFiles").value = "";
     $("collMsg").textContent = "";
-    statusMsg("Collection en ligne — pense à cliquer « Enregistrer les modifications » pour l'activer.");
-  } catch (e) { $("collMsg").textContent = ""; statusMsg("Échec : " + e.message, "err"); }
+    statusMsg(t("co.enLigne"));
+  } catch (e) { $("collMsg").textContent = ""; statusMsg(t("err.echec", { e: e.message }), "err"); }
   $("addCollBtn").disabled = false;
 };
 
@@ -1125,9 +1169,9 @@ $("addCollBtn").onclick = async () => {
 (async () => {
   try {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 4000);
+    const minuteur = setTimeout(() => ctrl.abort(), 4000);
     const r = await fetch(ATELIER_API + "/status", { signal: ctrl.signal });
-    clearTimeout(t);
+    clearTimeout(minuteur);
     const s = await r.json();
     MODE = (r.ok && s.configure) ? "serveur" : "cle";
   } catch { MODE = "cle"; }
