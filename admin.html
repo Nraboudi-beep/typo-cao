@@ -69,8 +69,16 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .porte-carte button{width:100%;font-size:1.05rem;padding:16px;margin-top:6px}
 .bienvenue{font-family:var(--display);font-weight:300;font-size:1.15rem;color:var(--muted);margin:14px 0 0;font-style:italic}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tarif-row{display:grid;grid-template-columns:1.2fr 120px 120px 1.6fr auto;gap:8px;margin-bottom:8px;align-items:center}
-.tarif-row .t-montant{text-align:right}
+.tarif-row{display:grid;grid-template-columns:1.2fr 110px 100px 100px 1.4fr auto;gap:8px;margin-bottom:8px;align-items:center}
+.tarif-row .t-montant,.tarif-row .t-yuan{text-align:right}
+.qr-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.qr-case{border:1px solid var(--line);border-radius:8px;padding:12px;background:#fffdf8;display:flex;flex-direction:column;gap:8px;align-items:center;text-align:center}
+.qr-case b{font-weight:500;font-size:.92rem}
+.qr-case .cadre{width:100%;aspect-ratio:1;border-radius:6px;background:#f3ece0;display:grid;place-items:center;overflow:hidden}
+.qr-case .cadre img{width:100%;height:100%;object-fit:contain}
+.qr-case .cadre span{color:var(--muted);font-size:.84rem}
+.qr-case .row{justify-content:center}
+.qr-case input[type=file]{font-size:.82rem}
 @media (max-width:640px){.tarif-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto}}
 .mat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
 .mat{border:1px solid var(--line);border-radius:6px;padding:8px;background:#fffdf8;display:flex;flex-direction:column;gap:6px}
@@ -248,7 +256,13 @@ body.dash .wrap{max-width:1480px}
       <input type="text" id="fInstagram" placeholder="mon.pseudo">
       <label class="f">Pseudo PayPal.Me (pour le paiement des forfaits)</label>
       <input type="text" id="fPaypal" placeholder="ex. YuanCao — ton lien est paypal.me/YuanCao">
-      <p class="hint" style="margin-top:8px">Avec ce pseudo, chaque formule à montant fixe affiche un bouton « Payer … € sur PayPal » sur le site : l'argent arrive directement sur ton compte PayPal, sans intermédiaire. Pas encore de lien ? Crée-le en une minute sur <a href="https://www.paypal.me" target="_blank" rel="noopener">paypal.me</a>. Les formules sans montant restent « sur devis » : tu envoies toi-même ton lien avec le prix convenu (paypal.me/TonPseudo/40).</p>
+      <label class="f">Identifiant WeChat 微信号 (vide = pas de WeChat sur le site)</label>
+      <input type="text" id="fWechat" placeholder="ex. yuan_cao_88">
+      <p class="hint" style="margin-top:8px">Si tu renseignes WeChat, le site propose aux clients d'envoyer leur demande par <b>WeChat</b> aussi bien que par WhatsApp : le message est copié et ils le collent dans ta conversation.</p>
+      <label class="f">Codes QR (images PNG) — dépose-les une fois, ils s'affichent sur le site</label>
+      <div class="qr-grille" id="qrGrille"></div>
+      <p class="hint" style="margin-top:10px">Depuis WeChat : <b>Moi → Code QR</b> (pour que les clients t'ajoutent) et <b>Moi → Service → Argent → Recevoir</b> (收款码, pour être payée). Enregistre l'image, puis dépose-la ici. Même principe pour Alipay. Ces codes seront <b>publics</b> sur ton site : n'y mets que des codes destinés à tes clients.</p>
+      <p class="hint" style="margin-top:8px">Avec le pseudo PayPal, chaque formule à montant fixe affiche un bouton « Payer … € sur PayPal » sur le site : l'argent arrive directement sur ton compte PayPal, sans intermédiaire. Pas encore de lien ? Crée-le en une minute sur <a href="https://www.paypal.me" target="_blank" rel="noopener">paypal.me</a>. Les formules sans montant restent « sur devis » : tu envoies toi-même ton lien avec le prix convenu (paypal.me/TonPseudo/40).</p>
     </section>
 
     <section>
@@ -305,6 +319,7 @@ body.dash .wrap{max-width:1480px}
           <div><label class="f">Titre</label><input type="text" id="revTitre" placeholder="Revue n°1 — Perles & Or"></div>
           <div><label class="f">Prix affiché</label><input type="text" id="revPrix" placeholder="9 €"></div>
           <div><label class="f">Montant PayPal (€)</label><input type="number" id="revMontant" min="0" step="0.5" placeholder="9"></div>
+          <div><label class="f">Montant WeChat (¥)</label><input type="number" id="revYuan" min="0" step="1" placeholder="70"></div>
           <div class="large"><label class="f">Description (facultatif)</label><input type="text" id="revDesc" placeholder="20 pages de créations, idées de prénoms et de messages…"></div>
           <div class="large"><label class="f">Fichier PDF (≤ 40 Mo) — la couverture et 3 pages d'aperçu sont fabriquées automatiquement</label><input type="file" id="revFichier" accept="application/pdf"></div>
         </div>
@@ -496,12 +511,14 @@ function tarifRow(t = {}){
   row.className = "tarif-row";
   row.innerHTML = `<input type="text" placeholder="Nom (ex. Prénom simple)" class="t-nom">
     <input type="text" placeholder="Prix affiché (ex. 15 € / sur devis)" class="t-prix">
-    <input type="text" inputmode="decimal" placeholder="Montant € (vide = devis)" class="t-montant" title="Montant payable sur PayPal. Vide = sur devis.">
+    <input type="text" inputmode="decimal" placeholder="Montant €" class="t-montant" title="Montant payable sur PayPal. Vide = sur devis.">
+    <input type="text" inputmode="decimal" placeholder="Montant ¥" class="t-yuan" title="Montant en yuans, affiché avec le code QR WeChat Pay. Facultatif.">
     <input type="text" placeholder="Détail (ex. jusqu'à 8 lettres)" class="t-det">
     <button class="danger small" type="button">✕</button>`;
   row.querySelector(".t-nom").value = t.nom || "";
   row.querySelector(".t-prix").value = t.prix || "";
   row.querySelector(".t-montant").value = t.montant ? String(t.montant) : "";
+  row.querySelector(".t-yuan").value = t.yuan ? String(t.yuan) : "";
   row.querySelector(".t-det").value = t.detail || "";
   // si l'on saisit un montant et que le prix affiché est vide, on le propose
   row.querySelector(".t-montant").addEventListener("change", () => {
@@ -542,6 +559,7 @@ function remplir(){
   $("fWhatsapp").value = CFG.whatsapp || "";
   $("fInstagram").value = CFG.instagram || "";
   $("fPaypal").value = CFG.paypal || "";
+  $("fWechat").value = CFG.wechat || "";
   $("tarifList").innerHTML = ""; (CFG.tarifs || []).forEach(tarifRow);
   $("matGrid").innerHTML = ""; (CFG.matieres || []).forEach(matCard);
   $("collList").innerHTML = ""; (CFG.collections || []).forEach(collRow);
@@ -552,12 +570,15 @@ function lireFormulaire(){
     whatsapp: $("fWhatsapp").value.replace(/[^\d]/g, ""),
     instagram: $("fInstagram").value.trim().replace(/^@/, ""),
     paypal: $("fPaypal").value.trim().replace(/^https?:\/\/(www\.)?paypal\.me\//i, "").replace(/^@/, "").replace(/\/.*$/, ""),
+    wechat: $("fWechat").value.trim().replace(/^@/, ""),
     tarifs: [...document.querySelectorAll(".tarif-row")].map(r => {
       const m = Number(r.querySelector(".t-montant").value.trim().replace(",", "."));
+      const y = Number(r.querySelector(".t-yuan").value.trim().replace(",", "."));
       return {
         nom: r.querySelector(".t-nom").value.trim(),
         prix: r.querySelector(".t-prix").value.trim(),
         ...(m > 0 ? { montant: Math.round(m * 100) / 100 } : {}),
+        ...(y > 0 ? { yuan: Math.round(y * 100) / 100 } : {}),
         detail: r.querySelector(".t-det").value.trim()
       };
     }).filter(t => t.nom),
@@ -802,6 +823,42 @@ async function apercusPdf(file, nb = 4){
   return { images, pages: doc.numPages };
 }
 
+/* ---- codes QR (contact WeChat, WeChat Pay, Alipay) ---- */
+const QR_LIBELLES = { wechat: ["Mon QR WeChat", "pour que les clients m'ajoutent"], wechatpay: ["WeChat Pay 收款码", "pour recevoir les paiements"], alipay: ["Alipay 支付宝", "facultatif"] };
+let QR_PRESENTS = [];
+function construireQr(){
+  const g = $("qrGrille"); g.innerHTML = "";
+  for (const [type, [titre, sous]] of Object.entries(QR_LIBELLES)){
+    const present = QR_PRESENTS.includes(type);
+    const c = document.createElement("div"); c.className = "qr-case";
+    c.innerHTML = `<b>${titre}</b><div class="cadre">${present ? `<img alt="" src="${MEDIA_URL}/q/${type}.png?${Date.now()}">` : `<span>aucun code</span>`}</div>
+      <div class="det" style="color:var(--muted);font-size:.82rem">${sous}</div>
+      <input type="file" accept="image/png,image/jpeg,image/webp">
+      <div class="row"><span class="progress"></span>${present ? `<button class="small danger" type="button">Retirer</button>` : ""}</div>`;
+    c.querySelector("input").onchange = async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      const msg = c.querySelector(".progress"); msg.textContent = "Envoi…";
+      try { await envoyerBinaire("/qr/" + type, await qrEnPng(f), "image/png"); msg.textContent = ""; statusMsg("Code QR enregistré.", "ok"); await chargerQr(); }
+      catch (err) { msg.textContent = ""; statusMsg(err.message, "err"); }
+    };
+    const sup = c.querySelector("button");
+    if (sup) sup.onclick = async () => { if (!confirm("Retirer ce code QR du site ?")) return; try { await apiAtelier("/qr/" + type, { method: "DELETE" }); await chargerQr(); statusMsg("Code retiré.", "ok"); } catch (e) { statusMsg(e.message, "err"); } };
+    g.appendChild(c);
+  }
+}
+/* le QR est réenregistré en PNG (sans perte) et réduit à 720 px : lisible par les scanners */
+async function qrEnPng(file){
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 720 / Math.max(bmp.width, bmp.height));
+  const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(bmp, 0, 0, c.width, c.height);
+  return await new Promise(r => c.toBlob(r, "image/png"));
+}
+async function chargerQr(){
+  try { const r = await fetch(ATELIER_API + "/qr", { cache: "no-store" }); if (r.ok) QR_PRESENTS = (await r.json()).types || []; } catch {}
+  construireQr();
+}
+
 async function chargerMedia(){
   if (!SESSION){ $("revuesListe").innerHTML = "<p class='hint'>Les revues et vidéos se gèrent avec la connexion par WhatsApp.</p>"; $("videosListe").innerHTML = ""; return; }
   try {
@@ -809,6 +866,7 @@ async function chargerMedia(){
     const v = await apiAtelier("/videos/tous"); VIDEOS = v.videos || [];
   } catch (e) { statusMsg("Médiathèque : " + e.message, "err"); }
   rendreRevues(); rendreVideos(); compteurs();
+  chargerQr();
 }
 
 function rendreRevues(){
@@ -818,7 +876,7 @@ function rendreRevues(){
     const liens = LIENS.filter(l => l.revue === r.id);
     const card = document.createElement("div"); card.className = "media-card";
     card.innerHTML = `<img class="vignette" alt="" src="${r.apercus ? MEDIA_URL + "/r/" + r.id + "/0.jpg?" + Date.now() : ""}">
-      <div><div class="titre">${echap(r.titre)}</div><div class="det">${echap(r.prix || "prix non indiqué")}${r.montant ? " · PayPal " + r.montant + " €" : ""} · ${r.pages ? r.pages + " pages · " : ""}${r.taille ? ko(r.taille) : "<b style='color:var(--err)'>PDF manquant</b>"} · ${quand(r.date)}</div>${r.description ? `<div class="det">${echap(r.description)}</div>` : ""}</div>
+      <div><div class="titre">${echap(r.titre)}</div><div class="det">${echap(r.prix || "prix non indiqué")}${r.montant ? " · PayPal " + r.montant + " €" : ""}${r.yuan ? " · WeChat ¥" + r.yuan : ""} · ${r.pages ? r.pages + " pages · " : ""}${r.taille ? ko(r.taille) : "<b style='color:var(--err)'>PDF manquant</b>"} · ${quand(r.date)}</div>${r.description ? `<div class="det">${echap(r.description)}</div>` : ""}</div>
       <div class="actions"><button class="small" type="button" data-act="lien">Générer un lien de téléchargement</button><button class="small danger" type="button" data-act="suppr">Supprimer</button></div>
       <div class="liens">${liens.map(l => `<div><code>${MEDIA_URL}/t/${l.code}</code><span class="det">valable jusqu'au ${quand(new Date(l.expire).toISOString())} · ${l.restants} téléchargement${l.restants > 1 ? "s" : ""} restant${l.restants > 1 ? "s" : ""}</span><button class="small ghost" type="button" data-copie="${MEDIA_URL}/t/${l.code}">Copier</button></div>`).join("")}</div>`;
     card.querySelector("[data-act=lien]").onclick = async (ev) => {
@@ -845,12 +903,12 @@ $("addRevBtn").onclick = async () => {
     msg.textContent = "Lecture du PDF et fabrication des aperçus…";
     let ap = { images: [], pages: 0 };
     try { ap = await apercusPdf(file); } catch (e) { console.warn(e); msg.textContent = "Aperçus impossibles (" + e.message + ") — envoi du PDF seul…"; }
-    const j = await apiAtelier("/revue", { method: "POST", body: JSON.stringify({ titre, description: $("revDesc").value.trim(), prix: $("revPrix").value.trim(), montant: Number($("revMontant").value || 0), pages: ap.pages }) });
+    const j = await apiAtelier("/revue", { method: "POST", body: JSON.stringify({ titre, description: $("revDesc").value.trim(), prix: $("revPrix").value.trim(), montant: Number($("revMontant").value || 0), yuan: Number($("revYuan").value || 0), pages: ap.pages }) });
     const id = j.revue.id;
     await envoyerBinaire("/revue/" + id + "/pdf", file, "application/pdf", p => { msg.textContent = "Envoi du PDF… " + Math.round(p * 100) + " %"; });
     for (let k = 0; k < ap.images.length; k++){ msg.textContent = "Envoi des aperçus… " + (k + 1) + "/" + ap.images.length; await envoyerBinaire("/revue/" + id + "/image/" + k, ap.images[k], "image/jpeg"); }
     msg.textContent = ""; statusMsg("Revue en ligne.", "ok");
-    $("revTitre").value = ""; $("revDesc").value = ""; $("revPrix").value = ""; $("revMontant").value = ""; $("revFichier").value = "";
+    $("revTitre").value = ""; $("revDesc").value = ""; $("revPrix").value = ""; $("revMontant").value = ""; $("revYuan").value = ""; $("revFichier").value = "";
     await chargerMedia();
   } catch (e) { msg.textContent = ""; statusMsg(e.message, "err"); }
   btn.disabled = false;

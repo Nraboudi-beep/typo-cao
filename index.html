@@ -119,6 +119,7 @@ header .bar{justify-self:center}
 .revue-achat b{display:block;font-size:1.3rem;color:var(--gold-deep);font-family:var(--display);font-weight:500}
 .revue-achat span{font-size:.78rem;color:var(--muted);max-width:40ch;display:block}
 .revue-achat .cta{display:inline-block;background:var(--gold-deep);color:#fdf9f1;border-radius:4px;padding:.8em 1.3em;text-decoration:none;font-size:.8rem;letter-spacing:.1em;font-weight:500}
+.revue-boutons{display:flex;gap:10px;flex-wrap:wrap}
 .panel.panel-video{max-width:min(94vw,64rem)}
 .video-cadre{background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9;display:grid;place-items:center}
 .video-cadre video,.video-cadre iframe{width:100%;height:100%;border:0;display:block}
@@ -326,6 +327,20 @@ a.pp{
   border-radius:4px;padding:10px 18px;border:1px solid #0d3b8e;background:#0d3b8e;color:#fff;white-space:nowrap;
 }
 .pay-note{flex-basis:100%;color:var(--muted);font-size:.78rem;margin:2px 0 0}
+button.wx{background:#07c160;border-color:#07c160;color:#fff;font-size:.78rem;padding:10px 18px;border-radius:4px}
+button.wxp{background:transparent;border-color:#07c160;color:#0a8f48;font-size:.78rem;padding:10px 18px;border-radius:4px;box-shadow:none}
+button.wx:hover,button.wxp:hover{transform:none;filter:brightness(1.05)}
+#wxModal{z-index:70}
+.panel-wx .actions a{display:inline-block;text-decoration:none;font-family:var(--body);font-weight:500;font-size:.78rem;letter-spacing:.1em;border-radius:4px;padding:10px 18px;border:1px solid var(--gold-deep);color:var(--gold-deep);background:transparent;white-space:nowrap}
+.panel-wx .actions a:hover{background:rgba(163,120,60,.1)}
+.panel.panel-wx{max-width:min(94vw,38rem)}
+.wx-corps{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;margin:4px 0 6px}
+.wx-qr{text-align:center;display:flex;flex-direction:column;gap:6px}
+.wx-qr img{width:clamp(150px,34vw,210px);height:auto;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px}
+.wx-qr small{color:var(--muted);font-size:.72rem;max-width:22ch;margin:0 auto}
+.wx-etapes{margin:0;padding-left:1.2em;color:var(--fg);font-size:.86rem;line-height:1.7}
+.wx-etapes b{font-weight:500}
+@media (max-width:620px){.wx-corps{grid-template-columns:1fr}.wx-qr img{width:min(62vw,230px)}}
 a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decoration:none;border-bottom:1px solid var(--gold)}
 .avis-liste{display:flex;flex-direction:column;gap:12px;max-height:38vh;overflow-y:auto;overscroll-behavior:contain}
 .avis-item{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffdf8}
@@ -500,6 +515,24 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 </div>
 
 <!-- avis clients -->
+<div class="modal" id="wxModal" hidden>
+  <div class="panel panel-wx">
+    <div class="close-row"><button type="button" class="x" id="wxClose" aria-label="Fermer">✕</button></div>
+    <h2 id="wxTitre">Envoyer par WeChat</h2>
+    <p class="sum" id="wxSum"></p>
+    <div class="wx-corps">
+      <div class="wx-qr"><img id="wxQr" alt=""><small id="wxQrNote"></small></div>
+      <ol class="wx-etapes" id="wxEtapes"></ol>
+    </div>
+    <div class="actions">
+      <button type="button" id="wxCopier" hidden>Copier mon message</button>
+      <a class="ghost" id="wxTelecharger" download>Enregistrer le code QR</a>
+      <a class="ghost" id="wxOuvrir" href="weixin://">Ouvrir WeChat</a>
+      <span class="done" id="wxDone" hidden>Copié !</span>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="revueModal" hidden>
   <div class="panel panel-revue">
     <div class="close-row"><button type="button" class="x" id="revueClose" aria-label="Fermer">✕</button></div>
@@ -508,7 +541,10 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="revue-pages" id="revuePages"></div>
     <div class="revue-achat">
       <div><b id="revuePrix"></b><span>PDF envoyé par l'atelier après règlement — lien de téléchargement valable 7 jours.</span></div>
-      <a class="cta" id="revueCommander" target="_blank" rel="noopener">Commander sur WhatsApp</a>
+      <div class="revue-boutons">
+        <a class="cta" id="revueCommander" target="_blank" rel="noopener">Commander sur WhatsApp</a>
+        <button type="button" class="wx" id="revueWechat" hidden>Commander par WeChat 微信</button>
+      </div>
     </div>
   </div>
 </div>
@@ -612,7 +648,9 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
     <div class="envoi">
       <div class="actions">
         <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
+        <button type="button" class="wx" id="wxBtn" hidden>Envoyer par WeChat 微信</button>
         <a class="pp" id="ppLink" href="#" target="_blank" rel="noopener" hidden>Payer sur PayPal</a>
+        <button type="button" class="wxp" id="wxPayBtn" hidden>Payer par WeChat Pay</button>
         <button type="button" id="copyBtn">Copier le message</button>
         <p class="pay-note" id="payNote" hidden></p>
         <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
@@ -633,6 +671,7 @@ const DEFAUTS = {
   whatsapp: "33665433314",
   instagram: "",
   paypal: "",
+  wechat: "",
   tarifs: [],
   collections: [
     { id:"perles", label:"Perles & Or" },
@@ -2034,7 +2073,7 @@ function buildMessage(){
     "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : "") + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + MONTAGE.cles.length + " positions clés" : "") + (nbDetachees() ? " · " + nbDetachees() + (nbDetachees() > 1 ? " lettres placées" : " lettre placée") + " à la main" : ""),
     ...(formule ? ["Formule : " + formule.value] : []),
     "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
-    ...(pay.lien ? ["Règlement : PayPal — " + pay.lien] : (pay.montant ? [] : ["Règlement : après accord sur le prix (lien PayPal envoyé par l'atelier)"])),
+    ...(ligneReglement(pay) ? [ligneReglement(pay)] : []),
     "Aperçu : " + (APERCU.page || (renderedOnce ? "vidéo générée sur le site" : "non généré")),
     "Vidéo : " + (APERCU.video ? "aperçu animé inclus dans le lien ci-dessus (l'original vous sera demandé pour la version finale)" : (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"))
   ];
@@ -2050,33 +2089,55 @@ function pseudoPaypal(){
 function infoPaiement(){
   const formule = document.querySelector('#tarifChoices input:checked');
   const pseudo = pseudoPaypal();
-  if (!formule) return { ligne: pseudo ? "" : "", lien: "" };
+  const yuan = formule ? Number(formule.dataset.yuan || 0) : 0;
+  if (!formule) return { ligne: "", lien: "", yuan: 0 };
   const montant = Number(formule.dataset.montant || 0);
   if (montant > 0 && pseudo){
     const lien = "https://paypal.me/" + encodeURIComponent(pseudo) + "/" + montant + "EUR";
-    return { montant, lien, ligne: montant + " € via PayPal (" + lien + ")" };
+    return { montant, yuan, lien, ligne: montant + " € via PayPal (" + lien + ")" };
   }
-  if (montant > 0) return { montant, lien: "", ligne: montant + " €" };
-  return { lien: "", ligne: "sur devis" };
+  if (montant > 0) return { montant, yuan, lien: "", ligne: montant + " €" };
+  return { lien: "", yuan, ligne: "sur devis" };
+}
+/* ligne « Règlement » du devis : PayPal et/ou WeChat Pay selon ce qui est configuré */
+function ligneReglement(pay){
+  const parts = [];
+  if (pay.lien) parts.push("PayPal — " + pay.lien);
+  if (QR.includes("wechatpay")) parts.push("WeChat Pay" + (pay.yuan ? " (¥" + pay.yuan + ")" : ""));
+  if (QR.includes("alipay")) parts.push("Alipay");
+  if (!parts.length) return pay.montant ? "" : "Règlement : après accord sur le prix (l'atelier envoie le moyen de paiement)";
+  return "Règlement : " + parts.join(" · ");
 }
 
 function refreshPaiement(){
   const pp = document.getElementById("ppLink"), note = document.getElementById("payNote");
+  const wxp = document.getElementById("wxPayBtn");
   const pay = infoPaiement();
   const formule = document.querySelector('#tarifChoices input:checked');
+  const qrPay = QR.includes("wechatpay") || QR.includes("alipay");
+  if (wxp){
+    wxp.hidden = !(qrPay && formule);
+    wxp.textContent = QR.includes("wechatpay")
+      ? "Payer par WeChat Pay" + (pay.yuan ? " · ¥" + pay.yuan : "")
+      : "Payer par Alipay" + (pay.yuan ? " · ¥" + pay.yuan : "");
+  }
   if (pay.lien){
     pp.hidden = false; pp.href = pay.lien;
     pp.textContent = "Payer " + pay.montant + " € sur PayPal";
-    note.hidden = false; note.textContent = "Envoyez d'abord votre demande sur WhatsApp, puis réglez le forfait sur PayPal : Yuan démarre votre vidéo dès réception.";
-  } else {
-    pp.hidden = true;
-    if (formule && pseudoPaypal()){ note.hidden = false; note.textContent = "Formule sur devis : Yuan vous répond sur WhatsApp avec le prix, puis vous envoie son lien de paiement PayPal."; }
-    else note.hidden = true;
-  }
+  } else pp.hidden = true;
+  const moyens = (pay.lien ? 1 : 0) + (qrPay && formule ? 1 : 0);
+  if (pay.lien || (qrPay && formule)){
+    note.hidden = false;
+    note.textContent = "Envoyez d'abord votre demande" + (CFG.wechat ? " (WhatsApp ou WeChat)" : "") + ", puis réglez" + (moyens > 1 ? " au choix" : "") + " : l'atelier démarre votre vidéo dès réception.";
+  } else if (formule){
+    note.hidden = false; note.textContent = "Formule sur devis : l'atelier vous répond avec le prix, puis vous envoie le moyen de paiement.";
+  } else note.hidden = true;
 }
 
 function refreshWa(){
   refreshPaiement();
+  const wx = document.getElementById("wxBtn");
+  if (wx) wx.hidden = !(CFG.wechat || QR.includes("wechat"));
   const wa = document.getElementById("waLink");
   if (!CFG.whatsapp){ wa.hidden = true; return; }
   wa.hidden = false;
@@ -2229,6 +2290,8 @@ function construireTarifs(){
     lab.querySelector("input").value = val;
     const montant = Number(String(t.montant || "").replace(",", "."));
     if (montant > 0) lab.querySelector("input").dataset.montant = montant;
+    const yuan = Number(String(t.yuan || "").replace(",", "."));
+    if (yuan > 0) lab.querySelector("input").dataset.yuan = yuan;
     if (i === 0) lab.querySelector("input").checked = true;
     lab.querySelector(".nm").textContent = t.nom;
     lab.querySelector(".det").textContent = t.detail || "";
@@ -2531,12 +2594,46 @@ window.addEventListener("resize", sizeLetters);
 
 /* ================== REVUES (PDF payants) ET VIDÉOS D'EXEMPLE ================== */
 const MEDIA_URL = ATELIER_API.replace(/\/api\/typo-cao$/, "");
-let REVUES = [], VIDEOS = [];
+let REVUES = [], VIDEOS = [], QR = [];
 async function chargerMedia(){
+  try { const r = await fetch(ATELIER_API + "/qr", { cache: "no-store" }); if (r.ok) QR = (await r.json()).types || []; } catch {}
   try { const r = await fetch(ATELIER_API + "/revues", { cache: "no-store" }); if (r.ok) REVUES = (await r.json()).revues || []; } catch {}
   try { const r = await fetch(ATELIER_API + "/videos", { cache: "no-store" }); if (r.ok) VIDEOS = (await r.json()).videos || []; } catch {}
-  construireRevues(); construireVideos();
+  construireRevues(); construireVideos(); refreshWa();
 }
+
+/* ---- WeChat : envoi de la demande et paiement (le message est copié, le client le colle) ---- */
+const wxModal = document.getElementById("wxModal");
+async function copierTexte(t){ try { await navigator.clipboard.writeText(t); return true; } catch { const z = document.createElement("textarea"); z.value = t; z.style.position = "fixed"; z.style.opacity = "0"; document.body.appendChild(z); z.select(); let ok = false; try { ok = document.execCommand("copy"); } catch {} z.remove(); return ok; } }
+function ouvrirWx(mode, texte, montant){
+  const contact = QR.includes("wechat"), pay = mode === "pay";
+  const type = pay ? (QR.includes("wechatpay") ? "wechatpay" : "alipay") : "wechat";
+  document.getElementById("wxTitre").textContent = pay ? (type === "alipay" ? "Payer par Alipay" : "Payer par WeChat Pay") : "Envoyer par WeChat";
+  document.getElementById("wxSum").textContent = pay
+    ? (montant ? "Montant à régler : " + montant : "Scannez le code de l'atelier et saisissez le montant convenu.")
+    : (CFG.wechat ? "Identifiant WeChat de l'atelier : " + CFG.wechat : "Scannez le code pour ajouter l'atelier sur WeChat.");
+  const img = document.getElementById("wxQr"), note = document.getElementById("wxQrNote");
+  const url = MEDIA_URL + "/q/" + type + ".png";
+  img.src = url; img.alt = pay ? "Code de paiement" : "Code QR de l'atelier";
+  img.hidden = !(QR.includes(type));
+  note.textContent = QR.includes(type) ? (pay ? "Code de réception de l'atelier" : "Code à scanner pour ajouter l'atelier") : "";
+  const tel = document.getElementById("wxTelecharger");
+  tel.href = url; tel.download = (pay ? "paiement" : "wechat") + "-typo-cao.png"; tel.hidden = !QR.includes(type);
+  const et = document.getElementById("wxEtapes"); et.innerHTML = "";
+  const etapes = pay
+    ? ["Ouvrez <b>WeChat</b> → <b>Découvrir</b> → <b>Scanner</b>.", "Sur téléphone : enregistrez d'abord l'image, puis dans le scanner choisissez <b>Album</b>.", montant ? "Saisissez le montant <b>" + montant + "</b> et validez." : "Saisissez le montant convenu avec l'atelier et validez.", "Prévenez l'atelier dans la conversation : votre vidéo démarre dès réception."]
+    : ["<b>Copiez votre message</b> avec le bouton ci-dessous (il contient le lien de votre aperçu).", contact ? "Ajoutez l'atelier : <b>WeChat → Découvrir → Scanner</b> ce code (sur téléphone, enregistrez l'image puis choisissez <b>Album</b>)." + (CFG.wechat ? " Ou cherchez l'identifiant <b>" + CFG.wechat + "</b>." : "") : "Cherchez l'identifiant <b>" + (CFG.wechat || "de l'atelier") + "</b> dans WeChat.", "<b>Collez le message</b> dans la conversation et envoyez."];
+  for (const e of etapes){ const li = document.createElement("li"); li.innerHTML = e; et.appendChild(li); }
+  const cop = document.getElementById("wxCopier");
+  cop.hidden = pay;
+  cop.onclick = async () => { const ok = await copierTexte(texte || buildMessage()); const d = document.getElementById("wxDone"); d.hidden = false; d.textContent = ok ? "Copié ! Collez-le dans WeChat." : "Copie impossible — sélectionnez le texte à la main."; setTimeout(() => { d.hidden = true; }, 4000); };
+  document.getElementById("wxDone").hidden = true;
+  wxModal.hidden = false;
+}
+document.getElementById("wxClose").addEventListener("click", () => { wxModal.hidden = true; });
+wxModal.addEventListener("click", e => { if (e.target === wxModal) wxModal.hidden = true; });
+document.getElementById("wxBtn").addEventListener("click", () => { planifierMajApercu(); ouvrirWx("envoi", buildMessage()); });
+document.getElementById("wxPayBtn").addEventListener("click", () => { const pay = infoPaiement(); ouvrirWx("pay", "", pay.yuan ? "¥" + pay.yuan : (pay.montant ? pay.montant + " €" : "")); });
 function construireRevues(){
   const bloc = document.getElementById("blocRevues"), liste = document.getElementById("revues");
   liste.innerHTML = ""; bloc.hidden = !REVUES.length;
@@ -2552,9 +2649,12 @@ function construireRevues(){
 }
 function messageRevue(r){
   const pseudo = pseudoPaypal();
-  const lignes = ["DEMANDE REVUE", "Revue : " + r.titre, "Prix : " + (r.prix || (r.montant ? r.montant + " €" : "à confirmer"))];
-  if (r.montant && pseudo) lignes.push("Règlement : PayPal — https://paypal.me/" + encodeURIComponent(pseudo) + "/" + r.montant + "EUR");
-  else lignes.push("Règlement : à convenir avec l'atelier");
+  const lignes = ["DEMANDE REVUE", "Revue : " + r.titre, "Prix : " + (r.prix || (r.montant ? r.montant + " €" : (r.yuan ? "¥" + r.yuan : "à confirmer")))];
+  const moyens = [];
+  if (r.montant && pseudo) moyens.push("PayPal — https://paypal.me/" + encodeURIComponent(pseudo) + "/" + r.montant + "EUR");
+  if (QR.includes("wechatpay")) moyens.push("WeChat Pay" + (r.yuan ? " (¥" + r.yuan + ")" : ""));
+  if (QR.includes("alipay")) moyens.push("Alipay");
+  lignes.push("Règlement : " + (moyens.length ? moyens.join(" · ") : "à convenir avec l'atelier"));
   lignes.push("Après règlement, merci de m'envoyer le lien de téléchargement.");
   return lignes.join("\n");
 }
@@ -2565,7 +2665,11 @@ function ouvrirRevue(r){
   for (let k = 0; k < (r.apercus || 0); k++){ const im = document.createElement("img"); im.src = `${MEDIA_URL}/r/${r.id}/${k}.jpg`; im.alt = k ? "Page d'aperçu " + k : "Couverture"; pages.appendChild(im); }
   document.getElementById("revuePrix").textContent = r.prix || (r.montant ? r.montant + " €" : "Prix sur demande");
   const a = document.getElementById("revueCommander");
+  a.hidden = !CFG.whatsapp;
   a.href = CFG.whatsapp ? "https://wa.me/" + CFG.whatsapp + "?text=" + encodeURIComponent(messageRevue(r)) : "#";
+  const w = document.getElementById("revueWechat");
+  w.hidden = !(CFG.wechat || QR.includes("wechat"));
+  w.onclick = () => { document.getElementById("revueModal").hidden = true; ouvrirWx("envoi", messageRevue(r)); };
   document.getElementById("revueModal").hidden = false;
 }
 document.getElementById("revueClose").addEventListener("click", () => { document.getElementById("revueModal").hidden = true; });
