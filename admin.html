@@ -88,6 +88,20 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .avis-card .etat{margin-left:auto;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .avis-card.publie .etat{color:var(--ok)}
 .avis-card .texte{margin:6px 0 10px;font-size:.88rem}
+.media-liste{display:flex;flex-direction:column;gap:10px}
+.media-card{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:#fffdf8}
+.media-card .vignette{width:96px;height:72px;object-fit:cover;border-radius:4px;background:#2b2218;box-shadow:0 6px 14px -6px rgba(90,62,28,.5)}
+.media-card .titre{font-weight:500}
+.media-card .det{color:var(--muted);font-size:.86rem}
+.media-card .actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.media-card .liens{grid-column:1/-1;font-size:.86rem;display:flex;flex-direction:column;gap:6px}
+.media-card .liens div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.media-card .liens code{background:#f3ece0;padding:4px 8px;border-radius:4px;font-size:.84rem;user-select:all}
+.media-card .liens .vieux{opacity:.55;text-decoration:line-through}
+.media-form{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
+.media-form .large{grid-column:1/-1}
+.media-form label.f{margin-top:12px}
+@media (max-width:760px){.media-form{grid-template-columns:1fr}.media-card{grid-template-columns:auto 1fr}.media-card .actions{grid-column:1/-1;justify-content:flex-start}}
 .status{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:var(--fg);color:#fdf9f1;border-radius:6px;padding:10px 20px;font-size:.85rem;max-width:90vw;z-index:9}
 .status.err{background:var(--err)}
 .status.ok{background:var(--ok)}
@@ -188,6 +202,8 @@ body.dash .wrap{max-width:1480px}
       <button type="button" data-page="boutique">Contacts &amp; tarifs</button>
       <button type="button" data-page="collections">Collections<span class="n" id="nColl"></span></button>
       <button type="button" data-page="matieres">Matières<span class="n" id="nMat"></span></button>
+      <button type="button" data-page="revues">Revues<span class="n" id="nRevues"></span></button>
+      <button type="button" data-page="videos">Vidéos<span class="n" id="nVideos"></span></button>
       <button type="button" data-page="avis">Avis clients<span class="n" id="nAvis" hidden></span></button>
     </nav>
 
@@ -274,6 +290,49 @@ body.dash .wrap{max-width:1480px}
           <button class="small" id="addMatBtn">Ajouter</button>
         </div>
         <span class="progress" id="matMsg"></span>
+      </div>
+    </section>
+    </div>
+
+    <div class="page" data-page="revues" hidden>
+    <section>
+      <h2>Revues (PDF, téléchargement payant)</h2>
+      <p class="hint">Chaque revue est un PDF. Sur le site, les clients voient la couverture, quelques pages d'aperçu <b>filigranées</b> et le prix, puis te passent commande sur WhatsApp. Une fois le règlement reçu, tu génères ici un <b>lien de téléchargement</b> (valable 7 jours, 3 téléchargements) et tu le lui envoies. Le PDF original n'est jamais accessible autrement.</p>
+      <div id="revuesListe" class="media-liste"></div>
+      <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+        <b style="font-weight:500">Nouvelle revue</b>
+        <div class="media-form">
+          <div><label class="f">Titre</label><input type="text" id="revTitre" placeholder="Revue n°1 — Perles & Or"></div>
+          <div><label class="f">Prix affiché</label><input type="text" id="revPrix" placeholder="9 €"></div>
+          <div><label class="f">Montant PayPal (€)</label><input type="number" id="revMontant" min="0" step="0.5" placeholder="9"></div>
+          <div class="large"><label class="f">Description (facultatif)</label><input type="text" id="revDesc" placeholder="20 pages de créations, idées de prénoms et de messages…"></div>
+          <div class="large"><label class="f">Fichier PDF (≤ 40 Mo) — la couverture et 3 pages d'aperçu sont fabriquées automatiquement</label><input type="file" id="revFichier" accept="application/pdf"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="addRevBtn">Envoyer la revue</button>
+          <span class="progress" id="revMsg"></span>
+        </div>
+      </div>
+    </section>
+    </div>
+
+    <div class="page" data-page="videos" hidden>
+    <section>
+      <h2>Vidéos d'exemple</h2>
+      <p class="hint">Pour montrer aux clients ce que tu sais faire. Soit un <b>fichier vidéo</b> (MP4 ou WebM, ≤ 60 Mo, lu avec le lecteur Typo Cao), soit un <b>lien</b> YouTube, Vimeo, Instagram ou TikTok.</p>
+      <div id="videosListe" class="media-liste"></div>
+      <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
+        <b style="font-weight:500">Nouvelle vidéo</b>
+        <div class="media-form">
+          <div><label class="f">Titre</label><input type="text" id="vidTitre" placeholder="Prénom sur une vidéo de mariage"></div>
+          <div class="large"><label class="f">Description (facultatif)</label><input type="text" id="vidDesc" placeholder="Collection Perles & Or, effet Éclat"></div>
+          <div><label class="f">Fichier vidéo (MP4 / WebM)</label><input type="file" id="vidFichier" accept="video/mp4,video/webm"></div>
+          <div><label class="f">… ou lien (YouTube, Vimeo, Instagram, TikTok)</label><input type="url" id="vidLien" placeholder="https://www.youtube.com/watch?v=…"></div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button id="addVidBtn">Mettre en ligne</button>
+          <span class="progress" id="vidMsg"></span>
+        </div>
       </div>
     </section>
     </div>
@@ -654,6 +713,8 @@ document.querySelectorAll(".onglets button").forEach(b => b.onclick = () => alle
 function compteurs(){
   $("nColl").textContent = $("collList").children.length || "";
   $("nMat").textContent = $("matGrid").children.length || "";
+  $("nRevues").textContent = $("revuesListe").children.length || "";
+  $("nVideos").textContent = $("videosListe").children.length || "";
   const attente = AVIS.filter(a => !a.approuve).length;
   $("nAvis").hidden = !attente;
   $("nAvis").textContent = attente || "";
@@ -676,7 +737,175 @@ async function ouvrirDash(){
   if (!Array.isArray(AVIS)) AVIS = [];
   rendreAvisAdmin();
   compteurs();
+  chargerMedia();
 }
+
+/* ================== MÉDIATHÈQUE : revues (PDF payants) et vidéos d'exemple ================== */
+const MEDIA_URL = ATELIER_API.replace(/\/api\/typo-cao$/, "");
+let REVUES = [], VIDEOS = [], LIENS = [];
+const echap = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ko = n => n > 1e6 ? (n / 1e6).toFixed(1) + " Mo" : Math.round(n / 1024) + " Ko";
+const quand = iso => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }); } catch { return ""; } };
+
+/* envoi binaire avec progression (XHR) */
+function envoyerBinaire(path, blob, type, onProgress){
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open("PUT", ATELIER_API + path);
+    x.setRequestHeader("Content-Type", type);
+    if (SESSION) x.setRequestHeader("Authorization", "Bearer " + SESSION);
+    x.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    x.onload = () => { let j = {}; try { j = JSON.parse(x.responseText); } catch {} if (x.status >= 200 && x.status < 300) resolve(j); else reject(new Error((j.error && j.error.message) || ("Erreur " + x.status))); };
+    x.onerror = () => reject(new Error("Envoi impossible (réseau)"));
+    x.send(blob);
+  });
+}
+const versJpeg = (canvas, q = 0.82) => new Promise(r => canvas.toBlob(r, "image/jpeg", q));
+
+/* filigrane diagonal sur une image d'aperçu */
+function filigraner(ctx, w, h, texte = "TYPO CAO · APERÇU"){
+  ctx.save(); ctx.translate(w / 2, h / 2); ctx.rotate(-28 * Math.PI / 180);
+  ctx.font = "bold " + Math.round(w / 11) + "px system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const pas = Math.round(w / 4.2);
+  for (let y = -h; y < h; y += pas) for (let x = -w; x < w; x += w * 0.9){ ctx.fillStyle = "rgba(43,34,24,.16)"; ctx.fillText(texte, x + (Math.round(y / pas) % 2) * w * 0.45, y); ctx.fillStyle = "rgba(255,253,248,.22)"; ctx.fillText(texte, x + (Math.round(y / pas) % 2) * w * 0.45 + 2, y + 2); }
+  ctx.restore();
+}
+
+/* pdf.js (chargé à la demande) : rendu des pages d'aperçu */
+let pdfjsPromesse = null;
+function chargerPdfjs(){
+  if (pdfjsPromesse) return pdfjsPromesse;
+  pdfjsPromesse = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = () => { try { window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; resolve(window.pdfjsLib); } catch (e) { reject(e); } };
+    s.onerror = () => reject(new Error("pdf.js indisponible"));
+    document.head.appendChild(s);
+  });
+  return pdfjsPromesse;
+}
+async function apercusPdf(file, nb = 4){
+  const pdfjs = await chargerPdfjs();
+  const doc = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+  const images = [];
+  for (let n = 1; n <= Math.min(nb, doc.numPages); n++){
+    const page = await doc.getPage(n);
+    const v0 = page.getViewport({ scale: 1 });
+    const scale = Math.min(1100 / v0.width, 1400 / v0.height, 3);
+    const vp = page.getViewport({ scale });
+    const c = document.createElement("canvas"); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const ctx = c.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    if (n > 1) filigraner(ctx, c.width, c.height);      // la couverture reste propre, les pages sont filigranées
+    images.push(await versJpeg(c, n === 1 ? 0.86 : 0.78));
+  }
+  return { images, pages: doc.numPages };
+}
+
+async function chargerMedia(){
+  if (!SESSION){ $("revuesListe").innerHTML = "<p class='hint'>Les revues et vidéos se gèrent avec la connexion par WhatsApp.</p>"; $("videosListe").innerHTML = ""; return; }
+  try {
+    const r = await apiAtelier("/revues/tous"); REVUES = r.revues || []; LIENS = r.liens || [];
+    const v = await apiAtelier("/videos/tous"); VIDEOS = v.videos || [];
+  } catch (e) { statusMsg("Médiathèque : " + e.message, "err"); }
+  rendreRevues(); rendreVideos(); compteurs();
+}
+
+function rendreRevues(){
+  const bloc = $("revuesListe"); bloc.innerHTML = "";
+  if (!REVUES.length){ bloc.innerHTML = "<p class='hint' style='margin:0'>Aucune revue pour l'instant.</p>"; return; }
+  for (const r of REVUES){
+    const liens = LIENS.filter(l => l.revue === r.id);
+    const card = document.createElement("div"); card.className = "media-card";
+    card.innerHTML = `<img class="vignette" alt="" src="${r.apercus ? MEDIA_URL + "/r/" + r.id + "/0.jpg?" + Date.now() : ""}">
+      <div><div class="titre">${echap(r.titre)}</div><div class="det">${echap(r.prix || "prix non indiqué")}${r.montant ? " · PayPal " + r.montant + " €" : ""} · ${r.pages ? r.pages + " pages · " : ""}${r.taille ? ko(r.taille) : "<b style='color:var(--err)'>PDF manquant</b>"} · ${quand(r.date)}</div>${r.description ? `<div class="det">${echap(r.description)}</div>` : ""}</div>
+      <div class="actions"><button class="small" type="button" data-act="lien">Générer un lien de téléchargement</button><button class="small danger" type="button" data-act="suppr">Supprimer</button></div>
+      <div class="liens">${liens.map(l => `<div><code>${MEDIA_URL}/t/${l.code}</code><span class="det">valable jusqu'au ${quand(new Date(l.expire).toISOString())} · ${l.restants} téléchargement${l.restants > 1 ? "s" : ""} restant${l.restants > 1 ? "s" : ""}</span><button class="small ghost" type="button" data-copie="${MEDIA_URL}/t/${l.code}">Copier</button></div>`).join("")}</div>`;
+    card.querySelector("[data-act=lien]").onclick = async (ev) => {
+      ev.target.disabled = true;
+      try { const j = await apiAtelier("/revue/" + r.id + "/lien", { method: "POST", body: "{}" }); LIENS.unshift(j.lien); rendreRevues(); try { await navigator.clipboard.writeText(j.lien.url); statusMsg("Lien copié — colle-le dans WhatsApp au client.", "ok"); } catch { statusMsg("Lien généré : " + j.lien.url, "ok"); } }
+      catch (e) { statusMsg(e.message, "err"); ev.target.disabled = false; }
+    };
+    card.querySelector("[data-act=suppr]").onclick = async () => {
+      if (!confirm("Supprimer « " + r.titre + " » ? Les liens déjà envoyés cesseront de fonctionner.")) return;
+      try { await apiAtelier("/revue/" + r.id, { method: "DELETE" }); REVUES = REVUES.filter(x => x !== r); rendreRevues(); compteurs(); statusMsg("Revue supprimée.", "ok"); } catch (e) { statusMsg(e.message, "err"); }
+    };
+    card.querySelectorAll("[data-copie]").forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.copie); statusMsg("Lien copié.", "ok"); } catch { prompt("Copie ce lien :", b.dataset.copie); } });
+    bloc.appendChild(card);
+  }
+}
+
+$("addRevBtn").onclick = async () => {
+  const file = $("revFichier").files[0], titre = $("revTitre").value.trim();
+  if (!titre){ statusMsg("Donne un titre à la revue.", "err"); return; }
+  if (!file || file.type !== "application/pdf"){ statusMsg("Choisis le fichier PDF.", "err"); return; }
+  if (file.size > 40 * 1024 * 1024){ statusMsg("PDF trop lourd (40 Mo maximum).", "err"); return; }
+  const btn = $("addRevBtn"), msg = $("revMsg"); btn.disabled = true;
+  try {
+    msg.textContent = "Lecture du PDF et fabrication des aperçus…";
+    let ap = { images: [], pages: 0 };
+    try { ap = await apercusPdf(file); } catch (e) { console.warn(e); msg.textContent = "Aperçus impossibles (" + e.message + ") — envoi du PDF seul…"; }
+    const j = await apiAtelier("/revue", { method: "POST", body: JSON.stringify({ titre, description: $("revDesc").value.trim(), prix: $("revPrix").value.trim(), montant: Number($("revMontant").value || 0), pages: ap.pages }) });
+    const id = j.revue.id;
+    await envoyerBinaire("/revue/" + id + "/pdf", file, "application/pdf", p => { msg.textContent = "Envoi du PDF… " + Math.round(p * 100) + " %"; });
+    for (let k = 0; k < ap.images.length; k++){ msg.textContent = "Envoi des aperçus… " + (k + 1) + "/" + ap.images.length; await envoyerBinaire("/revue/" + id + "/image/" + k, ap.images[k], "image/jpeg"); }
+    msg.textContent = ""; statusMsg("Revue en ligne.", "ok");
+    $("revTitre").value = ""; $("revDesc").value = ""; $("revPrix").value = ""; $("revMontant").value = ""; $("revFichier").value = "";
+    await chargerMedia();
+  } catch (e) { msg.textContent = ""; statusMsg(e.message, "err"); }
+  btn.disabled = false;
+};
+
+function rendreVideos(){
+  const bloc = $("videosListe"); bloc.innerHTML = "";
+  if (!VIDEOS.length){ bloc.innerHTML = "<p class='hint' style='margin:0'>Aucune vidéo pour l'instant.</p>"; return; }
+  for (const v of VIDEOS){
+    const card = document.createElement("div"); card.className = "media-card";
+    card.innerHTML = `<img class="vignette" alt="" src="${v.poster ? MEDIA_URL + "/v/" + v.id + ".jpg?" + Date.now() : ""}">
+      <div><div class="titre">${echap(v.titre)}</div><div class="det">${v.lien ? "lien : " + echap(v.lien) : v.ext ? "fichier " + v.ext.toUpperCase() : "<b style='color:var(--err)'>sans vidéo</b>"} · ${quand(v.date)}</div>${v.description ? `<div class="det">${echap(v.description)}</div>` : ""}</div>
+      <div class="actions"><button class="small danger" type="button" data-act="suppr">Supprimer</button></div>`;
+    card.querySelector("[data-act=suppr]").onclick = async () => {
+      if (!confirm("Supprimer « " + v.titre + " » ?")) return;
+      try { await apiAtelier("/video/" + v.id, { method: "DELETE" }); VIDEOS = VIDEOS.filter(x => x !== v); rendreVideos(); compteurs(); statusMsg("Vidéo supprimée.", "ok"); } catch (e) { statusMsg(e.message, "err"); }
+    };
+    bloc.appendChild(card);
+  }
+}
+
+/* image de couverture d'une vidéo : une image prise à 1 s */
+function posterVideo(file){
+  return new Promise(resolve => {
+    const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; v.src = URL.createObjectURL(file);
+    const fini = async () => { try { const c = document.createElement("canvas"); const k = Math.min(1, 960 / v.videoWidth); c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k); c.getContext("2d").drawImage(v, 0, 0, c.width, c.height); resolve(await versJpeg(c, 0.82)); } catch { resolve(null); } URL.revokeObjectURL(v.src); };
+    v.onloadedmetadata = () => { v.currentTime = Math.min(1, (v.duration || 2) / 2); };
+    v.onseeked = fini; v.onerror = () => resolve(null);
+    setTimeout(() => resolve(null), 8000);
+  });
+}
+
+$("addVidBtn").onclick = async () => {
+  const file = $("vidFichier").files[0], lien = $("vidLien").value.trim(), titre = $("vidTitre").value.trim();
+  if (!titre){ statusMsg("Donne un titre à la vidéo.", "err"); return; }
+  if (!file && !lien){ statusMsg("Choisis un fichier vidéo ou colle un lien.", "err"); return; }
+  if (file && !/^video\/(mp4|webm)$/.test(file.type)){ statusMsg("Format accepté : MP4 ou WebM.", "err"); return; }
+  if (file && file.size > 60 * 1024 * 1024){ statusMsg("Vidéo trop lourde (60 Mo maximum).", "err"); return; }
+  const btn = $("addVidBtn"), msg = $("vidMsg"); btn.disabled = true;
+  try {
+    const j = await apiAtelier("/video", { method: "POST", body: JSON.stringify({ titre, description: $("vidDesc").value.trim(), lien: file ? "" : lien }) });
+    const id = j.video.id;
+    if (!file && !j.video.lien) throw new Error("Lien non reconnu (YouTube, Vimeo, Instagram ou TikTok uniquement).");
+    if (file){
+      msg.textContent = "Image de couverture…";
+      const poster = await posterVideo(file);
+      await envoyerBinaire("/video/" + id + "/fichier", file, file.type, p => { msg.textContent = "Envoi de la vidéo… " + Math.round(p * 100) + " %"; });
+      if (poster) await envoyerBinaire("/video/" + id + "/poster", poster, "image/jpeg");
+    }
+    msg.textContent = ""; statusMsg("Vidéo en ligne.", "ok");
+    $("vidTitre").value = ""; $("vidDesc").value = ""; $("vidLien").value = ""; $("vidFichier").value = "";
+    await chargerMedia();
+  } catch (e) { msg.textContent = ""; statusMsg(e.message, "err"); }
+  btn.disabled = false;
+};
 
 let etape = "identifiants"; // puis "code" (mode serveur)
 let aideTimer = null;

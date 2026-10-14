@@ -387,6 +387,180 @@ function servirFichier(req, chemin, type) {
   return { __brut: true, statut: 200, entetes: { ...entetes, "Content-Length": st.size }, corps: fs.createReadStream(chemin) };
 }
 
+/* ---------- médiathèque : revues (PDF payants) et vidéos d'exemple ----------
+ * Les fichiers vivent dans /data/media ; les originaux (PDF) ne sont jamais servis
+ * directement : seul un lien de téléchargement généré par l'atelier (/t/<code>,
+ * 7 jours, 3 téléchargements) y donne accès — Yuan l'envoie après le règlement. */
+const MEDIA_DIR = path.join(CFG.DATA_DIR, "media");
+const PDF_MAX_OCTETS = 40 * 1024 * 1024;
+const EXEMPLE_MAX_OCTETS = 60 * 1024 * 1024;
+const IMAGE_MAX_OCTETS = 600 * 1024;
+const LIEN_TTL_MS = 7 * 24 * 60 * 60_000;
+const LIEN_TELECHARGEMENTS = 3;
+let mediaPersistant = false;
+try { fs.mkdirSync(MEDIA_DIR, { recursive: true }); mediaPersistant = true; }
+catch (e) { console.error("Médiathèque désactivée (dossier inaccessible) :", e.message); }
+const lireJson = (nom, defaut) => { try { return JSON.parse(fs.readFileSync(path.join(CFG.DATA_DIR, nom), "utf8")); } catch { return defaut; } };
+const ecrireJson = (nom, v) => fs.writeFileSync(path.join(CFG.DATA_DIR, nom), JSON.stringify(v, null, 1));
+const mediaPath = (...p) => path.join(MEDIA_DIR, ...p);
+const texteCourt = (v, n) => String(v == null ? "" : v).replace(/[\u0000-\u001f]/g, " ").trim().slice(0, n);
+const revuePublique = r => ({ id: r.id, titre: r.titre, description: r.description, prix: r.prix, montant: r.montant, pages: r.pages, apercus: r.apercus || 0, taille: r.taille || 0, date: r.date, pret: !!r.taille });
+const videoPublique = v => ({ id: v.id, titre: v.titre, description: v.description, lien: v.lien || "", ext: v.ext || "", poster: !!v.poster, date: v.date, pret: !!(v.ext || v.lien) });
+function supprimerFichiers(prefixe) {
+  try { for (const f of fs.readdirSync(MEDIA_DIR)) if (f.startsWith(prefixe)) { try { fs.unlinkSync(mediaPath(f)); } catch {} } } catch {}
+}
+function pageLienExpire(titre) {
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lien expiré — Typo Cao</title>
+<style>body{margin:0;background:#ece5d8;color:#2b2218;font:300 17px/1.6 system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}main{max-width:520px;text-align:center}h1{font-weight:500;font-size:1.4rem}p{color:#8d7d67}</style></head>
+<body><main><h1>${echapperHtml(titre)}</h1><p>Ce lien de téléchargement n'est plus valable (7 jours ou 3 téléchargements). Écrivez à l'atelier sur WhatsApp pour en recevoir un nouveau.</p></main></body></html>`;
+}
+
+async function routerMedia(req, chemin, ip, url) {
+  // ---- lectures publiques
+  if (req.method === "GET" && chemin === "/api/typo-cao/revues")
+    return { revues: lireJson("revues.json", []).filter(r => r.taille).map(revuePublique) };
+  if (req.method === "GET" && chemin === "/api/typo-cao/videos")
+    return { videos: lireJson("videos.json", []).filter(v => v.ext || v.lien).map(videoPublique) };
+  {
+    const m = req.method === "GET" && chemin.match(/^\/r\/([A-Za-z0-9]{10})\/([0-5])\.jpg$/);
+    if (m) {
+      let img; try { img = fs.readFileSync(mediaPath(`revue-${m[1]}-${m[2]}.jpg`)); } catch { throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Image introuvable"); }
+      return { __brut: true, statut: 200, entetes: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" }, corps: img };
+    }
+  }
+  {
+    const m = req.method === "GET" && chemin.match(/^\/v\/([A-Za-z0-9]{10})\.(mp4|webm|jpg)$/);
+    if (m) {
+      const [, id, ext] = m;
+      const v = lireJson("videos.json", []).find(x => x.id === id);
+      if (!v) throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Vidéo introuvable");
+      if (ext === "jpg") {
+        let img; try { img = fs.readFileSync(mediaPath(`video-${id}.jpg`)); } catch { throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Image introuvable"); }
+        return { __brut: true, statut: 200, entetes: { "Content-Type": "image/jpeg", "Cache-Control": "public, max-age=86400" }, corps: img };
+      }
+      if (v.ext !== ext) throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Vidéo introuvable");
+      return servirFichier(req, mediaPath(`video-${id}.${ext}`), ext === "mp4" ? "video/mp4" : "video/webm");
+    }
+  }
+  // ---- téléchargement d'une revue par lien généré
+  {
+    const m = req.method === "GET" && chemin.match(/^\/t\/([A-Za-z0-9]{10,24})$/);
+    if (m) {
+      const liens = lireJson("liens.json", []);
+      const l = liens.find(x => x.code === m[1]);
+      const revue = l && lireJson("revues.json", []).find(r => r.id === l.revue);
+      const titre = revue ? revue.titre : "Revue Typo Cao";
+      if (!l || !revue || Date.now() > l.expire || l.restants <= 0)
+        return { __brut: true, statut: 410, entetes: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" }, corps: pageLienExpire(titre) };
+      let st; try { st = fs.statSync(mediaPath(`revue-${revue.id}.pdf`)); } catch { throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Fichier introuvable"); }
+      l.restants -= 1; l.telechargements = (l.telechargements || 0) + 1; l.dernier = new Date().toISOString();
+      ecrireJson("liens.json", liens);
+      const nom = (titre.replace(/[^\w\- ]+/g, "").trim() || "revue").replace(/\s+/g, "-") + ".pdf";
+      return { __brut: true, statut: 200, entetes: { "Content-Type": "application/pdf", "Content-Length": st.size, "Content-Disposition": `attachment; filename="${nom}"`, "Cache-Control": "no-store" }, corps: fs.createReadStream(mediaPath(`revue-${revue.id}.pdf`)) };
+    }
+  }
+  if (!chemin.startsWith("/api/typo-cao/revue") && !chemin.startsWith("/api/typo-cao/video")) return undefined;
+
+  // ---- gestion (espace atelier)
+  if (!configure()) throw new ErreurApp(503, "TYPO_CAO_NOT_CONFIGURED", "L'espace atelier n'est pas configuré");
+  verifierSession(req.headers.authorization);
+  if (!mediaPersistant) throw new ErreurApp(503, "MEDIA_INDISPONIBLE", "Médiathèque indisponible (dossier de données)");
+
+  if (chemin === "/api/typo-cao/revue" && req.method === "POST") {
+    const c = await lireCorps(req, 20_000);
+    const revues = lireJson("revues.json", []);
+    let r = idValide(c.id) ? revues.find(x => x.id === c.id) : null;
+    if (!r) { r = { id: nouvelId(), date: new Date().toISOString(), pages: 0, apercus: 0, taille: 0 }; revues.unshift(r); }
+    r.titre = texteCourt(c.titre, 80) || "Sans titre"; r.description = texteCourt(c.description, 600);
+    r.prix = texteCourt(c.prix, 30); r.montant = Math.max(0, Math.min(5000, Number(c.montant) || 0));
+    if (Number.isFinite(Number(c.pages))) r.pages = Math.max(0, Math.min(2000, Math.round(Number(c.pages))));
+    ecrireJson("revues.json", revues);
+    return { revue: revuePublique(r) };
+  }
+  if (chemin === "/api/typo-cao/revues/tous" && req.method === "GET")
+    return { revues: lireJson("revues.json", []).map(revuePublique), liens: lireJson("liens.json", []).filter(l => Date.now() <= l.expire && l.restants > 0) };
+  {
+    const m = chemin.match(/^\/api\/typo-cao\/revue\/([A-Za-z0-9]{10})(?:\/(pdf|image\/([0-5])|lien|liens))?$/);
+    if (m) {
+      const [, id, action, k] = m;
+      const revues = lireJson("revues.json", []);
+      const r = revues.find(x => x.id === id);
+      if (!r) throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Revue introuvable");
+      if (req.method === "DELETE" && !action) {
+        supprimerFichiers(`revue-${id}`);
+        ecrireJson("revues.json", revues.filter(x => x.id !== id));
+        ecrireJson("liens.json", lireJson("liens.json", []).filter(l => l.revue !== id));
+        return { supprime: true };
+      }
+      if (req.method === "PUT" && action === "pdf") {
+        if (String(req.headers["content-type"] || "").split(";")[0].trim() !== "application/pdf") throw new ErreurApp(415, "PDF_ATTENDU", "Fichier PDF attendu");
+        const data = await lireBrut(req, PDF_MAX_OCTETS);
+        if (data.length < 100 || data.subarray(0, 5).toString() !== "%PDF-") throw new ErreurApp(400, "PDF_INVALIDE", "Ce fichier n'est pas un PDF");
+        fs.writeFileSync(mediaPath(`revue-${id}.pdf`), data);
+        r.taille = data.length; ecrireJson("revues.json", revues);
+        return { revue: revuePublique(r) };
+      }
+      if (req.method === "PUT" && action && action.startsWith("image/")) {
+        const data = await lireBrut(req, IMAGE_MAX_OCTETS);
+        if (data.length < 100 || data[0] !== 0xff || data[1] !== 0xd8) throw new ErreurApp(400, "IMAGE_INVALIDE", "Image JPEG attendue");
+        fs.writeFileSync(mediaPath(`revue-${id}-${k}.jpg`), data);
+        r.apercus = Math.max(r.apercus || 0, Number(k) + 1); ecrireJson("revues.json", revues);
+        return { revue: revuePublique(r) };
+      }
+      if (req.method === "POST" && action === "lien") {
+        if (!r.taille) throw new ErreurApp(409, "PDF_MANQUANT", "Le PDF n'a pas encore été envoyé");
+        const liens = lireJson("liens.json", []).filter(l => Date.now() <= l.expire + 30 * 24 * 60 * 60_000);
+        const code = nouvelId() + nouvelId().slice(0, 6);
+        const l = { code, revue: id, cree: new Date().toISOString(), expire: Date.now() + LIEN_TTL_MS, restants: LIEN_TELECHARGEMENTS, telechargements: 0 };
+        liens.unshift(l); ecrireJson("liens.json", liens);
+        return { lien: { ...l, url: `${CFG.PUBLIC_URL}/t/${code}` } };
+      }
+      if (req.method === "GET" && action === "liens")
+        return { liens: lireJson("liens.json", []).filter(l => l.revue === id).map(l => ({ ...l, url: `${CFG.PUBLIC_URL}/t/${l.code}`, valide: Date.now() <= l.expire && l.restants > 0 })) };
+    }
+  }
+  if (chemin === "/api/typo-cao/video" && req.method === "POST") {
+    const c = await lireCorps(req, 20_000);
+    const videos = lireJson("videos.json", []);
+    let v = idValide(c.id) ? videos.find(x => x.id === c.id) : null;
+    if (!v) { v = { id: nouvelId(), date: new Date().toISOString(), ext: "", lien: "", poster: false }; videos.unshift(v); }
+    v.titre = texteCourt(c.titre, 80) || "Sans titre"; v.description = texteCourt(c.description, 400);
+    const lien = texteCourt(c.lien, 300);
+    v.lien = /^https:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com|instagram\.com|tiktok\.com)\//i.test(lien) ? lien : "";
+    ecrireJson("videos.json", videos);
+    return { video: videoPublique(v) };
+  }
+  if (chemin === "/api/typo-cao/videos/tous" && req.method === "GET") return { videos: lireJson("videos.json", []).map(videoPublique) };
+  {
+    const m = chemin.match(/^\/api\/typo-cao\/video\/([A-Za-z0-9]{10})(?:\/(fichier|poster))?$/);
+    if (m) {
+      const [, id, action] = m;
+      const videos = lireJson("videos.json", []);
+      const v = videos.find(x => x.id === id);
+      if (!v) throw new ErreurApp(404, "MEDIA_INTROUVABLE", "Vidéo introuvable");
+      if (req.method === "DELETE" && !action) { supprimerFichiers(`video-${id}`); ecrireJson("videos.json", videos.filter(x => x.id !== id)); return { supprime: true }; }
+      if (req.method === "PUT" && action === "fichier") {
+        const ext = VIDEO_TYPES[String(req.headers["content-type"] || "").split(";")[0].trim()];
+        if (!ext) throw new ErreurApp(415, "VIDEO_TYPE", "Vidéo MP4 ou WebM attendue");
+        const data = await lireBrut(req, EXEMPLE_MAX_OCTETS);
+        if (data.length < 1000) throw new ErreurApp(400, "VIDEO_VIDE", "Vidéo vide");
+        for (const e of Object.values(VIDEO_TYPES)) { try { fs.unlinkSync(mediaPath(`video-${id}.${e}`)); } catch {} }
+        fs.writeFileSync(mediaPath(`video-${id}.${ext}`), data);
+        v.ext = ext; v.lien = ""; v.taille = data.length; ecrireJson("videos.json", videos);
+        return { video: videoPublique(v) };
+      }
+      if (req.method === "PUT" && action === "poster") {
+        const data = await lireBrut(req, IMAGE_MAX_OCTETS);
+        if (data.length < 100 || data[0] !== 0xff || data[1] !== 0xd8) throw new ErreurApp(400, "IMAGE_INVALIDE", "Image JPEG attendue");
+        fs.writeFileSync(mediaPath(`video-${id}.jpg`), data);
+        v.poster = true; ecrireJson("videos.json", videos);
+        return { video: videoPublique(v) };
+      }
+    }
+  }
+  return undefined;
+}
+
 /* ---------- routes ---------- */
 async function router(req, res, url, ip) {
   const chemin = url.pathname.replace(/\/+$/, "");
@@ -455,6 +629,11 @@ async function router(req, res, url, ip) {
       const cible = `https://wa.me/${meta.numero}?text=${encodeURIComponent(meta.texte || "")}`;
       return { __brut: true, statut: 302, entetes: { Location: cible, "Cache-Control": "no-store" }, corps: "" };
     }
+  }
+
+  {
+    const r = await routerMedia(req, chemin, ip, url);
+    if (r !== undefined) return r;
   }
 
   if (!configure()) throw new ErreurApp(503, "TYPO_CAO_NOT_CONFIGURED", "L'espace atelier n'est pas configuré");
@@ -579,7 +758,7 @@ const serveur = http.createServer(async (req, res) => {
   if (origine === CFG.ORIGINE_AUTORISEE) {
     res.setHeader("Access-Control-Allow-Origin", origine);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
     res.setHeader("Access-Control-Max-Age", "86400");
   }
