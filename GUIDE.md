@@ -13,8 +13,10 @@ Ton site a une page d'administration rien que pour toi :
    - changer ton **WhatsApp**, ton **Instagram** et ton **pseudo PayPal.Me** (à créer en 1 minute sur paypal.me si besoin ; l'argent arrive directement sur ton compte PayPal)
    - ajouter une **matière** à la galerie (l'image est automatiquement recadrée, réduite et filigranée)
    - mettre en ligne une **nouvelle collection complète** : tu sélectionnes tes 26 images (nommées A.png, B.png, … Z.png), la page les recadre, les réduit, applique le filigrane « TYPO CAO » et les met en ligne une par une
-4. **Modérer tes avis clients** : les avis laissés sur le site arrivent dans la section « Avis clients » de ton espace — tu choisis ceux que tu publies (bouton Publier/Masquer), tu supprimes les indésirables, puis « Enregistrer les avis ». Rien ne s'affiche sur le site sans ta validation.
-5. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
+4. **Tes revues (PDF payants)** — onglet « Revues » : titre, prix, montant PayPal et ton fichier PDF. La couverture et 3 pages d'aperçu filigranées sont fabriquées automatiquement et affichées sur le site, sous tes collections. Un client qui veut la revue te passe commande sur WhatsApp (message tout prêt avec le prix et ton lien PayPal). Une fois le règlement reçu, clique **« Générer un lien de téléchargement »** sur la revue : le lien est copié, tu le colles dans WhatsApp. Il est valable **7 jours et 3 téléchargements** ; ton PDF n'est jamais accessible autrement. Ces revues et liens sont enregistrés immédiatement (pas besoin du bouton « Enregistrer »).
+5. **Tes vidéos d'exemple** — onglet « Vidéos » : un fichier MP4/WebM (≤ 60 Mo) ou un lien YouTube / Vimeo / Instagram / TikTok, avec un titre. Elles s'affichent en haut de la colonne de droite du site, « Exemples en vidéo », et se lisent dans une fenêtre sans quitter la page.
+6. **Modérer tes avis clients** : les avis laissés sur le site arrivent dans la section « Avis clients » de ton espace — tu choisis ceux que tu publies (bouton Publier/Masquer), tu supprimes les indésirables, puis « Enregistrer les avis ». Rien ne s'affiche sur le site sans ta validation.
+7. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
 
 ### Ta protection
 
