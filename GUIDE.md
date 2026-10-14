@@ -19,6 +19,14 @@ Ton site a une page d'administration rien que pour toi :
 7. **Modérer tes avis clients** : les avis laissés sur le site arrivent dans la section « Avis clients » de ton espace — tu choisis ceux que tu publies (bouton Publier/Masquer), tu supprimes les indésirables, puis « Enregistrer les avis ». Rien ne s'affiche sur le site sans ta validation.
 8. Termine toujours par le bouton **« Enregistrer les modifications »** — le site public se met à jour en 1 à 2 minutes
 
+### Le site parle trois langues
+
+Le site public est en **français, chinois (中文) et anglais**. Chaque visiteur arrive automatiquement dans la langue de son téléphone ou de son ordinateur (chinois pour un visiteur chinois, anglais pour un anglophone, français sinon), et peut changer à tout moment avec les trois boutons **FR · 中文 · EN** en haut à droite. Son choix est mémorisé.
+
+Le message de demande qu'il t'envoie est écrit **dans sa langue**, avec une dernière ligne qui te dit laquelle (« 客户语言：中文 ») : tu sais tout de suite comment lui répondre.
+
+Ce que tu saisis dans ton atelier — noms de collections, de matières, de formules, titres de revues — s'affiche tel quel dans les trois langues. Si tu veux qu'un client chinois lise « 珍珠与金 » plutôt que « Perles & Or », écris les deux dans le nom : « Perles & Or 珍珠与金 ». Les textes du site (boutons, effets, explications) sont déjà traduits ; ils vivent dans le fichier `i18n.js` du dépôt.
+
 ### Ta protection
 
 - Le site affiche « © Yuan Cao — Tous droits réservés » et une page **mentions** qui rappelle que tes créations sont protégées par le droit d'auteur (c'est automatique en France dès la création, articles L.111-1 et suivants du CPI — pas besoin de dépôt pour être protégée).
