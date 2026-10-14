@@ -6,6 +6,7 @@
 <meta name="description" content="Typo Cao — lettres 3D décoratives : composez votre prénom, choisissez une collection, importez votre vidéo et recevez votre aperçu.">
 <title>Typo Cao</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<script src="i18n.js"></script>
 <script src="lecteur-typo.js" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
@@ -62,7 +63,12 @@ header .bar{justify-self:center}
 .saisie-boite input::placeholder{text-transform:none;letter-spacing:.02em;font-weight:300;color:var(--muted)}
 .saisie-compteur{font-size:.68rem;color:var(--muted);font-variant-numeric:tabular-nums;min-width:1.6em;text-align:right}
 .pied{display:flex;gap:14px;align-items:center;justify-content:center;flex-wrap:wrap}
-.chosen{justify-self:end;color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
+.droite{display:flex;align-items:center;gap:clamp(8px,1vw,16px);justify-self:end}
+.langues{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);flex:none}
+.langues button{background:transparent;border:0;border-radius:0;color:var(--muted);padding:.42em .7em;font-size:.68rem;letter-spacing:.06em;font-weight:500;box-shadow:none;white-space:nowrap}
+.langues button:hover{transform:none;color:var(--gold-deep)}
+.langues button.on{background:var(--gold-deep);color:#fdf9f1}
+.chosen{color:var(--muted);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;white-space:nowrap}
 .chosen b{color:var(--gold-deep);font-weight:500}
 
 /* ---- corps 3 colonnes ---- */
@@ -401,6 +407,8 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   .saisie{order:5}
   .saisie-boite{width:100%}
   .chosen{display:none}
+  .droite{width:100%;justify-content:center}
+  .langues button{padding:.5em .85em;font-size:.74rem}
 }
 </style>
 
@@ -408,23 +416,28 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   <header>
     <h1 class="brand">TYPO <b>CAO</b></h1>
     <div class="bar">
-      <button class="ghost etape" id="importBtn" type="button"><i>1</i>Importer ma vidéo</button>
-      <button class="ghost" id="effetsBtn" type="button">Effets ✨<span class="n" id="effetsN" hidden></span></button>
-      <button class="etape" id="renderBtn" type="button" hidden><i>2</i>Fabriquer mon aperçu</button>
-      <button class="etape" id="orderBtn" type="button"><i>3</i>Envoyer ma demande</button>
-      <button class="ghost" id="avisBtn" type="button">Avis ★</button>
+      <button class="ghost etape" id="importBtn" type="button"><i>1</i><span data-i18n="nav.import">Importer ma vidéo</span></button>
+      <button class="ghost" id="effetsBtn" type="button"><span data-i18n="nav.effets">Effets ✨</span><span class="n" id="effetsN" hidden></span></button>
+      <button class="etape" id="renderBtn" type="button" hidden><i>2</i><span data-i18n="nav.fabriquer">Fabriquer mon aperçu</span></button>
+      <button class="etape" id="orderBtn" type="button"><i>3</i><span data-i18n="nav.envoyer">Envoyer ma demande</span></button>
+      <button class="ghost" id="avisBtn" type="button" data-i18n="nav.avis">Avis ★</button>
       <input id="videoInput" type="file" accept="video/*" hidden>
     </div>
-    <div class="chosen">Collection <b id="chosenLabel">Perles &amp; Or</b></div>
+    <div class="droite">
+      <div class="langues" id="langues" role="group" aria-label="Langue · 语言 · Language">
+        <button type="button" data-lang="fr" lang="fr">FR</button><button type="button" data-lang="zh" lang="zh">中文</button><button type="button" data-lang="en" lang="en">EN</button>
+      </div>
+      <div class="chosen"><span data-i18n="head.collection">Collection</span> <b id="chosenLabel">Perles &amp; Or</b></div>
+    </div>
   </header>
 
   <div class="main">
     <div class="rail rail-left">
       <div class="coll-liste" id="collRail">
-        <div class="rail-title">Collections</div>
+        <div class="rail-title" data-i18n="rail.collections">Collections</div>
       </div>
       <div class="bloc-media" id="blocRevues" hidden>
-        <div class="rail-title">Revues</div>
+        <div class="rail-title" data-i18n="rail.revues">Revues</div>
         <div class="revues" id="revues"></div>
       </div>
     </div>
@@ -435,46 +448,46 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <video id="video" muted loop playsinline hidden></video>
       <div class="scrim"></div>
       <div class="word" id="word" hidden></div>
-      <canvas id="sceneCanvas" class="scene-canvas" aria-label="Aperçu de votre création"></canvas>
-      <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" title="Agrandir / réduire"></i><b>glissez pour déplacer · coin pour agrandir</b></div>
+      <canvas id="sceneCanvas" class="scene-canvas" data-i18n-aria="stage.apercuAria" aria-label="Aperçu de votre création"></canvas>
+      <div class="mot-cadre" id="motCadre" hidden><i class="poignee" id="motPoignee" data-i18n-title="stage.poignee" title="Agrandir / réduire"></i><b data-i18n="stage.cadre">glissez pour déplacer · coin pour agrandir</b></div>
       <div id="cadresLettres"></div>
       </div>
-      <div class="zoom-barre" id="zoomBarre" title="Zoom de la zone de travail (Ctrl + molette)">
-        <button type="button" id="zoomMoins" aria-label="Zoom arrière">−</button>
+      <div class="zoom-barre" id="zoomBarre" data-i18n-title="zoom.barre" title="Zoom de la zone de travail (Ctrl + molette)">
+        <button type="button" id="zoomMoins" data-i18n-aria="zoom.moins" aria-label="Zoom arrière">−</button>
         <input type="range" id="zoomCurseur" min="100" max="400" step="5" value="100" aria-label="Zoom">
-        <button type="button" id="zoomPlus" aria-label="Zoom avant">+</button>
-        <button type="button" id="zoomPct" class="zoom-pct" title="Revenir à 100 %">100 %</button>
+        <button type="button" id="zoomPlus" data-i18n-aria="zoom.plus" aria-label="Zoom avant">+</button>
+        <button type="button" id="zoomPct" class="zoom-pct" data-i18n-title="zoom.cent" title="Revenir à 100 %">100 %</button>
       </div>
-      <div class="stage-invite" id="stageInvite" aria-hidden="true"><b>Glissez votre vidéo ici</b><span>ou appuyez dans le cadre pour la choisir — votre création apparaîtra dessus</span></div>
-      <div class="drop-veil" id="dropVeil" aria-hidden="true"><span>Déposez votre vidéo</span></div>
-      <button type="button" class="retirer-video" id="retirerVideo" hidden title="Retirer la vidéo">✕ Retirer la vidéo</button>
+      <div class="stage-invite" id="stageInvite" aria-hidden="true"><b data-i18n="stage.inviteT">Glissez votre vidéo ici</b><span data-i18n="stage.inviteS">ou appuyez dans le cadre pour la choisir — votre création apparaîtra dessus</span></div>
+      <div class="drop-veil" id="dropVeil" aria-hidden="true"><span data-i18n="stage.depose">Déposez votre vidéo</span></div>
+      <button type="button" class="retirer-video" id="retirerVideo" hidden data-i18n-title="stage.retirerT" title="Retirer la vidéo" data-i18n="stage.retirer">✕ Retirer la vidéo</button>
     </div>
     <div class="timeline demo" id="timeline">
-      <button type="button" class="tl-play" id="tlPlay" aria-label="Lire ou mettre en pause">❚❚</button>
-      <button type="button" class="tl-play tl-rejouer" id="tlRejouer" aria-label="Rejouer depuis le début" title="Rejouer">↺</button>
-      <button type="button" class="tl-boucle" id="tlBoucle" aria-pressed="false" title="Lire en boucle">↻</button>
+      <button type="button" class="tl-play" id="tlPlay" data-i18n-aria="tl.lire" aria-label="Lire ou mettre en pause">❚❚</button>
+      <button type="button" class="tl-play tl-rejouer" id="tlRejouer" data-i18n-aria="tl.rejouerAria" aria-label="Rejouer depuis le début" data-i18n-title="tl.rejouer" title="Rejouer">↺</button>
+      <button type="button" class="tl-boucle" id="tlBoucle" aria-pressed="false" data-i18n-title="tl.boucle" title="Lire en boucle">↻</button>
       <span class="tl-time" id="tlTime">0:00 / 0:00</span>
       <div class="tl-piste" id="tlPiste">
         <div class="tl-film" id="tlFilm"></div>
         <div class="tl-ombre" id="tlOmbreG"></div>
         <div class="tl-ombre" id="tlOmbreD"></div>
-        <div class="tl-poignee" id="tlDebut" role="slider" aria-label="Début du passage" title="Début du passage"></div>
-        <div class="tl-poignee" id="tlFin" role="slider" aria-label="Fin du passage" title="Fin du passage"></div>
-        <div class="tl-lettres" id="tlLettres" role="slider" aria-label="Moment d'apparition des lettres" title="Apparition des lettres — glissez"><span>A</span></div>
+        <div class="tl-poignee" id="tlDebut" role="slider" data-i18n-aria="tl.debut" aria-label="Début du passage" data-i18n-title="tl.debut" title="Début du passage"></div>
+        <div class="tl-poignee" id="tlFin" role="slider" data-i18n-aria="tl.fin" aria-label="Fin du passage" data-i18n-title="tl.fin" title="Fin du passage"></div>
+        <div class="tl-lettres" id="tlLettres" role="slider" data-i18n-aria="tl.lettresAria" aria-label="Moment d'apparition des lettres" data-i18n-title="tl.lettres" title="Apparition des lettres — glissez"><span>A</span></div>
         <div class="tl-tete" id="tlTete"></div>
         <div class="tl-cles" id="tlCles"></div>
       </div>
       <span class="tl-info" id="tlInfo"></span>
-      <button type="button" class="tl-suivi" id="tlSuivi" aria-pressed="false" title="Les lettres suivent le mouvement de la caméra ou de l'objet"><i></i><span>Suivre le mouvement</span></button>
+      <button type="button" class="tl-suivi" id="tlSuivi" aria-pressed="false" data-i18n-title="tl.suiviT" title="Les lettres suivent le mouvement de la caméra ou de l'objet"><i></i><span>Suivre le mouvement</span></button>
     </div>
     </div>
 
     <div class="rail rail-right">
       <div class="bloc-media" id="blocVideos" hidden>
-        <div class="rail-title">Exemples en vidéo</div>
+        <div class="rail-title" data-i18n="rail.videos">Exemples en vidéo</div>
         <div class="videos" id="videos"></div>
       </div>
-      <div class="rail-title">Matières à la demande</div>
+      <div class="rail-title" data-i18n="rail.matieres">Matières à la demande</div>
       <div class="mats" id="mats"></div>
     </div>
   </div>
@@ -482,12 +495,12 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
   <div class="saisie">
     <div class="saisie-boite">
       <span class="saisie-ic" aria-hidden="true">✎</span>
-      <input id="nameInput" type="text" maxlength="30" autocomplete="off" spellcheck="false" placeholder="Écrivez votre prénom ou votre message…" aria-label="Prénom ou message à composer">
+      <input id="nameInput" type="text" maxlength="30" autocomplete="off" spellcheck="false" data-i18n-ph="saisie.ph" placeholder="Écrivez votre prénom ou votre message…" data-i18n-aria="saisie.aria" aria-label="Prénom ou message à composer">
       <span class="saisie-compteur" id="saisieCompteur">30</span>
     </div>
     <div class="pied">
       <a class="insta" id="instaLink" href="#" target="_blank" rel="noopener" hidden>Instagram</a>
-      <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · Tous droits réservés · <a href="#" id="mentionsLink" style="color:inherit">mentions</a> · <a href="admin.html" style="color:inherit">atelier</a></span>
+      <span class="done">© <span id="anneeCopy"></span> Yuan Cao — Typo Cao · <span data-i18n="pied.droits">Tous droits réservés</span> · <a href="#" id="mentionsLink" style="color:inherit" data-i18n="pied.mentions">mentions</a> · <a href="admin.html" style="color:inherit" data-i18n="pied.atelier">atelier</a></span>
     </div>
   </div>
 </div>
@@ -495,29 +508,18 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 <!-- mentions légales -->
 <div class="modal" id="mentionsModal" hidden>
   <div class="panel">
-    <div class="close-row"><button type="button" class="x" id="mentionsClose" aria-label="Fermer">✕</button></div>
-    <h2>Propriété intellectuelle</h2>
-    <p style="font-size:.88rem;line-height:1.7">
-      L'ensemble des créations présentées sur ce site — lettres, matières, compositions et montages
-      vidéo — sont des œuvres originales de <b>Yuan Cao</b>, protégées par le droit d'auteur
-      (articles L.111-1 et suivants du Code de la propriété intellectuelle). Toute reproduction,
-      extraction, adaptation ou utilisation commerciale, totale ou partielle, sans autorisation
-      écrite préalable est interdite (art. L.122-4 CPI) et constitue une contrefaçon (art. L.335-2 CPI).
-    </p>
-    <p style="font-size:.88rem;line-height:1.7;color:var(--muted)">
-      Les visuels affichés sur ce site sont des aperçus en basse définition, filigranés « TYPO CAO ».
-      Ils ne correspondent pas à la qualité des créations livrées et ne confèrent aucun droit
-      d'utilisation. Les vidéos d'aperçu générées sur ce site sont réservées à un usage de
-      prévisualisation personnelle.
-    </p>
-    <p style="font-size:.88rem;color:var(--muted)">Contact et demandes d'autorisation : via le bouton « Envoyer ma demande ».</p>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="mentionsClose" aria-label="Fermer">✕</button></div>
+    <h2 data-i18n="ml.titre">Propriété intellectuelle</h2>
+    <p style="font-size:.88rem;line-height:1.7" data-i18n-html="ml.p1"></p>
+    <p style="font-size:.88rem;line-height:1.7;color:var(--muted)" data-i18n-html="ml.p2"></p>
+    <p style="font-size:.88rem;color:var(--muted)" data-i18n="ml.p3"></p>
   </div>
 </div>
 
 <!-- avis clients -->
 <div class="modal" id="wxModal" hidden>
   <div class="panel panel-wx">
-    <div class="close-row"><button type="button" class="x" id="wxClose" aria-label="Fermer">✕</button></div>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="wxClose" aria-label="Fermer">✕</button></div>
     <h2 id="wxTitre">Envoyer par WeChat</h2>
     <p class="sum" id="wxSum"></p>
     <div class="wx-corps">
@@ -525,25 +527,25 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
       <ol class="wx-etapes" id="wxEtapes"></ol>
     </div>
     <div class="actions">
-      <button type="button" id="wxCopier" hidden>Copier mon message</button>
-      <a class="ghost" id="wxTelecharger" download>Enregistrer le code QR</a>
-      <a class="ghost" id="wxOuvrir" href="weixin://">Ouvrir WeChat</a>
-      <span class="done" id="wxDone" hidden>Copié !</span>
+      <button type="button" id="wxCopier" hidden data-i18n="wx.copier">Copier mon message</button>
+      <a class="ghost" id="wxTelecharger" download data-i18n="wx.telecharger">Enregistrer le code QR</a>
+      <a class="ghost" id="wxOuvrir" href="weixin://" data-i18n="wx.ouvrir">Ouvrir WeChat</a>
+      <span class="done" id="wxDone" hidden></span>
     </div>
   </div>
 </div>
 
 <div class="modal" id="revueModal" hidden>
   <div class="panel panel-revue">
-    <div class="close-row"><button type="button" class="x" id="revueClose" aria-label="Fermer">✕</button></div>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="revueClose" aria-label="Fermer">✕</button></div>
     <h2 id="revueTitre"></h2>
     <p class="sum" id="revueDesc"></p>
     <div class="revue-pages" id="revuePages"></div>
     <div class="revue-achat">
-      <div><b id="revuePrix"></b><span>PDF envoyé par l'atelier après règlement — lien de téléchargement valable 7 jours.</span></div>
+      <div><b id="revuePrix"></b><span data-i18n="rv.note">PDF envoyé par l'atelier après règlement — lien de téléchargement valable 7 jours.</span></div>
       <div class="revue-boutons">
-        <a class="cta" id="revueCommander" target="_blank" rel="noopener">Commander sur WhatsApp</a>
-        <button type="button" class="wx" id="revueWechat" hidden>Commander par WeChat 微信</button>
+        <a class="cta" id="revueCommander" target="_blank" rel="noopener" data-i18n="rv.commanderWa">Commander sur WhatsApp</a>
+        <button type="button" class="wx" id="revueWechat" hidden data-i18n="rv.commanderWx">Commander par WeChat 微信</button>
       </div>
     </div>
   </div>
@@ -551,7 +553,7 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
 <div class="modal" id="videoModal" hidden>
   <div class="panel panel-video">
-    <div class="close-row"><button type="button" class="x" id="videoClose" aria-label="Fermer">✕</button></div>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="videoClose" aria-label="Fermer">✕</button></div>
     <h2 id="videoTitre"></h2>
     <p class="sum" id="videoDesc"></p>
     <div class="video-cadre" id="videoCadre"></div>
@@ -560,18 +562,18 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
 <div class="modal" id="avisModal" hidden>
   <div class="panel">
-    <div class="close-row"><button type="button" class="x" id="avisClose" aria-label="Fermer">✕</button></div>
-    <h2>Avis des clients</h2>
-    <p class="sum" id="avisResume">Aucun avis publié pour l'instant — soyez le premier !</p>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="avisClose" aria-label="Fermer">✕</button></div>
+    <h2 data-i18n="av.titre">Avis des clients</h2>
+    <p class="sum" id="avisResume"></p>
     <div id="avisListe" class="avis-liste"></div>
     <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:16px">
-      <b style="font-weight:500">Laisser un avis</b>
+      <b style="font-weight:500" data-i18n="av.laisser">Laisser un avis</b>
       <div class="field" style="margin-top:10px">
-        <label for="avisNom">Votre prénom</label>
+        <label for="avisNom" data-i18n="av.prenom">Votre prénom</label>
         <input id="avisNom" type="text" maxlength="40">
       </div>
       <div class="field">
-        <label>Votre note</label>
+        <label data-i18n="av.note">Votre note</label>
         <div class="etoiles" id="avisEtoiles">
           <input type="radio" name="note" id="n5" value="5"><label for="n5">★</label>
           <input type="radio" name="note" id="n4" value="4"><label for="n4">★</label>
@@ -581,11 +583,11 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
         </div>
       </div>
       <div class="field">
-        <label for="avisMsg">Votre avis</label>
-        <textarea id="avisMsg" rows="3" maxlength="400" placeholder="Racontez votre expérience…"></textarea>
+        <label for="avisMsg" data-i18n="av.votre">Votre avis</label>
+        <textarea id="avisMsg" rows="3" maxlength="400" data-i18n-ph="av.ph" placeholder="Racontez votre expérience…"></textarea>
       </div>
       <div class="actions">
-        <button id="avisEnvoyer" type="button">Envoyer mon avis</button>
+        <button id="avisEnvoyer" type="button" data-i18n="av.envoyer">Envoyer mon avis</button>
         <span class="done" id="avisDone" hidden></span>
       </div>
     </div>
@@ -595,15 +597,15 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 <!-- moteur de rendu -->
 <div class="modal" id="renderModal" hidden>
   <div class="panel render-box" id="renderPanel">
-    <h2 id="renderTitle">Fabrication de votre vidéo…</h2>
+    <h2 id="renderTitle" data-i18n="rd.titre">Fabrication de votre vidéo…</h2>
     <canvas id="renderCanvas" hidden></canvas>
     <div class="lecteur-box" id="resultBox" hidden><video id="resultVideo" controls playsinline></video></div>
     <div class="progress" id="renderProgress"><i></i></div>
-    <p class="render-note" id="renderNote">Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.</p>
+    <p class="render-note" id="renderNote" data-i18n="rd.note">Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.</p>
     <div class="actions">
-      <button id="orderAfterRenderBtn" type="button" hidden>Envoyer ma demande →</button>
-      <button class="ghost" id="saveVideoBtn" type="button" hidden>Télécharger l'aperçu</button>
-      <button class="ghost" id="renderCancelBtn" type="button">Annuler</button>
+      <button id="orderAfterRenderBtn" type="button" hidden data-i18n="rd.envoyer">Envoyer ma demande →</button>
+      <button class="ghost" id="saveVideoBtn" type="button" hidden data-i18n="rd.telecharger">Télécharger l'aperçu</button>
+      <button class="ghost" id="renderCancelBtn" type="button" data-i18n="gen.annuler">Annuler</button>
     </div>
   </div>
 </div>
@@ -611,54 +613,54 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 <!-- panneau des effets -->
 <div class="modal effets" id="effetsModal" hidden>
   <div class="panel effets-panel">
-    <div class="close-row"><h2>Effets de votre création</h2><button type="button" class="x" id="effetsClose" aria-label="Fermer">✕</button></div>
-    <p class="hint-e">Chaque réglage s'applique aussitôt sur votre création, derrière ce panneau. Les effets se cumulent.</p>
+    <div class="close-row"><h2 data-i18n="ef.titre">Effets de votre création</h2><button type="button" class="x" data-i18n-aria="gen.fermer" id="effetsClose" aria-label="Fermer">✕</button></div>
+    <p class="hint-e" data-i18n="ef.sous"></p>
     <div class="effets-tabs" id="effetsTabs">
-      <button type="button" data-cat="entree" class="on">Entrée</button><button type="button" data-cat="pendant">Pendant</button><button type="button" data-cat="sortie">Sortie</button><button type="button" data-cat="forme">Forme</button><button type="button" data-cat="ambiance">Ambiance</button><button type="button" data-cat="rythme">Rythme</button>
+      <button type="button" data-cat="entree" class="on" data-i18n="ef.ong.entree">Entrée</button><button type="button" data-cat="pendant" data-i18n="ef.ong.pendant">Pendant</button><button type="button" data-cat="sortie" data-i18n="ef.ong.sortie">Sortie</button><button type="button" data-cat="forme" data-i18n="ef.ong.forme">Forme</button><button type="button" data-cat="ambiance" data-i18n="ef.ong.ambiance">Ambiance</button><button type="button" data-cat="rythme" data-i18n="ef.ong.rythme">Rythme</button>
     </div>
     <div class="effets-grille" id="effetsGrille"></div>
     <p class="effets-resume" id="effetsResume"></p>
-    <div class="actions"><button type="button" id="effetsOk">C'est parfait</button><button type="button" class="ghost" id="effetsReset">Réinitialiser</button></div>
+    <div class="actions"><button type="button" id="effetsOk" data-i18n="ef.ok">C'est parfait</button><button type="button" class="ghost" id="effetsReset" data-i18n="ef.reset">Réinitialiser</button></div>
   </div>
 </div>
 
 <!-- formulaire de demande -->
 <div class="modal" id="orderModal" hidden>
   <form class="panel" id="orderForm">
-    <div class="close-row"><button type="button" class="x" id="orderClose" aria-label="Fermer">✕</button></div>
-    <h2>Votre demande</h2>
-    <p class="sum">Prénom <b id="sumName">—</b> · Collection <b id="sumStyle">—</b> · Vidéo <b id="sumVideo">à envoyer avec votre message</b></p>
-    <p class="sum" id="sumEtape" hidden>Conseil : pour un devis précis, importez d'abord votre vidéo et fabriquez votre aperçu (étapes 1 et 2), puis envoyez votre demande.</p>
+    <div class="close-row"><button type="button" class="x" data-i18n-aria="gen.fermer" id="orderClose" aria-label="Fermer">✕</button></div>
+    <h2 data-i18n="cm.titre">Votre demande</h2>
+    <p class="sum"><span data-i18n="cm.prenom">Prénom</span> <b id="sumName">—</b> <span data-i18n="cm.collection">· Collection</span> <b id="sumStyle">—</b> <span data-i18n="cm.video">· Vidéo</span> <b id="sumVideo"></b></p>
+    <p class="sum" id="sumEtape" hidden data-i18n="cm.conseil"></p>
     <div class="apercu-ligne" id="apercuLigne">
       <img id="apercuImg" alt="" hidden>
-      <span id="apercuTxt"><b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.</span>
+      <span id="apercuTxt"></span>
     </div>
     <div class="field" id="tarifField" hidden>
-      <label>Votre formule</label>
+      <label data-i18n="cm.formule">Votre formule</label>
       <div class="tarifs" id="tarifChoices"></div>
     </div>
     <div class="field">
-      <label for="cliName">Votre nom</label>
+      <label for="cliName" data-i18n="cm.nom">Votre nom</label>
       <input id="cliName" type="text" autocomplete="name" required>
     </div>
     <div class="field">
-      <label for="cliNotes">Précisions (matières souhaitées, occasion, couleurs…)</label>
-      <textarea id="cliNotes" rows="3" placeholder="Ex. : le S en cuir chocolat, c'est pour un anniversaire…"></textarea>
+      <label for="cliNotes" data-i18n="cm.precisions">Précisions (matières souhaitées, occasion, couleurs…)</label>
+      <textarea id="cliNotes" rows="3" data-i18n-ph="cm.precisionsPh" placeholder="Ex. : le S en cuir chocolat, c'est pour un anniversaire…"></textarea>
     </div>
     <div class="envoi">
       <div class="actions">
-        <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden>Envoyer sur WhatsApp</a>
-        <button type="button" class="wx" id="wxBtn" hidden>Envoyer par WeChat 微信</button>
+        <a class="wa" id="waLink" href="#" target="_blank" rel="noopener" hidden data-i18n="cm.wa">Envoyer sur WhatsApp</a>
+        <button type="button" class="wx" id="wxBtn" hidden data-i18n="cm.wx">Envoyer par WeChat 微信</button>
         <a class="pp" id="ppLink" href="#" target="_blank" rel="noopener" hidden>Payer sur PayPal</a>
         <button type="button" class="wxp" id="wxPayBtn" hidden>Payer par WeChat Pay</button>
-        <button type="button" id="copyBtn">Copier le message</button>
+        <button type="button" id="copyBtn" data-i18n="cm.copier">Copier le message</button>
         <p class="pay-note" id="payNote" hidden></p>
-        <span class="done" id="copyDone" hidden>Copié ! Collez-le dans votre message avec la vidéo.</span>
+        <span class="done" id="copyDone" hidden data-i18n="cm.copie">Copié ! Collez-le dans votre message avec la vidéo.</span>
       </div>
       <div class="qr-bloc" id="qrBloc">
-        <b>Depuis votre téléphone</b>
+        <b data-i18n="cm.qrTitre">Depuis votre téléphone</b>
         <div id="qrBox"></div>
-        <small>Scannez avec l'appareil photo : WhatsApp s'ouvre, message et aperçu prêts — il ne reste qu'à appuyer sur Envoyer.</small>
+        <small data-i18n="cm.qrNote"></small>
       </div>
     </div>
   </form>
@@ -666,6 +668,57 @@ a.insta{color:var(--gold-deep);font-size:.78rem;letter-spacing:.1em;text-decorat
 
 <div class="menu-ctx" id="menuCtx" hidden role="menu"></div>
 <script>
+/* ================== LANGUES (français · 中文 · English) ==================
+   Les textes vivent dans i18n.js. t("cle") rend le texte de la langue courante,
+   t("cle", {n: 3}) remplace les {accolades} par des valeurs. */
+const LANGUES = ["fr", "zh", "en"];
+let LANG = (() => {
+  try { const m = localStorage.getItem("tc_lang"); if (LANGUES.includes(m)) return m; } catch {}
+  const n = (navigator.languages || [navigator.language || "fr"]).join(",").toLowerCase();
+  if (/\bzh/.test(n)) return "zh";
+  if (/\ben/.test(n) && !/\bfr/.test(n)) return "en";
+  return "fr";
+})();
+function t(cle, vars){
+  const d = window.I18N || {};
+  const s = (d[LANG] && d[LANG][cle]) || (d.fr && d.fr[cle]) || cle;
+  return vars ? s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] !== undefined ? vars[k] : m)) : s;
+}
+function appliquerLangue(complet){
+  document.documentElement.lang = LANG === "zh" ? "zh-Hans" : LANG;
+  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t(el.dataset.i18n);
+  for (const el of document.querySelectorAll("[data-i18n-html]")) el.innerHTML = t(el.dataset.i18nHtml);
+  for (const el of document.querySelectorAll("[data-i18n-ph]")) el.placeholder = t(el.dataset.i18nPh);
+  for (const el of document.querySelectorAll("[data-i18n-title]")) el.title = t(el.dataset.i18nTitle);
+  for (const el of document.querySelectorAll("[data-i18n-aria]")) el.setAttribute("aria-label", t(el.dataset.i18nAria));
+  for (const b of document.querySelectorAll("#langues button")) b.classList.toggle("on", b.dataset.lang === LANG);
+  if (!complet) return;
+  // ce que le script a construit lui-même : on le refait dans la nouvelle langue
+  for (const f of [
+    () => majBadgeEffets(),
+    () => { if (!effetsModal.hidden) construireGrille(); },
+    () => majBoutonSuivi(),
+    () => majTimeline(),
+    () => majCles(),
+    () => { construireRevues(); construireVideos(); },
+    () => construireTarifs(),
+    () => refreshWa(),
+    () => majApercuLigne(),
+    () => rendreAvis(),
+    () => { document.getElementById("sumVideo").textContent = videoFileName || t("cm.videoDefaut"); }
+  ]) { try { f(); } catch {} }
+}
+function choisirLangue(l){
+  if (!LANGUES.includes(l)) return;
+  LANG = l;
+  try { localStorage.setItem("tc_lang", l); } catch {}
+  appliquerLangue(true);
+}
+document.getElementById("langues").addEventListener("click", e => {
+  const b = e.target.closest("button[data-lang]"); if (b) choisirLangue(b.dataset.lang);
+});
+appliquerLangue(false);
+
 /* Toute la personnalisation (WhatsApp, Instagram, tarifs, collections, matières) vit dans config.json — voir GUIDE.md */
 const DEFAUTS = {
   whatsapp: "33665433314",
@@ -992,7 +1045,7 @@ function supprimerCle(c){ MONTAGE.cles = (MONTAGE.cles || []).filter(x => x !== 
 function majCles(){
   const bloc = document.getElementById("tlCles"); bloc.innerHTML = "";
   for (const c of (MONTAGE.cles || [])){
-    const d = document.createElement("i"); d.className = "tl-cle"; d.title = "Position clé à " + fmtF(c.tv - MONTAGE.debut) + " — glisser pour déplacer, clic pour y aller";
+    const d = document.createElement("i"); d.className = "tl-cle"; d.title = t("tl.cle", { t: fmtF(c.tv - MONTAGE.debut) });
     d.style.left = pct(c.tv); d.dataset.tv = c.tv; bloc.appendChild(d);
   }
 }
@@ -1042,19 +1095,20 @@ function dessinerSceneBrut(ctx, imgs, t, W, H, tFin){
 }
 
 /* résumé lisible des choix (devis + étiquette du bouton) */
-function libelle(cat, val){ const e = (CATALOGUE[cat] || []).find(([k]) => k === val); return e ? e[1] : val; }
+function libelle(cat, val){ return t("ef." + cat + "." + val); }
 function resumeEffets(){
+  const bas = v => LANG === "zh" ? v : v.toLowerCase();
   const parts = [libelle("entree", EFFETS.entree)];
   if (EFFETS.pendant !== "aucun") parts.push(libelle("pendant", EFFETS.pendant));
-  if (EFFETS.sortie !== "aucune") parts.push("sortie " + libelle("sortie", EFFETS.sortie).toLowerCase());
-  if (EFFETS.forme !== "ligne") parts.push("forme " + libelle("forme", EFFETS.forme).toLowerCase());
-  if (EFFETS.lueur !== "aucune") parts.push(libelle("lueur", EFFETS.lueur).toLowerCase());
-  if (EFFETS.reflet) parts.push("reflet");
-  if (EFFETS.paillettes) parts.push("paillettes");
-  if (EFFETS.voile) parts.push("voile");
-  if (!EFFETS.ombre) parts.push("sans ombre");
-  if (EFFETS.rythme !== "normal") parts.push("rythme " + libelle("rythme", EFFETS.rythme).toLowerCase());
-  if (EFFETS.ordre !== "gauche") parts.push("ordre " + libelle("ordre", EFFETS.ordre).toLowerCase());
+  if (EFFETS.sortie !== "aucune") parts.push(t("ef.r.sortie", { v: bas(libelle("sortie", EFFETS.sortie)) }));
+  if (EFFETS.forme !== "ligne") parts.push(t("ef.r.forme", { v: bas(libelle("forme", EFFETS.forme)) }));
+  if (EFFETS.lueur !== "aucune") parts.push(bas(libelle("lueur", EFFETS.lueur)));
+  if (EFFETS.reflet) parts.push(t("ef.r.reflet"));
+  if (EFFETS.paillettes) parts.push(t("ef.r.paillettes"));
+  if (EFFETS.voile) parts.push(t("ef.r.voile"));
+  if (!EFFETS.ombre) parts.push(t("ef.r.sansOmbre"));
+  if (EFFETS.rythme !== "normal") parts.push(t("ef.r.rythme", { v: bas(libelle("rythme", EFFETS.rythme)) }));
+  if (EFFETS.ordre !== "gauche") parts.push(t("ef.r.ordre", { v: bas(libelle("ordre", EFFETS.ordre)) }));
   return parts.join(" · ");
 }
 function nbEffetsActifs(){ // nombre de choix différents des réglages de départ
@@ -1099,9 +1153,9 @@ function majTimeline(){
   tl.tete.style.left = pct(Math.min(Math.max(video.currentTime, MONTAGE.debut), MONTAGE.fin));
   tl.temps.textContent = fmtF(video.currentTime - MONTAGE.debut) + " / " + fmt(MONTAGE.fin - MONTAGE.debut);
   const tvc = video.currentTime; for (const d of document.querySelectorAll(".tl-cle")) d.classList.toggle("on", Math.abs(+d.dataset.tv - tvc) <= 0.12);
-  tl.info.innerHTML = "<b></b>lettres à <span></span>";
-  tl.info.querySelector("b").textContent = "Passage " + fmt(MONTAGE.debut) + " → " + fmt(MONTAGE.fin);
-  tl.info.querySelector("span").textContent = MONTAGE.apparition.toFixed(1).replace(".", ",") + " s";
+  tl.info.innerHTML = "<b></b>" + t("tl.lettresA", { t: "<span></span>" });
+  tl.info.querySelector("b").textContent = t("tl.passage", { a: fmt(MONTAGE.debut), b: fmt(MONTAGE.fin) });
+  tl.info.querySelector("span").textContent = MONTAGE.apparition.toFixed(1).replace(".", LANG === "fr" ? "," : ".") + " s";
   tl.play.textContent = video.paused ? "▶" : "❚❚";
 }
 
@@ -1197,10 +1251,10 @@ function majBoutonSuivi(){
   btnSuivi.classList.toggle("on", SUIVI.actif && !SUIVI.calcul);
   btnSuivi.classList.toggle("vieux", SUIVI.actif && !SUIVI.calcul && !suiviCouvre());
   btnSuivi.setAttribute("aria-pressed", String(SUIVI.actif));
-  if (SUIVI.calcul) sp.textContent = "Analyse " + Math.round(SUIVI.calcul.progres * 100) + " % — annuler";
-  else if (SUIVI.actif && !suiviCouvre()) sp.textContent = "Recalculer le suivi";
-  else if (SUIVI.actif) sp.textContent = "Mouvement suivi";
-  else sp.textContent = "Suivre le mouvement";
+  if (SUIVI.calcul) sp.textContent = t("tl.suiviCalc", { p: Math.round(SUIVI.calcul.progres * 100) });
+  else if (SUIVI.actif && !suiviCouvre()) sp.textContent = t("tl.suiviRecalc");
+  else if (SUIVI.actif) sp.textContent = t("tl.suiviActif");
+  else sp.textContent = t("tl.suivi");
 }
 
 /* image → niveaux de gris (Uint8) à la taille d'analyse */
@@ -1666,7 +1720,7 @@ function lacherMot(e){
   if (motSaisie && !motDeplace && e && e.type === "pointerup" && e.button === 0){
     const pt = pointScene(e);
     const l = lettreSous(pt.x, pt.y);
-    if (l){ const ch = currentName.replace(/ /g, "")[l.i]; openLightbox(l.im.src, "Lettre " + ch + " — " + STYLES[currentStyle]); }
+    if (l){ const ch = currentName.replace(/ /g, "")[l.i]; openLightbox(l.im.src, t("lb.lettre", { l: ch, c: STYLES[currentStyle] })); }
   }
   motSaisie = null; sceneCanvas.classList.remove("saisi");
 }
@@ -1694,7 +1748,7 @@ function majCadresLettres(r){
   while (cadresLettres.children.length > L.length) cadresLettres.lastChild.remove();
   while (cadresLettres.children.length < L.length){
     const c = document.createElement("div"); c.className = "cadre-lettre";
-    const p = document.createElement("i"); p.className = "poignee"; p.title = "Agrandir / réduire la lettre";
+    const p = document.createElement("i"); p.className = "poignee"; p.title = t("stage.poigneeLettre");
     p.addEventListener("pointerdown", e => {
       if (e.button !== 0) return;
       e.preventDefault(); e.stopPropagation();
@@ -1792,31 +1846,31 @@ stage.addEventListener("contextmenu", e => {
   const pt = pointScene(e), lettre = v ? lettreSous(pt.x, pt.y) : null;
   const nomLettre = lettre ? currentName.replace(/ /g, "")[lettre.i] : "";
   const items = [
-    { ico: v && !video.paused ? "❚❚" : "▶", label: v && !video.paused ? "Pause" : "Lire", kbd: "Espace", action: () => tl.play.click() },
-    { ico: "↺", label: "Rejouer depuis le début", kbd: "R", action: () => { chargerLettresScene(); lancerLecture(1); } },
-    { ico: "↻", label: LECTURE.boucle ? "Arrêter la boucle" : "Lire en boucle", action: () => document.getElementById("tlBoucle").click() },
+    { ico: v && !video.paused ? "❚❚" : "▶", label: v && !video.paused ? t("menu.pause") : t("menu.lire"), kbd: t("menu.espace"), action: () => tl.play.click() },
+    { ico: "↺", label: t("menu.rejouer"), kbd: "R", action: () => { chargerLettresScene(); lancerLecture(1); } },
+    { ico: "↻", label: LECTURE.boucle ? t("menu.boucleOff") : t("menu.boucleOn"), action: () => document.getElementById("tlBoucle").click() },
     "-",
-    { ico: "◆", label: cle ? "Mettre à jour la position clé ici" : "Ajouter une position clé ici", kbd: "K", off: !v, action: () => { poserCle(); } },
-    { ico: "◇", label: "Supprimer cette position clé", off: !cle, action: () => supprimerCle(cle) },
-    { ico: "⌫", label: "Supprimer toutes les positions clés", off: !(MONTAGE.cles && MONTAGE.cles.length), action: () => { MONTAGE.cles = []; APERCU.cle = ""; majCles(); } },
+    { ico: "◆", label: cle ? t("menu.cleMaj") : t("menu.cleAdd"), kbd: "K", off: !v, action: () => { poserCle(); } },
+    { ico: "◇", label: t("menu.cleDel"), off: !cle, action: () => supprimerCle(cle) },
+    { ico: "⌫", label: t("menu.cleDelAll"), off: !(MONTAGE.cles && MONTAGE.cles.length), action: () => { MONTAGE.cles = []; APERCU.cle = ""; majCles(); } },
     "-",
     ...(lettre ? [lettre.detache
-      ? { ico: "⇤", label: "Rattacher la lettre " + nomLettre + " au mot", action: () => rattacherLettre(lettre.i) }
-      : { ico: "⇢", label: "Détacher la lettre " + nomLettre + " (la placer seule)", kbd: "Alt+glisser", action: () => detacherLettre(lettre.i) }] : []),
-    ...(nbDetachees() ? [{ ico: "⇤", label: "Rattacher toutes les lettres", action: () => { MONTAGE.detaches = {}; APERCU.cle = ""; } }] : []),
+      ? { ico: "⇤", label: t("menu.rattacher", { l: nomLettre }), action: () => rattacherLettre(lettre.i) }
+      : { ico: "⇢", label: t("menu.detacher", { l: nomLettre }), kbd: t("menu.detacherKbd"), action: () => detacherLettre(lettre.i) }] : []),
+    ...(nbDetachees() ? [{ ico: "⇤", label: t("menu.rattacherAll"), action: () => { MONTAGE.detaches = {}; APERCU.cle = ""; } }] : []),
     ...(lettre || nbDetachees() ? ["-"] : []),
-    { ico: "⌖", label: "Centrer le mot", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.cx = 0.5; c.by = 0.78; APERCU.cle = ""; } },
-    { ico: "↔", label: "Taille d'origine", off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.echelle = 1; APERCU.cle = ""; } },
-    { ico: "A", label: "Faire apparaître les lettres ici", off: !v, action: () => { MONTAGE.apparition = Math.max(0, Math.min(tvc - MONTAGE.debut, MONTAGE.fin - MONTAGE.debut - 0.5)); APERCU.cle = ""; SUIVI.cache = null; majTimeline(); } },
-    { ico: "[", label: "Début du passage ici", off: !v, action: () => { MONTAGE.debut = Math.min(tvc, MONTAGE.fin - 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.fin = MONTAGE.debut + MAX_RENDER_S; MONTAGE.apparition = Math.min(MONTAGE.apparition, MONTAGE.fin - MONTAGE.debut - 0.5); APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
-    { ico: "]", label: "Fin du passage ici", off: !v, action: () => { MONTAGE.fin = Math.max(tvc, MONTAGE.debut + 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.debut = MONTAGE.fin - MAX_RENDER_S; APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
+    { ico: "⌖", label: t("menu.centrer"), off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.cx = 0.5; c.by = 0.78; APERCU.cle = ""; } },
+    { ico: "↔", label: t("menu.taille"), off: !v, action: () => { const c = (MONTAGE.cles && MONTAGE.cles.length) ? poserCle() : MONTAGE; c.echelle = 1; APERCU.cle = ""; } },
+    { ico: "A", label: t("menu.apparition"), off: !v, action: () => { MONTAGE.apparition = Math.max(0, Math.min(tvc - MONTAGE.debut, MONTAGE.fin - MONTAGE.debut - 0.5)); APERCU.cle = ""; SUIVI.cache = null; majTimeline(); } },
+    { ico: "[", label: t("menu.debut"), off: !v, action: () => { MONTAGE.debut = Math.min(tvc, MONTAGE.fin - 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.fin = MONTAGE.debut + MAX_RENDER_S; MONTAGE.apparition = Math.min(MONTAGE.apparition, MONTAGE.fin - MONTAGE.debut - 0.5); APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
+    { ico: "]", label: t("menu.fin"), off: !v, action: () => { MONTAGE.fin = Math.max(tvc, MONTAGE.debut + 1); if (MONTAGE.fin - MONTAGE.debut > MAX_RENDER_S) MONTAGE.debut = MONTAGE.fin - MAX_RENDER_S; APERCU.cle = ""; majTimeline(); majCles(); majBoutonSuivi(); } },
     "-",
-    { ico: "◉", label: SUIVI.actif ? "Ne plus suivre le mouvement" : "Suivre le mouvement", off: !v, action: () => btnSuivi.click() },
-    { ico: "✨", label: "Effets…", action: () => document.getElementById("effetsBtn").click() },
-    { ico: "⤢", label: VUE.z > 1 ? "Zoom 100 %" : "Zoom 200 %", off: !v, action: () => reglerZoom(VUE.z > 1 ? 1 : 2) },
+    { ico: "◉", label: SUIVI.actif ? t("menu.suiviOff") : t("menu.suiviOn"), off: !v, action: () => btnSuivi.click() },
+    { ico: "✨", label: t("menu.effets"), action: () => document.getElementById("effetsBtn").click() },
+    { ico: "⤢", label: VUE.z > 1 ? t("menu.zoom100") : t("menu.zoom200"), off: !v, action: () => reglerZoom(VUE.z > 1 ? 1 : 2) },
     "-",
-    { ico: "📂", label: v ? "Changer de vidéo…" : "Importer une vidéo…", action: () => videoInput.click() },
-    { ico: "✕", label: "Retirer la vidéo", off: !v, action: retirerVideo }
+    { ico: "📂", label: v ? t("menu.changer") : t("menu.importer"), action: () => videoInput.click() },
+    { ico: "✕", label: t("menu.retirer"), off: !v, action: retirerVideo }
   ];
   ouvrirMenu(e.clientX, e.clientY, items);
 });
@@ -1873,10 +1927,11 @@ function majBadgeEffets(){
 function construireGrille(){
   effetsGrille.innerHTML = ""; tuilesAnim = [];
   for (const g of GROUPES[effetsCat]){
-    const h = document.createElement("h3"); h.textContent = g.titre; effetsGrille.appendChild(h);
+    const h = document.createElement("h3"); h.textContent = t("ef.g." + g.cat); effetsGrille.appendChild(h);
     const wrap = document.createElement("div"); wrap.className = "tuiles"; effetsGrille.appendChild(wrap);
     const options = g.cat === "bascules" ? BASCULES : CATALOGUE[g.cat];
-    for (const [val, label] of options){
+    for (const [val] of options){
+      const label = g.cat === "bascules" ? t("ef.b." + val) : t("ef." + g.cat + "." + val);
       const b = document.createElement("button"); b.type = "button"; b.className = "tuile";
       const c = document.createElement("canvas"); c.width = 192; c.height = 132;
       const sp = document.createElement("span"); sp.textContent = label;
@@ -2066,19 +2121,24 @@ function buildMessage(){
   const pay = infoPaiement();
   // ce que le client a réellement tapé (jamais le mot de démonstration)
   const saisi = document.getElementById("nameInput").value.trim();
+  const nd = nbDetachees();
   const lines = [
-    "DEMANDE TYPO — devis",
-    "Création : " + (saisi || "(prénom non précisé — merci de l'indiquer)"),
-    "Collection : " + STYLES[currentStyle],
-    "Effets : " + resumeEffets() + (SUIVI.actif && SUIVI.donnees ? " · suivi du mouvement" : "") + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + MONTAGE.cles.length + " positions clés" : "") + (nbDetachees() ? " · " + nbDetachees() + (nbDetachees() > 1 ? " lettres placées" : " lettre placée") + " à la main" : ""),
-    ...(formule ? ["Formule : " + formule.value] : []),
-    "Prix : " + (pay.montant ? pay.montant + " €" : "sur devis"),
+    t("ms.titre"),
+    t("ms.creation") + t("gen.sep") + (saisi || t("ms.creationVide")),
+    t("ms.collection") + t("gen.sep") + STYLES[currentStyle],
+    t("ms.effets") + t("gen.sep") + resumeEffets()
+      + (SUIVI.actif && SUIVI.donnees ? " · " + t("ms.suivi") : "")
+      + (MONTAGE.cles && MONTAGE.cles.length > 1 ? " · " + t("ms.cles", { n: MONTAGE.cles.length }) : "")
+      + (nd ? " · " + t(nd > 1 ? "ms.detacheesP" : "ms.detachees", { n: nd }) : ""),
+    ...(formule ? [t("ms.formule") + t("gen.sep") + formule.value] : []),
+    t("ms.prix") + t("gen.sep") + (pay.montant ? pay.montant + " €" : t("ms.devis")),
     ...(ligneReglement(pay) ? [ligneReglement(pay)] : []),
-    "Aperçu : " + (APERCU.page || (renderedOnce ? "vidéo générée sur le site" : "non généré")),
-    "Vidéo : " + (APERCU.video ? "aperçu animé inclus dans le lien ci-dessus (l'original vous sera demandé pour la version finale)" : (videoFileName ? videoFileName + " (jointe à ce message)" : "à joindre à ce message"))
+    t("ms.apercu") + t("gen.sep") + (APERCU.page || (renderedOnce ? t("ms.apercuGen") : t("ms.apercuNon"))),
+    t("ms.video") + t("gen.sep") + (APERCU.video ? t("ms.videoLien") : (videoFileName ? t("ms.videoJointe", { f: videoFileName }) : t("ms.videoAJoindre")))
   ];
-  if (cliName)    lines.push("Nom : " + cliName);
-  if (cliNotes)   lines.push("Précisions : " + cliNotes);
+  if (cliName)    lines.push(t("ms.nom") + t("gen.sep") + cliName);
+  if (cliNotes)   lines.push(t("ms.precisions") + t("gen.sep") + cliNotes);
+  if (LANG !== "fr") lines.push(t("ms.langue"));
   return lines.join("\n");
 }
 
@@ -2102,11 +2162,11 @@ function infoPaiement(){
 /* ligne « Règlement » du devis : PayPal et/ou WeChat Pay selon ce qui est configuré */
 function ligneReglement(pay){
   const parts = [];
-  if (pay.lien) parts.push("PayPal — " + pay.lien);
-  if (QR.includes("wechatpay")) parts.push("WeChat Pay" + (pay.yuan ? " (¥" + pay.yuan + ")" : ""));
-  if (QR.includes("alipay")) parts.push("Alipay");
-  if (!parts.length) return pay.montant ? "" : "Règlement : après accord sur le prix (l'atelier envoie le moyen de paiement)";
-  return "Règlement : " + parts.join(" · ");
+  if (pay.lien) parts.push(t("pay.paypal") + " — " + pay.lien);
+  if (QR.includes("wechatpay")) parts.push(t("pay.wechat") + (pay.yuan ? " (¥" + pay.yuan + ")" : ""));
+  if (QR.includes("alipay")) parts.push(t("pay.alipay"));
+  if (!parts.length) return pay.montant ? "" : t("ms.reglementApres");
+  return t("ms.reglement") + t("gen.sep") + parts.join(" · ");
 }
 
 function refreshPaiement(){
@@ -2117,20 +2177,18 @@ function refreshPaiement(){
   const qrPay = QR.includes("wechatpay") || QR.includes("alipay");
   if (wxp){
     wxp.hidden = !(qrPay && formule);
-    wxp.textContent = QR.includes("wechatpay")
-      ? "Payer par WeChat Pay" + (pay.yuan ? " · ¥" + pay.yuan : "")
-      : "Payer par Alipay" + (pay.yuan ? " · ¥" + pay.yuan : "");
+    wxp.textContent = t(QR.includes("wechatpay") ? "cm.wxpay" : "cm.alipay") + (pay.yuan ? " · ¥" + pay.yuan : "");
   }
   if (pay.lien){
     pp.hidden = false; pp.href = pay.lien;
-    pp.textContent = "Payer " + pay.montant + " € sur PayPal";
+    pp.textContent = t("cm.pp", { m: pay.montant });
   } else pp.hidden = true;
   const moyens = (pay.lien ? 1 : 0) + (qrPay && formule ? 1 : 0);
   if (pay.lien || (qrPay && formule)){
     note.hidden = false;
-    note.textContent = "Envoyez d'abord votre demande" + (CFG.wechat ? " (WhatsApp ou WeChat)" : "") + ", puis réglez" + (moyens > 1 ? " au choix" : "") + " : l'atelier démarre votre vidéo dès réception.";
+    note.textContent = t("cm.noteRegler", { canaux: CFG.wechat ? t("cm.noteCanaux") : "", choix: moyens > 1 ? t("cm.noteChoix") : "" });
   } else if (formule){
-    note.hidden = false; note.textContent = "Formule sur devis : l'atelier vous répond avec le prix, puis vous envoie le moyen de paiement.";
+    note.hidden = false; note.textContent = t("cm.noteDevis");
   } else note.hidden = true;
 }
 
@@ -2147,7 +2205,7 @@ function refreshWa(){
 }
 
 /* ---- aperçu de la création : image fabriquée ici, hébergée par l'atelier, lien dans le message ---- */
-const APERCU = { id: null, page: "", whatsapp: "", cle: "", enCours: false, video: false };
+const APERCU = { id: null, page: "", whatsapp: "", cle: "", enCours: false, video: false, etat: "", vignette: "" };
 const VIDEO_APERCU_MAX = 40 * 1024 * 1024;
 
 function envoyerVideoApercu(id, blob){
@@ -2216,18 +2274,26 @@ async function fabriquerImageApercu(){
   return c.toDataURL("image/jpeg", 0.78).split(",")[1];
 }
 
-function afficherEtatApercu(html, src){
-  const img = document.getElementById("apercuImg");
-  document.getElementById("apercuTxt").innerHTML = html;
-  if (src){ img.src = src; img.hidden = false; } else img.hidden = true;
+const APERCU_ETATS = { prep: ["cm.apercuPrep", "cm.apercuPrepS"], joint: ["cm.apercuPret", "cm.apercuPretS"], video: ["cm.apercuVideo", "cm.apercuVideoS"], videoKo: ["cm.apercuPret", "cm.apercuVideoKo"], non: ["cm.apercuNon", "cm.apercuNonS"] };
+function afficherEtatApercu(etat, src){
+  APERCU.etat = etat; if (src !== undefined) APERCU.vignette = src;
+  majApercuLigne();
+}
+function majApercuLigne(){
+  const img = document.getElementById("apercuImg"), txt = document.getElementById("apercuTxt");
+  const e = APERCU_ETATS[APERCU.etat]; if (!e){ txt.innerHTML = ""; img.hidden = true; return; }
+  txt.innerHTML = "<b></b><span></span>";
+  txt.querySelector("b").textContent = t(e[0]);
+  txt.querySelector("span").textContent = t(e[1]);
+  if (APERCU.vignette){ img.src = APERCU.vignette; img.hidden = false; } else img.hidden = true;
 }
 
 async function publierApercu(){
   const cle = [document.getElementById("nameInput").value.trim(), currentStyle, JSON.stringify(EFFETS), videoFileName || "", lastRenderBlob ? lastRenderBlob.size : 0].join("|");
-  if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu(APERCU.video ? "<b>Aperçu vidéo joint au message</b>Yuan verra votre création animée en ouvrant votre demande — rien à joindre." : "<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", document.getElementById("apercuImg").src); refreshWa(); return; }
+  if (APERCU.id && APERCU.cle === cle){ afficherEtatApercu(APERCU.video ? "video" : "joint"); refreshWa(); return; }
   if (APERCU.enCours) return;
   APERCU.enCours = true;
-  afficherEtatApercu("<b>Aperçu en préparation…</b>notre moteur fabrique une petite image de votre création, jointe au message.");
+  afficherEtatApercu("prep", "");
   try {
     const imageB64 = await fabriquerImageApercu();
     const r = await fetch(ATELIER_API + "/apercu", {
@@ -2238,16 +2304,16 @@ async function publierApercu(){
     const j = await r.json();
     Object.assign(APERCU, { id: j.id, page: j.page, whatsapp: j.whatsapp, cle, video: false });
     const vignette = "data:image/jpeg;base64," + imageB64;
-    afficherEtatApercu("<b>Aperçu joint au message</b>Yuan verra votre création en ouvrant votre demande.", vignette);
+    afficherEtatApercu("joint", vignette);
     // l'aperçu vidéo fabriqué par le moteur part aussi : le client n'a rien à joindre
     if (lastRenderBlob && lastRenderBlob.size <= VIDEO_APERCU_MAX){
       refreshWa();
       APERCU.video = await envoyerVideoApercu(j.id, lastRenderBlob);
-      afficherEtatApercu(APERCU.video ? "<b>Aperçu vidéo joint au message</b>Yuan verra votre création animée en ouvrant votre demande — rien à joindre." : "<b>Aperçu joint au message</b>la vidéo n'a pas pu être envoyée : joignez-la dans la conversation.", vignette);
+      afficherEtatApercu(APERCU.video ? "video" : "videoKo", vignette);
     }
   } catch {
     Object.assign(APERCU, { id: null, page: "", whatsapp: "", cle: "", video: false });
-    afficherEtatApercu("<b>Aperçu non joint</b>pas grave : envoyez votre demande, et joignez votre vidéo dans la conversation.");
+    afficherEtatApercu("non", "");
   }
   APERCU.enCours = false;
   refreshWa();
@@ -2303,9 +2369,9 @@ function construireTarifs(){
 }
 
 document.getElementById("orderBtn").addEventListener("click", () => {
-  document.getElementById("sumName").textContent  = document.getElementById("nameInput").value.trim() || "— (non précisé)";
+  document.getElementById("sumName").textContent  = document.getElementById("nameInput").value.trim() || t("cm.nonPrecise");
   document.getElementById("sumStyle").textContent = STYLES[currentStyle];
-  document.getElementById("sumVideo").textContent = videoFileName || "à envoyer avec votre message";
+  document.getElementById("sumVideo").textContent = videoFileName || t("cm.videoDefaut");
   document.getElementById("sumEtape").hidden = renderedOnce;
   refreshWa();
   orderModal.hidden = false;
@@ -2397,8 +2463,8 @@ async function startRender(){
   if (lecteurResultat) { try { lecteurResultat.pause(); } catch {} }
   document.getElementById("saveVideoBtn").hidden = true;
   document.getElementById("orderAfterRenderBtn").hidden = true;
-  document.getElementById("renderTitle").textContent = "Fabrication de votre vidéo…";
-  document.getElementById("renderNote").textContent = "Les lettres sont incrustées sur votre vidéo, directement sur votre appareil.";
+  document.getElementById("renderTitle").textContent = t("rd.titre");
+  document.getElementById("renderNote").textContent = t("rd.note");
   renderBar.style.width = "0%";
 
   const imgs = await loadLetterImages();
@@ -2465,10 +2531,10 @@ async function startRender(){
   renderCanvas.hidden = true;
   afficherResultat(URL.createObjectURL(lastRenderBlob), lastRenderBlob.type);
   document.getElementById("resultBox").hidden = false;
-  document.getElementById("renderTitle").textContent = "Votre aperçu est prêt";
-  document.getElementById("renderNote").textContent = "Aperçu avec filigrane. Dernière étape : envoyez votre demande — c'est votre devis. La version finale, en pleine qualité et sans filigrane, est réalisée et livrée par l'atelier.";
+  document.getElementById("renderTitle").textContent = t("rd.pret");
+  document.getElementById("renderNote").textContent = t("rd.notePret");
   document.getElementById("orderAfterRenderBtn").hidden = false;
-  document.getElementById("renderCancelBtn").textContent = "Fermer";
+  document.getElementById("renderCancelBtn").textContent = t("gen.fermer");
   const saveBtn = document.getElementById("saveVideoBtn");
   const fileName = `typo-cao-${(currentName.trim()||"apercu").toLowerCase().replace(/ /g,"-")}.${lastRenderExt}`;
   const downloads = await (window.claude?.use ? claude.use("downloads") : null);
@@ -2477,11 +2543,11 @@ async function startRender(){
     if (downloads){
       try {
         await downloads.save({filename: fileName, data: lastRenderBlob});
-        saveBtn.textContent = "Enregistré ✓";
+        saveBtn.textContent = t("rd.enregistre");
       } catch (err) {
         if (err && err.code === "declined") return;
         saveBtn.hidden = true;
-        document.getElementById("renderNote").textContent = "Téléchargement indisponible ici — envoyez votre demande, l'atelier vous livre la vidéo directement.";
+        document.getElementById("renderNote").textContent = t("rd.noteDl");
       }
       return;
     }
@@ -2492,7 +2558,7 @@ async function startRender(){
     document.body.appendChild(a);
     a.click();
     a.remove();
-    saveBtn.textContent = "Enregistré ✓";
+    saveBtn.textContent = t("rd.enregistre");
   };
 }
 
@@ -2536,18 +2602,18 @@ async function chargerAvis(){
   liste.innerHTML = "";
   const resume = document.getElementById("avisResume");
   if (!avis.length){
-    resume.textContent = "Aucun avis publié pour l'instant — soyez le premier !";
+    resume.textContent = t("av.vide");
     return;
   }
   const moyenne = avis.reduce((s,a) => s + (a.note||0), 0) / avis.length;
-  resume.innerHTML = `<b>${"★".repeat(Math.round(moyenne))}</b> ${moyenne.toFixed(1)} / 5 — ${avis.length} avis`;
+  resume.innerHTML = `<b>${"★".repeat(Math.round(moyenne))}</b> ${moyenne.toFixed(1)} / 5 — ${t("av.resume", { n: avis.length })}`;
   for (const a of avis.slice().reverse()){
     const el = document.createElement("div");
     el.className = "avis-item";
     el.innerHTML = `<div class="tete"><span class="nom"></span><span class="note"></span><span class="quand"></span></div><p class="texte"></p>`;
-    el.querySelector(".nom").textContent = a.nom || "Client";
+    el.querySelector(".nom").textContent = a.nom || t("av.client");
     el.querySelector(".note").textContent = "★".repeat(Math.max(1, Math.min(5, a.note||5)));
-    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleDateString("fr-FR") : "";
+    el.querySelector(".quand").textContent = a.date ? new Date(a.date).toLocaleDateString(t("gen.locale")) : "";
     el.querySelector(".texte").textContent = a.message || "";
     liste.appendChild(el);
   }
@@ -2564,7 +2630,7 @@ document.getElementById("avisEnvoyer").addEventListener("click", async () => {
   const done = document.getElementById("avisDone");
   const montrer = (txt) => { done.textContent = txt; done.hidden = false; setTimeout(() => { done.hidden = true; }, 6000); };
   if (nom.length < 2 || !noteInput || message.length < 5){
-    montrer("Complète ton prénom, ta note et ton avis.");
+    montrer(t("av.manque"));
     return;
   }
   const btn = document.getElementById("avisEnvoyer");
@@ -2579,9 +2645,9 @@ document.getElementById("avisEnvoyer").addEventListener("click", async () => {
     document.getElementById("avisNom").value = "";
     document.getElementById("avisMsg").value = "";
     noteInput.checked = false;
-    montrer("Merci ! Ton avis sera publié après validation par l'atelier.");
+    montrer(t("av.merci"));
   } catch {
-    montrer("Envoi impossible pour le moment — tu peux aussi donner ton avis par WhatsApp.");
+    montrer(t("av.erreur"));
   }
   btn.disabled = false;
 });
@@ -2608,25 +2674,25 @@ async function copierTexte(t){ try { await navigator.clipboard.writeText(t); ret
 function ouvrirWx(mode, texte, montant){
   const contact = QR.includes("wechat"), pay = mode === "pay";
   const type = pay ? (QR.includes("wechatpay") ? "wechatpay" : "alipay") : "wechat";
-  document.getElementById("wxTitre").textContent = pay ? (type === "alipay" ? "Payer par Alipay" : "Payer par WeChat Pay") : "Envoyer par WeChat";
+  document.getElementById("wxTitre").textContent = pay ? t(type === "alipay" ? "wx.titreAli" : "wx.titrePay") : t("wx.titreEnvoi");
   document.getElementById("wxSum").textContent = pay
-    ? (montant ? "Montant à régler : " + montant : "Scannez le code de l'atelier et saisissez le montant convenu.")
-    : (CFG.wechat ? "Identifiant WeChat de l'atelier : " + CFG.wechat : "Scannez le code pour ajouter l'atelier sur WeChat.");
+    ? (montant ? t("wx.montant", { m: montant }) : t("wx.sansMontant"))
+    : (CFG.wechat ? t("wx.id", { id: CFG.wechat }) : t("wx.scanContact"));
   const img = document.getElementById("wxQr"), note = document.getElementById("wxQrNote");
   const url = MEDIA_URL + "/q/" + type + ".png";
   img.src = url; img.alt = pay ? "Code de paiement" : "Code QR de l'atelier";
   img.hidden = !(QR.includes(type));
-  note.textContent = QR.includes(type) ? (pay ? "Code de réception de l'atelier" : "Code à scanner pour ajouter l'atelier") : "";
+  note.textContent = QR.includes(type) ? t(pay ? "wx.notePay" : "wx.noteContact") : "";
   const tel = document.getElementById("wxTelecharger");
   tel.href = url; tel.download = (pay ? "paiement" : "wechat") + "-typo-cao.png"; tel.hidden = !QR.includes(type);
   const et = document.getElementById("wxEtapes"); et.innerHTML = "";
   const etapes = pay
-    ? ["Ouvrez <b>WeChat</b> → <b>Découvrir</b> → <b>Scanner</b>.", "Sur téléphone : enregistrez d'abord l'image, puis dans le scanner choisissez <b>Album</b>.", montant ? "Saisissez le montant <b>" + montant + "</b> et validez." : "Saisissez le montant convenu avec l'atelier et validez.", "Prévenez l'atelier dans la conversation : votre vidéo démarre dès réception."]
-    : ["<b>Copiez votre message</b> avec le bouton ci-dessous (il contient le lien de votre aperçu).", contact ? "Ajoutez l'atelier : <b>WeChat → Découvrir → Scanner</b> ce code (sur téléphone, enregistrez l'image puis choisissez <b>Album</b>)." + (CFG.wechat ? " Ou cherchez l'identifiant <b>" + CFG.wechat + "</b>." : "") : "Cherchez l'identifiant <b>" + (CFG.wechat || "de l'atelier") + "</b> dans WeChat.", "<b>Collez le message</b> dans la conversation et envoyez."];
+    ? [t("wx.p1"), t("wx.p2"), montant ? t("wx.p3", { m: montant }) : t("wx.p3sans"), t("wx.p4")]
+    : [t("wx.e1"), contact ? t("wx.e2") + (CFG.wechat ? t("wx.e2id", { id: CFG.wechat }) : "") : t("wx.e2sans", { id: CFG.wechat || "—" }), t("wx.e3")];
   for (const e of etapes){ const li = document.createElement("li"); li.innerHTML = e; et.appendChild(li); }
   const cop = document.getElementById("wxCopier");
   cop.hidden = pay;
-  cop.onclick = async () => { const ok = await copierTexte(texte || buildMessage()); const d = document.getElementById("wxDone"); d.hidden = false; d.textContent = ok ? "Copié ! Collez-le dans WeChat." : "Copie impossible — sélectionnez le texte à la main."; setTimeout(() => { d.hidden = true; }, 4000); };
+  cop.onclick = async () => { const ok = await copierTexte(texte || buildMessage()); const d = document.getElementById("wxDone"); d.hidden = false; d.textContent = t(ok ? "wx.copie" : "wx.copieNon"); setTimeout(() => { d.hidden = true; }, 4000); };
   document.getElementById("wxDone").hidden = true;
   wxModal.hidden = false;
 }
@@ -2642,28 +2708,29 @@ function construireRevues(){
     b.innerHTML = `<img alt="" loading="lazy"><div><div class="t"></div><div class="p"></div></div>`;
     b.querySelector("img").src = r.apercus ? `${MEDIA_URL}/r/${r.id}/0.jpg` : "";
     b.querySelector(".t").textContent = r.titre;
-    b.querySelector(".p").textContent = r.prix || (r.montant ? r.montant + " €" : "sur demande");
+    b.querySelector(".p").textContent = r.prix || (r.montant ? r.montant + " €" : t("rv.surDemande"));
     b.addEventListener("click", () => ouvrirRevue(r));
     liste.appendChild(b);
   }
 }
 function messageRevue(r){
   const pseudo = pseudoPaypal();
-  const lignes = ["DEMANDE REVUE", "Revue : " + r.titre, "Prix : " + (r.prix || (r.montant ? r.montant + " €" : (r.yuan ? "¥" + r.yuan : "à confirmer")))];
+  const lignes = [t("rv.msTitre"), t("rv.msRevue") + t("gen.sep") + r.titre, t("rv.msPrix") + t("gen.sep") + (r.prix || (r.montant ? r.montant + " €" : (r.yuan ? "¥" + r.yuan : t("rv.msAConfirmer"))))];
   const moyens = [];
-  if (r.montant && pseudo) moyens.push("PayPal — https://paypal.me/" + encodeURIComponent(pseudo) + "/" + r.montant + "EUR");
-  if (QR.includes("wechatpay")) moyens.push("WeChat Pay" + (r.yuan ? " (¥" + r.yuan + ")" : ""));
-  if (QR.includes("alipay")) moyens.push("Alipay");
-  lignes.push("Règlement : " + (moyens.length ? moyens.join(" · ") : "à convenir avec l'atelier"));
-  lignes.push("Après règlement, merci de m'envoyer le lien de téléchargement.");
+  if (r.montant && pseudo) moyens.push(t("pay.paypal") + " — https://paypal.me/" + encodeURIComponent(pseudo) + "/" + r.montant + "EUR");
+  if (QR.includes("wechatpay")) moyens.push(t("pay.wechat") + (r.yuan ? " (¥" + r.yuan + ")" : ""));
+  if (QR.includes("alipay")) moyens.push(t("pay.alipay"));
+  lignes.push(t("ms.reglement") + t("gen.sep") + (moyens.length ? moyens.join(" · ") : t("rv.msAConvenir")));
+  lignes.push(t("rv.msApres"));
+  if (LANG !== "fr") lignes.push(t("ms.langue"));
   return lignes.join("\n");
 }
 function ouvrirRevue(r){
   document.getElementById("revueTitre").textContent = r.titre;
-  document.getElementById("revueDesc").textContent = (r.description || "") + (r.pages ? (r.description ? " — " : "") + r.pages + " pages (PDF)" : "");
+  document.getElementById("revueDesc").textContent = (r.description || "") + (r.pages ? (r.description ? " — " : "") + t("rv.pages", { n: r.pages }) : "");
   const pages = document.getElementById("revuePages"); pages.innerHTML = "";
   for (let k = 0; k < (r.apercus || 0); k++){ const im = document.createElement("img"); im.src = `${MEDIA_URL}/r/${r.id}/${k}.jpg`; im.alt = k ? "Page d'aperçu " + k : "Couverture"; pages.appendChild(im); }
-  document.getElementById("revuePrix").textContent = r.prix || (r.montant ? r.montant + " €" : "Prix sur demande");
+  document.getElementById("revuePrix").textContent = r.prix || (r.montant ? r.montant + " €" : t("rv.prixDemande"));
   const a = document.getElementById("revueCommander");
   a.hidden = !CFG.whatsapp;
   a.href = CFG.whatsapp ? "https://wa.me/" + CFG.whatsapp + "?text=" + encodeURIComponent(messageRevue(r)) : "#";
@@ -2706,7 +2773,7 @@ async function ouvrirVideo(v){
   if (v.lien){
     const i = integrationLien(v.lien);
     if (i){ cadre.classList.toggle("vertical", i.vertical); const fr = document.createElement("iframe"); fr.src = i.src; fr.allow = "autoplay; fullscreen; picture-in-picture"; fr.allowFullscreen = true; fr.title = v.titre; cadre.appendChild(fr); }
-    else { const a = document.createElement("a"); a.href = v.lien; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Voir la vidéo"; a.style.color = "#fdf9f1"; cadre.appendChild(a); }
+    else { const a = document.createElement("a"); a.href = v.lien; a.target = "_blank"; a.rel = "noopener"; a.textContent = t("gen.voirVideo"); a.style.color = "#fdf9f1"; cadre.appendChild(a); }
     return;
   }
   const el = document.createElement("video"); el.controls = true; el.playsInline = true; el.preload = "metadata"; el.autoplay = true;
@@ -2738,6 +2805,7 @@ document.getElementById("videoModal").addEventListener("click", e => { if (e.tar
     insta.textContent = "Instagram @" + CFG.instagram.replace(/^@/, "");
   }
   renderWord(true);
+  appliquerLangue(true);
 })();
 </script>
 
