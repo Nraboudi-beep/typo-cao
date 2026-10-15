@@ -217,6 +217,9 @@ fr: {
   "nv.nouveau": "Nouveau",
   "nv.aucune": "Aucune mise à jour pour l'instant.",
   "nv.fermer": "Fermer",
+  "f.choisir": "Choisir un fichier",
+  "f.aucun": "Aucun fichier choisi",
+  "f.choisirImages": "Choisir les images",
   "gen.locale": "fr-FR"
 },
 
@@ -434,6 +437,9 @@ zh: {
   "nv.nouveau": "新",
   "nv.aucune": "目前还没有更新。",
   "nv.fermer": "关闭",
+  "f.choisir": "选择文件",
+  "f.aucun": "未选择文件",
+  "f.choisirImages": "选择图片",
   "gen.locale": "zh-CN"
 }
 

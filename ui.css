@@ -1,0 +1,105 @@
+/* ===========================================================================
+   Typo Cao — contrôles communs au site et à l'atelier.
+   Une seule source pour les boutons, les champs et leurs états : les deux
+   pages chargent ce fichier, puis n'y ajoutent que ce qui leur est propre.
+   Les couleurs viennent des variables de chaque page (--gold, --line…).
+   =========================================================================== */
+:root{
+  --ctl-h: 2.6rem;        /* hauteur de référence : boutons et champs */
+  --ctl-h-sm: 2.15rem;    /* barres d'outils, bascules */
+  --ctl-h-lg: 3.3rem;     /* action principale d'un écran */
+  --ctl-r: 8px;           /* rayon des contrôles */
+  --ctl-pad: 1.15em;      /* respiration horizontale */
+  --ctl-fs: .85rem;       /* taille du texte des boutons */
+  --ctl-ls: .06em;        /* interlettrage (tient aussi en chinois) */
+  --champ-fs: 1rem;
+  --anneau: 0 0 0 3px rgba(168,124,63,.22);
+  --err: #a33b2e;
+  --ok: #3d7a46;
+}
+
+/* ---------- boutons : une forme, quatre intentions ---------- */
+button,
+.btn{
+  box-sizing:border-box;
+  display:inline-flex;align-items:center;justify-content:center;gap:.5em;
+  min-height:var(--ctl-h);padding:0 var(--ctl-pad);
+  font-family:var(--body);font-weight:500;font-size:var(--ctl-fs);letter-spacing:var(--ctl-ls);line-height:1.2;
+  border:1px solid var(--gold-deep);border-radius:var(--ctl-r);
+  background:var(--gold-deep);color:#fdf9f1;
+  cursor:pointer;white-space:nowrap;text-decoration:none;
+  transition:background-color .18s,border-color .18s,color .18s,box-shadow .2s,transform .15s;
+}
+button:hover,.btn:hover{background:var(--gold);border-color:var(--gold)}
+
+/* secondaire : le contour suffit */
+button.ghost,.btn.ghost{background:transparent;color:var(--gold-deep);border-color:var(--gold-deep);box-shadow:none}
+button.ghost:hover,.btn.ghost:hover{background:rgba(168,124,63,.1);color:var(--gold-deep);border-color:var(--gold)}
+
+/* discret : ni fond ni bordure, pour les actions de service */
+button.quiet,.btn.quiet{background:transparent;border-color:transparent;color:var(--muted);box-shadow:none}
+button.quiet:hover,.btn.quiet:hover{background:rgba(168,124,63,.1);color:var(--gold-deep);border-color:transparent}
+
+/* destructif : rouge au contour, jamais en aplat */
+button.danger,.btn.danger{background:transparent;color:var(--err);border-color:var(--err);box-shadow:none}
+button.danger:hover,.btn.danger:hover{background:rgba(163,59,46,.08);color:var(--err);border-color:var(--err)}
+
+button.small,.btn.small{min-height:var(--ctl-h-sm);padding:0 .95em;font-size:.8rem}
+button.large,.btn.large{min-height:var(--ctl-h-lg);padding:0 1.6em;font-size:.95rem;width:100%}
+button:disabled,.btn:disabled,button[disabled]{opacity:.45;cursor:default;transform:none;pointer-events:none}
+
+/* bouton rond : même hauteur que les autres, donc parfaitement aligné */
+button.rond{width:var(--ctl-h);height:var(--ctl-h);min-height:0;padding:0;border-radius:50%;font-size:1rem;letter-spacing:0}
+button.rond.small{width:var(--ctl-h-sm);height:var(--ctl-h-sm);font-size:.9rem}
+
+/* bascule en pilule (langue, options actives) */
+button.pilule{border-radius:999px;min-height:var(--ctl-h-sm);padding:0 1em;font-size:.78rem;background:transparent;color:var(--gold-deep);border-color:var(--gold-deep);box-shadow:none}
+button.pilule:hover{background:rgba(168,124,63,.1)}
+button.pilule.on,button[aria-pressed="true"].pilule{background:var(--gold-deep);color:#fdf9f1;border-color:var(--gold-deep)}
+
+/* groupe segmenté : des boutons collés qui n'en forment qu'un */
+.segment{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface);flex:none}
+.segment button{min-height:var(--ctl-h-sm);padding:0 .9em;border:0;border-radius:0;background:transparent;color:var(--muted);font-size:.78rem;box-shadow:none}
+.segment button:hover{background:rgba(168,124,63,.1);color:var(--gold-deep)}
+.segment button.on{background:var(--gold-deep);color:#fdf9f1}
+
+/* ---------- champs ---------- */
+input[type=text],input[type=tel],input[type=url],input[type=number],input[type=password],input[type=email],input[type=search],select,textarea{
+  box-sizing:border-box;width:100%;
+  min-height:var(--ctl-h);padding:.6em .85em;
+  font-family:var(--body);font-weight:400;font-size:var(--champ-fs);color:var(--fg);
+  background:#fffdf8;border:1px solid var(--line);border-radius:var(--ctl-r);
+  outline:none;transition:border-color .18s,box-shadow .2s;
+}
+textarea{min-height:5.5rem;resize:vertical;line-height:1.6}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:1}
+input:hover,select:hover,textarea:hover{border-color:var(--gold)}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:var(--anneau)}
+input:disabled,textarea:disabled,select:disabled{opacity:.6;cursor:default}
+
+/* étiquette de champ : lisible, pas criée */
+label.f{display:block;font-size:.82rem;font-weight:500;letter-spacing:.01em;text-transform:none;color:var(--muted);margin:16px 0 7px}
+
+/* ---------- champ fichier habillé ---------- */
+.fichier{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.fichier input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.fichier .fichier-btn{
+  box-sizing:border-box;display:inline-flex;align-items:center;gap:.5em;
+  min-height:var(--ctl-h);padding:0 var(--ctl-pad);
+  font-family:var(--body);font-weight:500;font-size:var(--ctl-fs);letter-spacing:var(--ctl-ls);
+  border:1px solid var(--gold-deep);border-radius:var(--ctl-r);
+  background:transparent;color:var(--gold-deep);cursor:pointer;white-space:nowrap;
+  transition:background-color .18s,border-color .18s;
+}
+.fichier .fichier-btn:hover{background:rgba(168,124,63,.1);border-color:var(--gold)}
+.fichier .fichier-nom{color:var(--muted);font-size:.86rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fichier input[type=file]:focus-visible + .fichier-btn{box-shadow:var(--anneau);border-color:var(--gold)}
+
+/* ---------- focus clavier : un seul signal, partout ---------- */
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--gold-deep);outline-offset:2px;border-radius:var(--ctl-r);
+}
+
+@media (prefers-reduced-motion:reduce){
+  button,.btn,input,select,textarea,.fichier .fichier-btn{transition:none}
+}

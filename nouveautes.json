@@ -1,45 +1,128 @@
 [
   {
+    "version": "2026-10-15b",
+    "date": "2026-10-15",
+    "titre": {
+      "fr": "Boutons et champs refaits à neuf",
+      "zh": "按钮和输入框全部重做"
+    },
+    "points": [
+      {
+        "fr": "Tous les boutons de ton atelier et du site ont désormais la même forme, la même hauteur et les mêmes coins arrondis — comme dans un logiciel professionnel.",
+        "zh": "工作室和网站上的所有按钮现在形状、高度和圆角都一致——就像专业软件一样。"
+      },
+      {
+        "fr": "Les champs de saisie suivent la même règle : même hauteur que les boutons, et un liseré doré apparaît sur le champ en cours d'écriture.",
+        "zh": "输入框遵循同样的规则：和按钮一样高，正在输入的那一个会出现金色描边。"
+      },
+      {
+        "fr": "Les champs « choisir un fichier » ne sont plus les boutons gris du navigateur : ils portent la charte de Typo Cao et affichent le nom du fichier choisi.",
+        "zh": "「选择文件」不再是浏览器的灰色按钮：它采用 Typo Cao 的风格，并显示所选文件的名称。"
+      },
+      {
+        "fr": "Les intitulés au-dessus des champs sont écrits normalement, plus en majuscules espacées : la page se lit plus vite.",
+        "zh": "输入框上方的说明文字改用正常大小写，不再是拉开间距的大写字母：页面读起来更快。"
+      }
+    ]
+  },
+  {
     "version": "2026-10-15",
     "date": "2026-10-15",
-    "titre": { "fr": "Ton atelier parle chinois", "zh": "你的工作室会说中文了" },
+    "titre": {
+      "fr": "Ton atelier parle chinois",
+      "zh": "你的工作室会说中文了"
+    },
     "points": [
-      { "fr": "Deux boutons FR · 中文 en haut à droite : tout ton atelier bascule dans la langue choisie, et ton choix est mémorisé.", "zh": "右上角有 FR · 中文 两个按钮：整个工作室会切换到你选的语言，而且会记住你的选择。" },
-      { "fr": "Tout est traduit : les onglets, les explications, le journal, les messages et les confirmations.", "zh": "全部都翻译好了：标签页、说明、日志、提示和确认信息。" }
+      {
+        "fr": "Deux boutons FR · 中文 en haut à droite : tout ton atelier bascule dans la langue choisie, et ton choix est mémorisé.",
+        "zh": "右上角有 FR · 中文 两个按钮：整个工作室会切换到你选的语言，而且会记住你的选择。"
+      },
+      {
+        "fr": "Tout est traduit : les onglets, les explications, le journal, les messages et les confirmations.",
+        "zh": "全部都翻译好了：标签页、说明、日志、提示和确认信息。"
+      }
     ]
   },
   {
     "version": "2026-10-14",
     "date": "2026-10-14",
-    "titre": { "fr": "Chinois et anglais sur ton site, WeChat, revues et vidéos", "zh": "网站支持中英文，新增微信、电子刊和视频" },
+    "titre": {
+      "fr": "Chinois et anglais sur ton site, WeChat, revues et vidéos",
+      "zh": "网站支持中英文，新增微信、电子刊和视频"
+    },
     "points": [
-      { "fr": "Ton site accueille chaque client dans sa langue : français, 中文 ou anglais, détecté automatiquement et changeable à tout moment. La demande qu'il t'envoie est écrite dans sa langue, avec une ligne qui te dit laquelle.", "zh": "网站会用客户自己的语言迎接他们：法语、中文或英语，自动识别，也可以随时切换。他发给你的订单会用他的语言写，并注明是哪种语言。" },
-      { "fr": "WeChat : ajoute ton identifiant 微信号 et tes codes QR (contact, 收款码, Alipay) dans « Contacts & tarifs ». Les clients peuvent alors t'envoyer leur demande par WeChat et payer par WeChat Pay. Chaque formule peut aussi avoir un montant en ¥.", "zh": "微信：在「联系方式与价格」里填写微信号并上传二维码（加好友码、收款码、支付宝）。客户就可以用微信发订单、用微信支付付款。每个方案还可以填人民币金额。" },
-      { "fr": "Revues : un nouvel onglet pour vendre tes PDF. Tu déposes le fichier, la couverture et 3 pages d'aperçu filigranées sont fabriquées automatiquement. Après règlement, tu génères un lien de téléchargement valable 7 jours.", "zh": "电子刊：新增一个标签页用来销售你的 PDF。上传文件后，封面和 3 页带水印的预览会自动生成。收到付款后，你生成一个 7 天内有效的下载链接。" },
-      { "fr": "Vidéos : un onglet pour montrer tes réalisations, par fichier ou par lien YouTube, Vimeo, Instagram ou TikTok. Elles s'affichent sur ton site.", "zh": "视频：新增一个标签页展示你的作品，可以上传文件，也可以放 YouTube、Vimeo、Instagram 或 TikTok 的链接。它们会显示在你的网站上。" }
+      {
+        "fr": "Ton site accueille chaque client dans sa langue : français, 中文 ou anglais, détecté automatiquement et changeable à tout moment. La demande qu'il t'envoie est écrite dans sa langue, avec une ligne qui te dit laquelle.",
+        "zh": "网站会用客户自己的语言迎接他们：法语、中文或英语，自动识别，也可以随时切换。他发给你的订单会用他的语言写，并注明是哪种语言。"
+      },
+      {
+        "fr": "WeChat : ajoute ton identifiant 微信号 et tes codes QR (contact, 收款码, Alipay) dans « Contacts & tarifs ». Les clients peuvent alors t'envoyer leur demande par WeChat et payer par WeChat Pay. Chaque formule peut aussi avoir un montant en ¥.",
+        "zh": "微信：在「联系方式与价格」里填写微信号并上传二维码（加好友码、收款码、支付宝）。客户就可以用微信发订单、用微信支付付款。每个方案还可以填人民币金额。"
+      },
+      {
+        "fr": "Revues : un nouvel onglet pour vendre tes PDF. Tu déposes le fichier, la couverture et 3 pages d'aperçu filigranées sont fabriquées automatiquement. Après règlement, tu génères un lien de téléchargement valable 7 jours.",
+        "zh": "电子刊：新增一个标签页用来销售你的 PDF。上传文件后，封面和 3 页带水印的预览会自动生成。收到付款后，你生成一个 7 天内有效的下载链接。"
+      },
+      {
+        "fr": "Vidéos : un onglet pour montrer tes réalisations, par fichier ou par lien YouTube, Vimeo, Instagram ou TikTok. Elles s'affichent sur ton site.",
+        "zh": "视频：新增一个标签页展示你的作品，可以上传文件，也可以放 YouTube、Vimeo、Instagram 或 TikTok 的链接。它们会显示在你的网站上。"
+      }
     ]
   },
   {
     "version": "2026-10-09",
     "date": "2026-10-09",
-    "titre": { "fr": "L'éditeur devient un vrai logiciel de montage", "zh": "编辑器变成了真正的剪辑软件" },
+    "titre": {
+      "fr": "L'éditeur devient un vrai logiciel de montage",
+      "zh": "编辑器变成了真正的剪辑软件"
+    },
     "points": [
-      { "fr": "Les lettres vivent et brillent toutes seules dès l'arrivée du client : léger flottement, respiration et reflet doré.", "zh": "客户一进入页面，字母就会自己灵动闪耀：轻轻漂浮、呼吸般的起伏和金色反光。" },
-      { "fr": "Suivre le mouvement : les lettres peuvent se coller à la scène et suivre la caméra de la vidéo.", "zh": "跟随画面运动：字母可以贴在画面上，跟着视频的镜头一起移动。" },
-      { "fr": "Lettres détachables : le client peut sortir une lettre du mot et la poser où il veut.", "zh": "字母可拆开：客户可以把某个字母从词组里拿出来，单独放到任何位置。" },
-      { "fr": "Positions clés : le mot peut se déplacer et changer de taille au fil de la vidéo.", "zh": "关键位置：文字可以随着视频移动并改变大小。" },
-      { "fr": "Zoom de la zone de travail, menu au clic droit, avance image par image au clavier.", "zh": "编辑区缩放、右键菜单、键盘逐帧前进。" },
-      { "fr": "L'aperçu s'affiche de nouveau correctement dans WhatsApp.", "zh": "预览在 WhatsApp 里又能正常显示缩略图了。" }
+      {
+        "fr": "Les lettres vivent et brillent toutes seules dès l'arrivée du client : léger flottement, respiration et reflet doré.",
+        "zh": "客户一进入页面，字母就会自己灵动闪耀：轻轻漂浮、呼吸般的起伏和金色反光。"
+      },
+      {
+        "fr": "Suivre le mouvement : les lettres peuvent se coller à la scène et suivre la caméra de la vidéo.",
+        "zh": "跟随画面运动：字母可以贴在画面上，跟着视频的镜头一起移动。"
+      },
+      {
+        "fr": "Lettres détachables : le client peut sortir une lettre du mot et la poser où il veut.",
+        "zh": "字母可拆开：客户可以把某个字母从词组里拿出来，单独放到任何位置。"
+      },
+      {
+        "fr": "Positions clés : le mot peut se déplacer et changer de taille au fil de la vidéo.",
+        "zh": "关键位置：文字可以随着视频移动并改变大小。"
+      },
+      {
+        "fr": "Zoom de la zone de travail, menu au clic droit, avance image par image au clavier.",
+        "zh": "编辑区缩放、右键菜单、键盘逐帧前进。"
+      },
+      {
+        "fr": "L'aperçu s'affiche de nouveau correctement dans WhatsApp.",
+        "zh": "预览在 WhatsApp 里又能正常显示缩略图了。"
+      }
     ]
   },
   {
     "version": "2026-10-08",
     "date": "2026-10-08",
-    "titre": { "fr": "Ton atelier ouvre ses portes", "zh": "你的工作室开张了" },
+    "titre": {
+      "fr": "Ton atelier ouvre ses portes",
+      "zh": "你的工作室开张了"
+    },
     "points": [
-      { "fr": "Ton site est en ligne : les clients composent un prénom avec tes lettres, le posent sur leur vidéo et t'envoient leur demande sur WhatsApp, aperçu compris.", "zh": "你的网站上线了：客户用你的字母拼出名字，放到自己的视频上，然后把订单连同预览一起用 WhatsApp 发给你。" },
-      { "fr": "Cet espace est à toi : tes tarifs, tes collections, tes matières, tes avis clients — et le journal qui veille sur ta porte.", "zh": "这个空间属于你：你的价格、你的字母系列、你的材质、客户评价 —— 还有为你守门的日志。" },
-      { "fr": "Connexion sans mot de passe : ton numéro WhatsApp et un code à 6 chiffres.", "zh": "无需密码登录：你的 WhatsApp 号码加一个 6 位验证码。" }
+      {
+        "fr": "Ton site est en ligne : les clients composent un prénom avec tes lettres, le posent sur leur vidéo et t'envoient leur demande sur WhatsApp, aperçu compris.",
+        "zh": "你的网站上线了：客户用你的字母拼出名字，放到自己的视频上，然后把订单连同预览一起用 WhatsApp 发给你。"
+      },
+      {
+        "fr": "Cet espace est à toi : tes tarifs, tes collections, tes matières, tes avis clients — et le journal qui veille sur ta porte.",
+        "zh": "这个空间属于你：你的价格、你的字母系列、你的材质、客户评价 —— 还有为你守门的日志。"
+      },
+      {
+        "fr": "Connexion sans mot de passe : ton numéro WhatsApp et un code à 6 chiffres.",
+        "zh": "无需密码登录：你的 WhatsApp 号码加一个 6 位验证码。"
+      }
     ]
   }
 ]
