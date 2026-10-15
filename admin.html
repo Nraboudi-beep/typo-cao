@@ -123,6 +123,27 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(-
 .langues button{background:transparent;border:0;border-radius:0;color:var(--muted);padding:.42em .8em;font-size:.8rem;font-weight:500;box-shadow:none;white-space:nowrap}
 .langues button:hover{color:var(--gold-deep)}
 .langues button.on{background:var(--gold-deep);color:#fdf9f1}
+/* nouveautés */
+.nouveautes{margin-top:18px;padding:22px 26px;border-radius:12px;background:#fffdf8;border:1px solid var(--gold);box-shadow:0 10px 30px -18px rgba(90,62,28,.5)}
+.nv-tete{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.nv-tete b{font-weight:500;font-size:1.15rem}
+.nv-pastille{background:var(--gold-deep);color:#fdf9f1;border-radius:999px;padding:3px 11px;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;flex:none}
+.nv-date{color:var(--muted);font-size:.86rem;margin-left:auto}
+.nouveautes ul{margin:14px 0 16px;padding-left:1.1em;line-height:1.75}
+.nouveautes li{margin-bottom:6px}
+.nv-lien{margin:14px 0 0;text-align:right}
+.nv-lien a{color:var(--muted);font-size:.88rem}
+.nv-lien a:hover{color:var(--gold-deep)}
+.modal-nv{position:fixed;inset:0;background:rgba(43,34,24,.5);display:flex;align-items:center;justify-content:center;z-index:40;padding:20px;box-sizing:border-box}
+.nv-panneau{background:var(--surface);border:1px solid var(--line);border-radius:14px;max-width:760px;width:100%;max-height:88vh;overflow-y:auto;padding:28px 32px;box-sizing:border-box;box-shadow:0 30px 70px rgba(90,62,28,.35)}
+.nv-panneau-tete{display:flex;align-items:center;gap:16px}
+.nv-panneau-tete h2{margin:0;flex:1}
+.nv-entree{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.nv-entree:first-of-type{border-top:0}
+.nv-entree .nv-tete b{font-size:1.02rem}
+.nv-entree ul{margin:10px 0 0;padding-left:1.1em;line-height:1.7;color:var(--fg)}
+html[lang="zh-Hans"] .nv-pastille{letter-spacing:.04em}
+@media (max-width:640px){.nouveautes{padding:18px 18px}.nv-panneau{padding:22px 18px}.nv-date{margin-left:0;width:100%}}
 html[lang="zh-Hans"] label.f{letter-spacing:.02em;text-transform:none;font-size:.85rem}
 html[lang="zh-Hans"] button,html[lang="zh-Hans"] .onglets button{letter-spacing:.02em}
 html[lang="zh-Hans"] .sub{letter-spacing:.08em}
@@ -215,7 +236,7 @@ body.dash .wrap{max-width:1480px}
     </div>
 
     <nav class="onglets" data-i18n-aria="ong.aria" aria-label="Pages de l'atelier">
-      <button type="button" data-page="accueil" class="actif" data-i18n="ong.accueil">Accueil</button>
+      <button type="button" data-page="accueil" class="actif"><span data-i18n="ong.accueil">Accueil</span><span class="n" id="nAccueil" hidden></span></button>
       <button type="button" data-page="boutique" data-i18n="ong.boutique">Contacts &amp; tarifs</button>
       <button type="button" data-page="collections"><span data-i18n="ong.collections">Collections</span><span class="n" id="nColl"></span></button>
       <button type="button" data-page="matieres"><span data-i18n="ong.matieres">Matières</span><span class="n" id="nMat"></span></button>
@@ -233,6 +254,21 @@ body.dash .wrap{max-width:1480px}
         <p data-i18n="acc.mot"></p>
       </div>
     </div>
+
+    <section class="nouveautes" id="nouveautesCarte" hidden>
+      <div class="nv-tete">
+        <span class="nv-pastille" data-i18n="nv.nouveau"></span>
+        <b id="nvTitre"></b>
+        <span class="nv-date" id="nvDate"></span>
+      </div>
+      <ul id="nvPoints"></ul>
+      <div class="row" style="margin-top:4px">
+        <button class="small" id="nvVu" data-i18n="nv.vu"></button>
+        <button class="ghost small" id="nvHisto" data-i18n="nv.histo"></button>
+      </div>
+    </section>
+
+    <p class="nv-lien" id="nvLienBas"><a href="#" id="nvHisto2" data-i18n="nv.histo"></a></p>
 
     <section id="journalSection" hidden>
       <h2 data-i18n="jr.titre"></h2>
@@ -381,6 +417,16 @@ body.dash .wrap{max-width:1480px}
   </div>
 </div>
 
+<div class="modal-nv" id="nvModal" hidden>
+  <div class="nv-panneau">
+    <div class="nv-panneau-tete">
+      <h2 data-i18n="nv.histoTitre"></h2>
+      <button type="button" class="ghost small" id="nvClose" data-i18n="nv.fermer"></button>
+    </div>
+    <p class="hint" data-i18n="nv.histoSous"></p>
+    <div id="nvHistoListe"></div>
+  </div>
+</div>
 <script>
 /* ---------- langues : français et 中文 (textes dans i18n-atelier.js) ---------- */
 const LANGUES = ["fr", "zh"];
@@ -409,6 +455,7 @@ function appliquerLangue(complet){
     () => { $("collList").innerHTML = ""; (CFG.collections || []).forEach(collRow); },
     () => rendreAvisAdmin(),
     () => { rendreRevues(); rendreVideos(); construireQr(); },
+    () => afficherNouveautes(),
     () => compteurs()
   ]) { try { f(); } catch {} }
 }
@@ -785,6 +832,74 @@ function compteurs(){
 new MutationObserver(compteurs).observe($("collList"), { childList: true });
 new MutationObserver(compteurs).observe($("matGrid"), { childList: true });
 
+/* ================== NOUVEAUTÉS ==================
+   Le journal des mises à jour vit dans nouveautes.json (à la racine du dépôt), en
+   français et en chinois. Dès la connexion, Yuan voit celles qu'elle n'a pas encore
+   lues ; l'historique complet reste consultable à tout moment. */
+let NOUVEAUTES = [];
+const nvLue = () => { try { return localStorage.getItem("tc_nouveautes_vue") || ""; } catch { return ""; } };
+const nvDate = iso => { try { return new Date(iso + "T12:00:00").toLocaleDateString(t("gen.locale"), { day: "numeric", month: "long", year: "numeric" }); } catch { return iso; } };
+const nvTexte = (o) => (o && (o[LANG] || o.fr)) || "";
+
+async function chargerNouveautes(){
+  try {
+    const r = await fetch("nouveautes.json?" + Date.now(), { cache: "no-store" });
+    if (r.ok) NOUVEAUTES = await r.json();
+  } catch {}
+  if (!Array.isArray(NOUVEAUTES)) NOUVEAUTES = [];
+  NOUVEAUTES.sort((a, b) => String(b.version).localeCompare(String(a.version)));
+  afficherNouveautes();
+  // une nouveauté non lue ramène Yuan sur l'accueil : elle la voit dès la connexion
+  const d = NOUVEAUTES[0];
+  if (d && nvLue() !== String(d.version)) allerPage("accueil");
+}
+
+function afficherNouveautes(){
+  const carte = $("nouveautesCarte");
+  const derniere = NOUVEAUTES[0];
+  const aVoir = derniere && nvLue() !== String(derniere.version);
+  carte.hidden = !aVoir;
+  $("nvLienBas").hidden = !NOUVEAUTES.length;
+  if (aVoir){
+    $("nvTitre").textContent = nvTexte(derniere.titre);
+    $("nvDate").textContent = nvDate(derniere.date || derniere.version);
+    const ul = $("nvPoints"); ul.innerHTML = "";
+    for (const pt of derniere.points || []){ const li = document.createElement("li"); li.textContent = nvTexte(pt); ul.appendChild(li); }
+  }
+  const pastille = $("nAccueil");
+  if (pastille){ pastille.hidden = !aVoir; pastille.textContent = aVoir ? "1" : ""; }
+  if (!$("nvModal").hidden) remplirHistorique();
+}
+
+function remplirHistorique(){
+  const box = $("nvHistoListe"); box.innerHTML = "";
+  if (!NOUVEAUTES.length){ box.innerHTML = `<p class="hint">${t("nv.aucune")}</p>`; return; }
+  for (const e of NOUVEAUTES){
+    const el = document.createElement("div"); el.className = "nv-entree";
+    el.innerHTML = `<div class="nv-tete"><b></b><span class="nv-date"></span></div><ul></ul>`;
+    el.querySelector("b").textContent = nvTexte(e.titre);
+    el.querySelector(".nv-date").textContent = nvDate(e.date || e.version);
+    const ul = el.querySelector("ul");
+    for (const pt of e.points || []){ const li = document.createElement("li"); li.textContent = nvTexte(pt); ul.appendChild(li); }
+    box.appendChild(el);
+  }
+}
+
+function ouvrirHistorique(ev){
+  if (ev) ev.preventDefault();
+  remplirHistorique();
+  $("nvModal").hidden = false;
+}
+$("nvVu").onclick = () => {
+  const d = NOUVEAUTES[0];
+  if (d){ try { localStorage.setItem("tc_nouveautes_vue", String(d.version)); } catch {} }
+  afficherNouveautes();
+};
+$("nvHisto").onclick = ouvrirHistorique;
+$("nvHisto2").onclick = ouvrirHistorique;
+$("nvClose").onclick = () => { $("nvModal").hidden = true; };
+$("nvModal").addEventListener("click", e => { if (e.target === $("nvModal")) $("nvModal").hidden = true; });
+
 async function ouvrirDash(){
   CFG = await readConfig();
   appliquerLangue(false);
@@ -802,6 +917,7 @@ async function ouvrirDash(){
   rendreAvisAdmin();
   compteurs();
   chargerMedia();
+  chargerNouveautes();
 }
 
 /* ================== MÉDIATHÈQUE : revues (PDF payants) et vidéos d'exemple ================== */

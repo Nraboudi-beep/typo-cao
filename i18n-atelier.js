@@ -208,6 +208,15 @@ fr: {
   "vd.lienPh": "https://www.youtube.com/watch?v=…",
   "co.nomPh": "Roses",
   "porte.telPh": "06 12 34 56 78",
+  "nv.titre": "Du nouveau dans ton atelier",
+  "nv.sous": "Voici ce qui a changé depuis ta dernière visite.",
+  "nv.vu": "J'ai vu, merci",
+  "nv.histo": "Historique des mises à jour",
+  "nv.histoTitre": "Historique des mises à jour",
+  "nv.histoSous": "Tout ce qui a été ajouté à ton atelier et à ton site, du plus récent au plus ancien.",
+  "nv.nouveau": "Nouveau",
+  "nv.aucune": "Aucune mise à jour pour l'instant.",
+  "nv.fermer": "Fermer",
   "gen.locale": "fr-FR"
 },
 
@@ -416,6 +425,15 @@ zh: {
   "vd.lienPh": "https://www.youtube.com/watch?v=…",
   "co.nomPh": "玫瑰",
   "porte.telPh": "06 12 34 56 78",
+  "nv.titre": "工作室有新变化",
+  "nv.sous": "这是你上次来之后的更新。",
+  "nv.vu": "我看过了，谢谢",
+  "nv.histo": "更新记录",
+  "nv.histoTitre": "更新记录",
+  "nv.histoSous": "工作室和网站的所有更新，从最新到最早。",
+  "nv.nouveau": "新",
+  "nv.aucune": "目前还没有更新。",
+  "nv.fermer": "关闭",
   "gen.locale": "zh-CN"
 }
 
