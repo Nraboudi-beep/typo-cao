@@ -108,6 +108,9 @@ html[lang="zh-Hans"] .panel label{letter-spacing:.04em;text-transform:none}
 .rail-left{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
 .coll-liste{display:flex;flex-direction:column;gap:10px;flex:none}
 .bloc-media{display:flex;flex-direction:column;gap:10px;flex:none}
+.bloc-media.surligne{animation:liserDoux 2.6s ease}
+@keyframes liserDoux{0%,100%{box-shadow:none}12%,72%{box-shadow:0 0 0 2px var(--gold)}}
+@media (prefers-reduced-motion:reduce){.bloc-media.surligne{animation:none;box-shadow:0 0 0 2px var(--gold)}}
 .revues{display:flex;flex-direction:column;gap:8px}
 .revue{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:8px;cursor:pointer;text-align:left;transition:border-color .2s,box-shadow .2s}
 .revue:hover{border-color:var(--gold);box-shadow:0 4px 14px var(--shadow)}
@@ -2661,7 +2664,19 @@ async function chargerMedia(){
   try { const r = await fetch(ATELIER_API + "/qr", { cache: "no-store" }); if (r.ok) QR = (await r.json()).types || []; } catch {}
   try { const r = await fetch(ATELIER_API + "/revues", { cache: "no-store" }); if (r.ok) REVUES = (await r.json()).revues || []; } catch {}
   try { const r = await fetch(ATELIER_API + "/videos", { cache: "no-store" }); if (r.ok) VIDEOS = (await r.json()).videos || []; } catch {}
-  construireRevues(); construireVideos(); refreshWa();
+  construireRevues(); construireVideos(); refreshWa(); allerVoir();
+}
+
+/* Arrivée depuis la page d'aperçu (?voir=revues / ?voir=videos) : on amène
+   le visiteur sur la bonne colonne et on la souligne un instant. */
+function allerVoir(){
+  const quoi = new URLSearchParams(location.search).get("voir");
+  const bloc = quoi === "revues" ? document.getElementById("blocRevues")
+             : quoi === "videos" ? document.getElementById("blocVideos") : null;
+  if (!bloc || bloc.hidden) return;
+  try { bloc.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" }); } catch { bloc.scrollIntoView(); }
+  bloc.classList.add("surligne");
+  setTimeout(() => bloc.classList.remove("surligne"), 2600);
 }
 
 /* ---- WeChat : envoi de la demande et paiement (le message est copié, le client le colle) ---- */
