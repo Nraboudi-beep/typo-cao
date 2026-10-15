@@ -1,5 +1,27 @@
 [
   {
+    "version": "2026-10-16",
+    "date": "2026-10-16",
+    "titre": {
+      "fr": "L'arabe, quatrième langue du site",
+      "zh": "网站新增第四种语言：阿拉伯语"
+    },
+    "points": [
+      {
+        "fr": "Un quatrième bouton عربي rejoint FR · 中文 · EN. Un visiteur arabophone trouve le site dans sa langue, et toute la page se met en miroir de droite à gauche comme il en a l'habitude.",
+        "zh": "FR · 中文 · EN 旁边多了第四个按钮 عربي。说阿拉伯语的访客会看到自己语言的网站，整个页面也会像他们习惯的那样从右向左镜像排布。"
+      },
+      {
+        "fr": "Tes lettres restent un alphabet latin : le client écrit donc son prénom en A–Z, comme partout ailleurs. Seule l'interface change de sens.",
+        "zh": "你的字母仍然是拉丁字母表：所以客户还是用 A–Z 写名字，和其他语言一样。只有界面方向改变。"
+      },
+      {
+        "fr": "Important : quand la demande arrive en arabe, le même devis est ajouté en français juste en dessous, pour que tu puisses le lire. Une ligne t'indique la langue du client.",
+        "zh": "重要：当订单用阿拉伯语发来时，同一份报价会用法语附在下面，方便你阅读。还有一行会标明客户的语言。"
+      }
+    ]
+  },
+  {
     "version": "2026-10-15b",
     "date": "2026-10-15",
     "titre": {
