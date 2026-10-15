@@ -188,6 +188,11 @@ function lireApercuMeta(id) {
 
 function pageApercu(id, meta) {
   const img = `${CFG.PUBLIC_URL}/a/${id}.jpg`;
+  const site = String(CFG.SITE_URL).replace(/\/+$/, "");
+  // Les deux boutons n'apparaissent que si l'atelier a déposé quelque chose :
+  // tant que Yuan n'a rien importé, ils ne mènent nulle part.
+  const aRevues = lireJson("revues.json", []).some(r => r.taille);
+  const aVideos = lireJson("videos.json", []).some(v => v.ext || v.lien);
   const video = meta && meta.video ? `${CFG.PUBLIC_URL}/a/${id}.${meta.video}` : "";
   const titre = meta && meta.titre ? `Aperçu Typo Cao — ${meta.titre}` : "Aperçu Typo Cao";
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -204,12 +209,17 @@ function pageApercu(id, meta) {
 main{width:min(100%,860px);text-align:center}.marque{font-family:Fraunces,Georgia,serif;letter-spacing:.14em;font-size:1.1rem;color:#2b2218;text-decoration:none}.marque b{color:#8a6330;font-weight:600}
 .cadre{margin:18px auto 0;border-radius:12px;overflow:hidden;box-shadow:0 24px 60px -24px rgba(90,62,28,.45);background:#000}
 img.apercu{max-width:100%;height:auto;display:block}
-h1{font:500 1.5rem Fraunces,Georgia,serif;margin:20px 0 4px}p{color:#8d7d67;margin:0 0 14px}a.cta{display:inline-block;margin-top:6px;color:#fdf9f1;background:linear-gradient(170deg,#a87c3f,#8a6330);border-radius:6px;padding:10px 20px;text-decoration:none;font-size:.9rem;letter-spacing:.08em}</style></head>
+h1{font:500 1.5rem Fraunces,Georgia,serif;margin:20px 0 4px}p{color:#8d7d67;margin:0 0 14px}a.cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;box-sizing:border-box;color:#fdf9f1;background:linear-gradient(170deg,#a87c3f,#8a6330);border:1px solid transparent;border-radius:8px;padding:0 18px;text-decoration:none;font-size:.9rem;font-weight:500;letter-spacing:.06em}
+a.cta.second{background:none;color:#8a6330;border-color:#c9a86a}
+a.cta.second:hover{background:rgba(168,124,63,.1);border-color:#a87c3f}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}</style></head>
 <body><main><a class="marque" href="${echapperHtml(CFG.SITE_URL)}">TYPO <b>CAO</b></a>
 <div class="cadre" id="cadre">${video ? `<video id="lecteur" controls playsinline preload="metadata" poster="${img}" style="width:100%;display:block"><source src="${video}" type="video/${meta.video}"></video>` : `<img class="apercu" src="${img}" alt="Aperçu de la création">`}</div>
 <h1>${echapperHtml(titre)}</h1>
 <p>Aperçu filigrané généré sur le site — la version finale, propre, est réalisée par l'atelier.</p>
-<a class="cta" href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a></main>${video ? `
+<div class="actions"><a class="cta" href="${echapperHtml(CFG.SITE_URL)}">Composer la mienne →</a>${aRevues ? `
+<a class="cta second" href="${echapperHtml(site)}/?voir=revues">Les revues</a>` : ""}${aVideos ? `
+<a class="cta second" href="${echapperHtml(site)}/?voir=videos">Les vidéos</a>` : ""}</div></main>${video ? `
 <script src="${echapperHtml(CFG.SITE_URL.replace(/\/+$/, ""))}/lecteur-typo.js"></script>
 <script>
 (function(){
