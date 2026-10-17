@@ -27,6 +27,9 @@ const CFG = {
   NUMEROS_AUTORISES: String(process.env.TYPO_CAO_WHATSAPP_TO || "").split(",").map(n => n.trim()).filter(Boolean),
   GITHUB_TOKEN: process.env.TYPO_CAO_GITHUB_TOKEN || "",
   SESSION_SECRET: process.env.TYPO_CAO_SESSION_SECRET || "",
+  // Pont vers le service Courrier (facultatif : vide = onglet Courrier absent)
+  COURRIER_PONT: process.env.TYPO_CAO_COURRIER_PONT || "",
+  COURRIER_URL: (process.env.TYPO_CAO_COURRIER_URL || "").replace(/\/+$/, ""),
   GITHUB_REPO: process.env.TYPO_CAO_GITHUB_REPO || "Nraboudi-beep/typo-cao",
   BRANCHES: (process.env.TYPO_CAO_GITHUB_BRANCHES || "typo-cao,main").split(",").map(b => b.trim()).filter(Boolean),
   // moteur WhatsApp : mêmes identifiants Meta que le reste du serveur
@@ -296,9 +299,10 @@ async function envoyerCodeTexte(code, destinataire) {
 }
 
 /* ---------- sessions ---------- */
-function creerJeton() {
+function creerJeton(tel) {
   const exp = Date.now() + SESSION_TTL_MS;
-  const payload = Buffer.from(JSON.stringify({ u: "atelier", exp })).toString("base64url");
+  // le numéro est conservé pour savoir de quelle boîte aux lettres il s'agit
+  const payload = Buffer.from(JSON.stringify({ u: "atelier", tel: String(tel || ""), exp })).toString("base64url");
   const sig = createHmac("sha256", CFG.SESSION_SECRET).update(payload).digest("base64url");
   return { jeton: `${payload}.${sig}`, expireLe: new Date(exp).toISOString() };
 }
@@ -316,6 +320,7 @@ function verifierSession(enTete) {
   catch { throw new ErreurApp(401, "TYPO_CAO_SESSION_INVALID", "Session invalide, reconnecte-toi"); }
   if (!p.exp || Date.now() > p.exp)
     throw new ErreurApp(401, "TYPO_CAO_SESSION_EXPIRED", "Session expirée, reconnecte-toi");
+  return p;
 }
 
 /* ---------- proxy GitHub ---------- */
@@ -603,7 +608,8 @@ async function router(req, res, url, ip) {
   const chemin = url.pathname.replace(/\/+$/, "");
 
   if (req.method === "GET" && chemin === "/api/typo-cao/status") {
-    return { configure: configure() };
+    // courrier : l'atelier n'affiche l'onglet que si le pont est en place
+    return { configure: configure(), courrier: !!(CFG.COURRIER_PONT && CFG.COURRIER_URL), courrierUrl: CFG.COURRIER_URL };
   }
 
   // --- aperçus : dépôt (site), page (/a/<id>), image (/a/<id>.jpg), redirection WhatsApp (/w/<id>)
@@ -743,7 +749,7 @@ async function router(req, res, url, ip) {
     }
     otps.delete(n);
     enregistrerConnexion("connexion_reussie", ip, n);
-    return creerJeton();
+    return creerJeton(n);
   }
 
   if (req.method === "POST" && chemin === "/api/typo-cao/avis") {
@@ -763,6 +769,20 @@ async function router(req, res, url, ip) {
     await ghEcrire("avis.json", Buffer.from(JSON.stringify(liste.slice(-500), null, 2)).toString("base64"), "Nouvel avis client (en attente de validation)");
     res.statusCode = 201;
     return { merci: true };
+  }
+
+  /* Laissez-passer pour le service Courrier.
+     L'atelier a déjà identifié la personne ; on lui remet un jeton court,
+     signé avec un secret que seuls les deux serveurs connaissent. Aucun mot
+     de passe de messagerie ne circule, et le laissez-passer vaut 2 minutes. */
+  if (req.method === "GET" && chemin === "/api/typo-cao/courrier-pass") {
+    const sess = verifierSession(req.headers.authorization);
+    if (!CFG.COURRIER_PONT)
+      throw new ErreurApp(503, "COURRIER_ABSENT", "Le service Courrier n'est pas configuré");
+    const exp = Date.now() + 120_000;
+    const corps = Buffer.from(JSON.stringify({ tel: sess.tel || "", exp })).toString("base64url");
+    const sig = createHmac("sha256", CFG.COURRIER_PONT).update(corps).digest("base64url");
+    return { pass: `${corps}.${sig}`, url: CFG.COURRIER_URL };
   }
 
   if (chemin === "/api/typo-cao/file") {
