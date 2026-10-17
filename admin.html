@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="ui.css">
 <script src="ui.js"></script>
 <script src="i18n-atelier.js"></script>
+<script src="courrier-atelier.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap">
 <style>
 :root{
@@ -181,6 +182,93 @@ body.dash .wrap{max-width:1480px}
 }
 @media (max-width:640px){.accueil-mot{padding:22px 20px}.onglets button{padding:10px 12px;font-size:.86rem}}
 [hidden]{display:none!important}
+
+/* ---------- onglet Courrier ---------- */
+/* la page prend la hauteur disponible : on ne doit jamais avoir à faire
+   défiler l'atelier pour atteindre le bouton d'envoi */
+.page[data-page="courrier"]{height:100%}
+.page[data-page="courrier"] .co{display:flex;flex-direction:column;min-height:0;margin:18px 0 0;
+  /* 18 px au-dessus + les 24 px de respiration que .pages ajoute en bas */
+  height:calc(100% - 42px)}
+.co-plan{display:grid;grid-template-columns:minmax(260px,.85fr) 1.5fr;gap:0;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);
+  flex:1;min-height:340px}
+.co-liste{display:flex;flex-direction:column;min-width:0;border-right:1px solid var(--line);background:var(--surface2,#f6f0e4)}
+.co-barre{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);flex:none}
+.co-cpt{margin-inline-start:auto;font-size:.74rem;color:var(--muted);white-space:nowrap}
+.co-fil{overflow:auto;flex:1;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.co-msg{display:block;width:100%;max-width:100%;overflow:hidden;text-align:start;
+  color:var(--fg);background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;
+  padding:11px 12px;min-height:0;letter-spacing:0;font-weight:400;box-shadow:none;cursor:pointer}
+.co-msg:hover{background:rgba(168,124,63,.07)}
+.co-msg.on{background:var(--surface);box-shadow:inset 3px 0 0 var(--gold)}
+.co-msg .l1{display:flex;align-items:baseline;gap:8px;min-width:0}
+.co-msg .de{min-width:0;flex:0 1 auto;font-family:var(--display,Georgia,serif);font-weight:500;font-size:.95rem;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[lang="zh-Hans"] .co-msg .de{font-family:inherit}
+.co-msg.neuf .de::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--gold);margin-inline-end:7px;vertical-align:middle}
+.co-msg .quand{margin-inline-start:auto;font-size:.68rem;color:var(--muted);white-space:nowrap;flex:none}
+.co-msg .objet{display:block;font-size:.84rem;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-msg .extrait{display:block;font-size:.75rem;color:var(--muted);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co-msg.fait .objet{text-decoration:line-through;text-decoration-color:var(--line)}
+.co-etiq{display:inline-block;flex:none;font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;
+  border:1px solid var(--line);border-radius:999px;padding:1px 7px;color:var(--gold-deep);background:var(--surface)}
+.co-vide{padding:34px 18px;text-align:center;color:var(--muted);font-size:.85rem;line-height:1.7}
+.co-lecture{display:flex;flex-direction:column;min-width:0;min-height:0}
+.co-rien{flex:1;display:grid;place-items:center;color:var(--muted);font-size:.88rem;padding:24px;text-align:center}
+.co-vue{flex:1;display:none;flex-direction:column;min-height:0}
+.co-vue.on{display:flex}
+.co-entete{padding:14px 18px 10px;border-bottom:1px solid var(--line);flex:none}
+.co-entete h3{margin:0 0 5px;font-family:var(--display,Georgia,serif);font-weight:500;font-size:1.1rem;line-height:1.35;overflow-wrap:anywhere}
+.co-meta{font-size:.78rem;color:var(--muted)}
+.co-meta b{color:var(--fg);font-weight:500}
+.co-corps{flex:1;min-height:60px;overflow:auto;overflow-wrap:anywhere;padding:14px 18px;
+  white-space:pre-wrap;line-height:1.65;font-size:.9rem;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.co-pj{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.co-pj span{font-size:.74rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 9px}
+.co-reponse{flex:none;border-top:1px solid var(--line);padding:10px 18px 14px;display:flex;flex-direction:column;gap:8px;
+  max-height:62%;overflow:auto;scrollbar-width:thin;scrollbar-color:var(--gold) transparent}
+.co-mods{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.co-mods .t{font-size:.74rem;color:var(--muted);margin-inline-end:4px}
+.co-mod{min-height:var(--ctl-h-sm);padding:0 .8em;font-size:.73rem;letter-spacing:.02em;
+  background:transparent;color:var(--gold-deep);border:1px solid var(--line)}
+.co-mod:hover{border-color:var(--gold);background:rgba(168,124,63,.08)}
+.co-mod.on{background:var(--gold-deep);color:#fdf9f1;border-color:var(--gold-deep)}
+.co-mod.sug{border-color:var(--gold)}
+#coBrouillon{width:100%;min-height:104px;resize:vertical;font-size:.9rem;line-height:1.6}
+.co-pied{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.co-reste{font-size:.76rem;color:#a33b2e}
+.co-reste.ok{color:#3d7a46}
+.co-parti{font-size:.82rem;color:#3d7a46}
+.co-actions{margin-inline-start:auto;display:flex;gap:8px}
+#coEnvoyer:disabled{opacity:.45;cursor:not-allowed}
+.co-retour,.co-retour-rep{display:none;margin:0 0 5px;padding-inline:.6em;gap:.25em;align-self:flex-start}
+.co-barre-rep{display:none}
+
+/* écran étroit : la liste, puis le message, puis la réponse */
+@media (max-width:900px){
+  .co-plan{grid-template-columns:1fr;grid-template-rows:1fr;height:min(76vh,700px)}
+  .co-plan > div{grid-area:1/1;min-width:0}
+  .co-liste{border-right:0}
+  .co-lecture{display:none}
+  .co-plan.lit .co-liste{display:none}
+  .co-plan.lit .co-lecture{display:flex}
+  .co-rien{display:none}
+  .co-retour,.co-retour-rep{display:inline-flex}
+  .co-barre-rep{display:flex;flex:none;padding:10px 14px;border-top:1px solid var(--line)}
+  .co-barre-rep button{width:100%}
+  .co-reponse{display:none}
+  .co-plan.repond .co-entete,.co-plan.repond .co-corps,.co-plan.repond .co-barre-rep{display:none}
+  .co-plan.repond .co-reponse{display:flex;flex:1;max-height:none}
+  .co-plan.repond #coBrouillon{flex:1}
+  .co-mods{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .co-mods .t{display:none}
+  .co-mod{flex:0 0 auto}
+  .co-actions{margin-inline-start:0;flex:1 1 100%;display:grid;grid-template-columns:auto 1fr;gap:8px}
+  .co-reste{flex:1 1 100%}
+  .co-entete,.co-corps,.co-reponse{padding-inline:14px}
+}
 </style>
 </head>
 <body>
@@ -244,6 +332,7 @@ body.dash .wrap{max-width:1480px}
       <button type="button" data-page="matieres"><span data-i18n="ong.matieres">Matières</span><span class="n" id="nMat"></span></button>
       <button type="button" data-page="revues"><span data-i18n="ong.revues">Revues</span><span class="n" id="nRevues"></span></button>
       <button type="button" data-page="videos"><span data-i18n="ong.videos">Vidéos</span><span class="n" id="nVideos"></span></button>
+      <button type="button" data-page="courrier" id="ongCourrier" hidden><span data-i18n="ong.courrier">Courrier</span><span class="n" id="nCourrier" hidden></span></button>
       <button type="button" data-page="avis"><span data-i18n="ong.avis">Avis clients</span><span class="n" id="nAvis" hidden></span></button>
     </nav>
 
@@ -378,6 +467,8 @@ body.dash .wrap{max-width:1480px}
     </section>
     </div>
 
+    <div class="page" data-page="courrier" id="pageCourrier" hidden></div>
+
     <div class="page" data-page="videos" hidden>
     <section>
       <h2 data-i18n="vd.titre"></h2>
@@ -459,6 +550,7 @@ function appliquerLangue(complet){
     () => rendreAvisAdmin(),
     () => { rendreRevues(); rendreVideos(); construireQr(); },
     () => afficherNouveautes(),
+    () => { if (window.CourrierAtelier) window.CourrierAtelier.retraduire(); },
     () => compteurs()
   ]) { try { f(); } catch {} }
 }
@@ -477,6 +569,7 @@ let MODE = null;      // "serveur" (identifiant + code WhatsApp) ou "cle" (clé 
 let TOKEN = null;     // clé GitHub (mode "cle")
 let SESSION = null;   // jeton de session (mode "serveur")
 let CFG = null;
+let COURRIER = "";    // adresse du service de courrier, vide s'il n'est pas relié
 
 /* ---------- API de l'atelier (le jeton GitHub reste sur le serveur) ---------- */
 async function apiAtelier(path, options = {}){
@@ -812,12 +905,18 @@ async function chargerJournal(){
 const PAGES_AVEC_ENREGISTRER = new Set(["boutique", "collections", "matieres"]);
 
 function allerPage(nom){
+  if (nom === "courrier" && !(COURRIER && MODE === "serveur")) nom = "accueil";
   if (!document.querySelector(`.page[data-page="${nom}"]`)) nom = "accueil";
   document.querySelectorAll(".page").forEach(p => p.hidden = p.dataset.page !== nom);
   document.querySelectorAll(".onglets button").forEach(b => b.classList.toggle("actif", b.dataset.page === nom));
   $("savebar").hidden = !PAGES_AVEC_ENREGISTRER.has(nom);
   document.querySelector(".pages").scrollTop = 0;
   try { localStorage.setItem("tc_page", nom); } catch {}
+  if (nom === "courrier" && window.CourrierAtelier)
+    window.CourrierAtelier.ouvrir({
+      racine: $("pageCourrier"), t, langue: () => LANG,
+      apiAtelier: apiAtelier, base: COURRIER
+    }).catch(e => console.error(e && e.message));
 }
 document.querySelectorAll(".onglets button").forEach(b => b.onclick = () => allerPage(b.dataset.page));
 document.getElementById("langues").addEventListener("click", e => { const b = e.target.closest("button[data-lang]"); if (b) choisirLangue(b.dataset.lang); });
@@ -908,6 +1007,7 @@ async function ouvrirDash(){
   appliquerLangue(false);
   $("loginView").hidden = true; $("dashView").hidden = false;
   document.body.classList.add("dash");
+  $("ongCourrier").hidden = !(COURRIER && MODE === "serveur");
   const h = new Date().getHours();
   $("accueilSalut").textContent = t(h >= 5 && h < 18 ? "dash.salutJour" : "dash.salutSoir");
   let derniere = "accueil";
@@ -1293,6 +1393,7 @@ $("addCollBtn").onclick = async () => {
     clearTimeout(minuteur);
     const s = await r.json();
     MODE = (r.ok && s.configure) ? "serveur" : "cle";
+    COURRIER = (r.ok && s.courrier) ? String(s.courrierUrl || "") : "";
   } catch { MODE = "cle"; }
 
   if (MODE === "serveur"){
