@@ -10,6 +10,10 @@
     {
       "id": "football",
       "label": "Football"
+    },
+    {
+      "id": "jeweled-01",
+      "label": "Jeweled 01"
     }
   ],
   "matieres": [
@@ -137,5 +141,7 @@
       "fichier": "mix_Z.webp",
       "nom": "Rouge baroque"
     }
-  ]
+  ],
+  "paypal": "",
+  "wechat": ""
 }
